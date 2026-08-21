@@ -1,5 +1,8 @@
 using SharedKernel.Modules;
 
+using SystemSettings.Controllers;
+using SystemSettings.Services;
+
 namespace SystemSettings;
 
 /// <summary>
@@ -17,5 +20,8 @@ public sealed class SystemSettingsModule : IModule
     /// <inheritdoc />
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddControllers()
+                .AddApplicationPart(typeof(SystemSettingsController).Assembly);
+        services.AddSingleton<ISystemSettingsService, SystemSettingsService>();
     }
 }

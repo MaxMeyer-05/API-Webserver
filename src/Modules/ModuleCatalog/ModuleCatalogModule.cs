@@ -10,7 +10,7 @@ namespace ModuleCatalog;
 /// </summary>
 public sealed class ModuleCatalogModule : IModule
 {
-    public string Slug => "shared-kernel";
+    public string Slug => "module-catalog";
     public string DisplayName => "Registered Modules";
     public string? Description => "Displays all registered modules.";
     public ModuleKind Kind => ModuleKind.SystemFeature;
