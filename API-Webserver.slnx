@@ -11,4 +11,7 @@
     <Project Path="src/Modules/ModuleCatalog/ModuleCatalog.csproj" />
     <Project Path="src/Modules/SystemSettings/SystemSettings.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Server.IntegrationTests/Server.IntegrationTests.csproj" />
+  </Folder>
 </Solution>
