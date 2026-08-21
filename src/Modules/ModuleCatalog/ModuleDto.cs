@@ -1,4 +1,4 @@
-namespace Server.API.Modules;
+namespace ModuleCatalog;
 
 /// <summary>
 /// Represents a module in the system.
@@ -8,5 +8,5 @@ public record ModuleDto(
     string DisplayName,
     string? Description,
     string Kind,
-    string? Url
+    string Url
 );

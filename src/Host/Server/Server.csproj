@@ -12,6 +12,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <ProjectReference Include="..\..\BuildingBlocks\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Modules\GroceryStore\GroceryStore.csproj" />
+    <ProjectReference Include="..\..\Modules\ModuleCatalog\ModuleCatalog.csproj" />
+    <ProjectReference Include="..\..\Modules\SystemSettings\SystemSettings.csproj" />
   </ItemGroup>
   
 </Project>

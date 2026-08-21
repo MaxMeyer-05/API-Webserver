@@ -1,4 +1,4 @@
-namespace Server.API.Modules;
+namespace SharedKernel.Modules;
 
 /// <summary>
 /// Represents a module that can be registered with the server.
@@ -49,4 +49,10 @@ public interface IModule
     /// </summary>
     /// <param name="endpoints">The endpoint route builder to map the module's endpoints to.</param>
     void MapEndpoints(IEndpointRouteBuilder endpoints);
+
+    /// <summary>
+    /// Registers health checks for the module.
+    /// </summary>
+    /// <param name="healthChecksBuilder">The health checks builder to register health checks with.</param>
+    void RegisterHealthChecks(IHealthChecksBuilder healthChecksBuilder) { }
 }

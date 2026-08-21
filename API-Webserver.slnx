@@ -1,6 +1,14 @@
 <Solution>
   <Folder Name="/src/" />
-  <Folder Name="/src/Server/">
-    <Project Path="src/Server/Server.API/Server.API.csproj" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/SharedKernel/SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/Server/Server.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/GroceryStore/GroceryStore.csproj" />
+    <Project Path="src/Modules/ModuleCatalog/ModuleCatalog.csproj" />
+    <Project Path="src/Modules/SystemSettings/SystemSettings.csproj" />
   </Folder>
 </Solution>

@@ -12,8 +12,6 @@ appsettings.Development.json
 appsettings.Production.json
 appsettings.Staging.json
 
-tests/**
-
 # User-specific files
 *.rsuser
 *.suo

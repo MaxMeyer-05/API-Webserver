@@ -1,4 +1,4 @@
-namespace Server.API.Modules;
+namespace SharedKernel.Modules;
 
 /// <summary>
 /// Defines the kind of a module, 
