@@ -56,12 +56,10 @@ app.MapControllers();
 
 foreach (var module in modules)
 {
-    app.MapHealthChecks($"/health/{module.Slug}", new()
+    app.MapHealthChecks($"/api/health/{module.Slug}", new()
     {
         Predicate = registration => registration.Tags.Contains($"module:{module.Slug}")
     });
-
-    module.MapEndpoints(app);
 }
 
 app.Run();

@@ -1,7 +1,13 @@
+using ModuleCatalog.Controllers;
+using ModuleCatalog.Services;
 using SharedKernel.Modules;
 
 namespace ModuleCatalog;
 
+/// <summary>
+/// Represents the module catalog feature, 
+/// which provides information about registered modules in the system.
+/// </summary>
 public sealed class ModuleCatalogModule : IModule
 {
     public string Slug => "shared-kernel";
@@ -10,30 +16,11 @@ public sealed class ModuleCatalogModule : IModule
     public ModuleKind Kind => ModuleKind.SystemFeature;
     public string StaticFileUrlPrefix => "api/modules";
 
+    /// <inheritdoc />
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-
-    }
-
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        var group = endpoints.MapGroup("/api/modules")
-                             .WithTags("Modules");
-
-        group.MapGet("/", (IEnumerable<IModule> installedModules) =>
-        {
-            var result = installedModules.Select(m => new ModuleDto(
-                m.Slug,
-                m.DisplayName,
-                m.Description,
-                m.Kind.ToString(),
-                m.StaticFileUrlPrefix
-            ));
-
-            return Results.Ok(result);
-        })
-        .WithName("GetInstalledModules")
-        .WithSummary("Liefert alle registrierten Module für das Hub-Dashboard.")
-        .Produces<IEnumerable<ModuleDto>>(StatusCodes.Status200OK);
+        services.AddControllers()
+                .AddApplicationPart(typeof(ModuleCatalogController).Assembly);
+        services.AddSingleton<IModuleCatalogService, ModuleCatalogService>();
     }
 }
