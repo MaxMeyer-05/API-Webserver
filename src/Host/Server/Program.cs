@@ -1,6 +1,9 @@
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 using GroceryStore;
+using GroceryStore.Database.DbContexts;
+
 using ModuleCatalog;
 using SharedKernel.Modules;
 using SystemSettings;
@@ -38,8 +41,20 @@ builder.Host.UseSerilog((context, configuration) =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<GroceryStoreDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("GroceryStore");
+    options.UseSqlite(connectionString);
+});
+
 // Build the application
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbcontext = scope.ServiceProvider.GetRequiredService<GroceryStoreDbContext>();
+    dbcontext.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

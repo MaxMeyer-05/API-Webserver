@@ -10,6 +10,12 @@ namespace GroceryStore.Database.Entities;
 public partial class RecipeIngredient
 {
     /// <summary>
+    /// Defines the unique identifier for the recipe ingredient entry.
+    /// </summary>
+    [Key]
+    public int Id { get; set; }
+
+    /// <summary>
     /// Defines the identifier of the associated recipe.
     /// </summary>
     public int RecipeId { get; set; }
