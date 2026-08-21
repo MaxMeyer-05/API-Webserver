@@ -2,7 +2,6 @@ using Serilog;
 
 using GroceryStore;
 using ModuleCatalog;
-using SharedKernel;
 using SharedKernel.Modules;
 using SystemSettings;
 
