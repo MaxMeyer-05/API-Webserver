@@ -12,7 +12,7 @@ namespace ModuleCatalog.Controllers;
 [Route("api/modules")]
 [Tags("ModuleCatalog")]
 [Produces("application/json")]
-
+[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 public sealed class ModuleCatalogController : ControllerBase
 {
     private readonly IModuleCatalogService _moduleCatalogService;
