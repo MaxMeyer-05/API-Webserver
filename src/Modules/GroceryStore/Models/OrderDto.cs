@@ -1,4 +1,4 @@
-namespace GroceryStore.DTOs;
+namespace GroceryStore.Models;
 
 /// <summary>
 /// Represents a data transfer object (DTO) for an order.

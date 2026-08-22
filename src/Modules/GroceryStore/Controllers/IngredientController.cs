@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using GroceryStore.DTOs;
+using GroceryStore.Models;
 
 namespace GroceryStore.Controllers;
 
