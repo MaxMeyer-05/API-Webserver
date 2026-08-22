@@ -26,7 +26,7 @@ public partial class Order
     /// Defines the date and time at which the order was placed.
     /// </summary>
     [Required]
-    public DateTime OrderDate { get; set; }
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Defines the total monetary amount of the order.

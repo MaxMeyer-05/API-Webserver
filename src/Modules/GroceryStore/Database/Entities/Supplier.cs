@@ -93,12 +93,12 @@ public partial class Supplier
     /// which can be used for auditing and tracking purposes.
     /// </summary>
     [Required]
-    public DateTime CreatedAtDateTime { get; set; }
+    public DateTime CreatedAtDateTime { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Defines the date and time when the supplier was last updated, 
     /// which can be used for auditing and tracking purposes.
     /// </summary>
     [Required]
-    public DateTime UpdatedAtDateTime { get; set; }
+    public DateTime UpdatedAtDateTime { get; set; } = DateTime.UtcNow;
 }
