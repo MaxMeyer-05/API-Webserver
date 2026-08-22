@@ -12,7 +12,14 @@
     <Project Path="src/Modules/ModuleCatalog/ModuleCatalog.csproj" />
     <Project Path="src/Modules/SystemSettings/SystemSettings.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Server.IntegrationTests/Server.IntegrationTests.csproj" />
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/GroceryStore.Tests/GroceryStore.Tests.csproj" />
+    <Project Path="tests/Modules/HealthDiagnostics.Tests/HealthDiagnostics.Tests.csproj" />
+    <Project Path="tests/Modules/ModuleCatalog.Tests/ModuleCatalog.Tests.csproj" />
+    <Project Path="tests/Modules/SystemSettings.Tests/SystemSettings.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Host/">
+    <Project Path="tests/Host/Server.Tests/Server.Tests.csproj" />
   </Folder>
 </Solution>
