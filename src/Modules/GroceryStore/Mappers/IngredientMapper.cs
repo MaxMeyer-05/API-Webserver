@@ -13,6 +13,7 @@ public class IngredientMapper : IIngredientMapper
     public IngredientDto ToIngredientDto(Ingredient ingredient)
     {
         return new IngredientDto(
+            IngredientId: ingredient.Id,
             Name: ingredient.Name,
             Unit: ingredient.Unit,
             NetPrice: ingredient.NetPrice,
