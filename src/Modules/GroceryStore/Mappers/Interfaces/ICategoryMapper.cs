@@ -7,15 +7,15 @@ public interface ICategoryMapper
     /// <summary>
     /// Maps a <see cref="CategoryCreateDto"/> to a <see cref="Category"/> entity.
     /// </summary>
-    /// <param name="categoryDto">The CategoryCreateDto to map.</param>
-    /// <returns>The mapped Category entity.</returns>
+    /// <param name="categoryDto">The <see cref="CategoryCreateDto"/> to map.</param>
+    /// <returns>The mapped <see cref="Category"/> entity.</returns>
     Category ToCategoryEntity(CategoryCreateDto categoryDto);
 
     /// <summary>
     /// Maps a <see cref="Category"/> entity to a <see cref="CategoryDto"/>.
     /// </summary>
-    /// <param name="category">The Category entity to map.</param>
-    /// <returns>The mapped CategoryDto.</returns>
+    /// <param name="category">The <see cref="Category"/> entity to map.</param>
+    /// <returns>The mapped <see cref="CategoryDto"/>.</returns>
     CategoryDto ToCategoryDto(Category category);
 
     /// <summary>

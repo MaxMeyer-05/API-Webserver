@@ -4,8 +4,12 @@ using GroceryStore.Mappers.Interfaces;
 
 namespace GroceryStore.Mappers;
 
+/// <summary>
+/// Mapper class for converting between Ingredient entities and DTOs.
+/// </summary>
 public class IngredientMapper : IIngredientMapper
 {
+    /// <inheritdoc/>
     public IngredientDto ToIngredientDto(Ingredient ingredient)
     {
         return new IngredientDto(
@@ -22,6 +26,7 @@ public class IngredientMapper : IIngredientMapper
         );
     }
 
+    /// <inheritdoc/>
     public Ingredient ToIngredientEntity(IngredientCreateDto ingredientDto)
     {
         return new Ingredient
@@ -38,6 +43,7 @@ public class IngredientMapper : IIngredientMapper
         };
     }
 
+    /// <inheritdoc/>
     public void UpdateIngredientEntity(Ingredient ingredient, IngredientUpdateDto ingredientUpdateDto)
     {
         if (ingredientUpdateDto.Name is not null)

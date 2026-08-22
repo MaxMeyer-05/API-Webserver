@@ -7,15 +7,15 @@ public interface IIngredientMapper
     /// <summary>
     /// Maps a <see cref="IngredientCreateDto"/> to a <see cref="Ingredient"/> entity.
     /// </summary>
-    /// <param name="ingredientDto">The IngredientCreateDto to map.</param>
-    /// <returns>The mapped Ingredient entity.</returns>
+    /// <param name="ingredientDto">The <see cref="IngredientCreateDto"/> to map.</param>
+    /// <returns>The mapped <see cref="Ingredient"/> entity.</returns>
     Ingredient ToIngredientEntity(IngredientCreateDto ingredientDto);
 
     /// <summary>
     /// Maps a <see cref="Ingredient"/> entity to a <see cref="IngredientDto"/>.
     /// </summary>
-    /// <param name="ingredient">The Ingredient entity to map.</param>
-    /// <returns>The mapped IngredientDto.</returns>
+    /// <param name="ingredient">The <see cref="Ingredient"/> entity to map.</param>
+    /// <returns>The mapped <see cref="IngredientDto"/>.</returns>
     IngredientDto ToIngredientDto(Ingredient ingredient);
 
     /// <summary>

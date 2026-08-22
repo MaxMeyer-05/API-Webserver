@@ -4,6 +4,9 @@ using GroceryStore.Mappers.Interfaces;
 
 namespace GroceryStore.Mappers;
 
+/// <summary>
+/// Mapper class for converting between Allergen entities and DTOs.
+/// </summary>
 public class AllergenMapper : IAllergenMapper
 {
     /// <inheritdoc/>

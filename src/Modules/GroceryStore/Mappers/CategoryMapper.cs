@@ -4,6 +4,9 @@ using GroceryStore.Mappers.Interfaces;
 
 namespace GroceryStore.Mappers;
 
+/// <summary>
+/// Mapper class for converting between Category entities and DTOs.
+/// </summary>
 public class CategoryMapper : ICategoryMapper
 {
     /// <inheritdoc/>

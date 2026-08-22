@@ -5,17 +5,17 @@ namespace GroceryStore.Mappers.Interfaces;
 public interface IAllergenMapper
 {
     /// <summary>
-    /// Maps an <see cref="AllergenDto"/> to an <see cref="Allergen"/> entity.
+    /// Maps an <see cref="AllergenCreateDto"/> to an <see cref="Allergen"/> entity.
     /// </summary>
-    /// <param name="allergenDto">The AllergenDto to map.</param>
-    /// <returns>The mapped Allergen entity.</returns>
+    /// <param name="allergenDto">The <see cref="AllergenCreateDto"/> to map.</param>
+    /// <returns>The mapped <see cref="Allergen"/> entity.</returns>
     Allergen ToAllergenEntity(AllergenCreateDto allergenDto);
 
     /// <summary>
     /// Maps an <see cref="Allergen"/> entity to an <see cref="AllergenDto"/>.
     /// </summary>
-    /// <param name="allergen">The Allergen entity to map.</param>
-    /// <returns>The mapped AllergenDto.</returns>
+    /// <param name="allergen">The <see cref="Allergen"/> entity to map.</param>
+    /// <returns>The mapped <see cref="AllergenDto"/>.</returns>
     AllergenDto ToAllergenDto(Allergen allergen);
 
 
