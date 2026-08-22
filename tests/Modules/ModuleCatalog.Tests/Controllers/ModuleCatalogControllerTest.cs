@@ -2,6 +2,7 @@ using Moq;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 
 using ModuleCatalog.Controllers;
 using ModuleCatalog.Contracts;
@@ -27,7 +28,9 @@ public class ModuleCatalogControllerTest
             .Setup(s => s.GetRegisteredEndpoints())
             .Returns(expectedEndpoints);
 
-        var controller = new ModuleCatalogController(serviceMock.Object);
+        var controller = new ModuleCatalogController(
+            serviceMock.Object,
+            NullLogger<ModuleCatalogController>.Instance);
 
         // Act
         var result = controller.GetRegisteredEndpoints();
@@ -58,7 +61,9 @@ public class ModuleCatalogControllerTest
             .Setup(s => s.GetInstalledModules())
             .Returns(expectedModules);
 
-        var controller = new ModuleCatalogController(serviceMock.Object);
+        var controller = new ModuleCatalogController(
+            serviceMock.Object,
+            NullLogger<ModuleCatalogController>.Instance);
 
         // Act
         var result = controller.GetInstalledModules();
