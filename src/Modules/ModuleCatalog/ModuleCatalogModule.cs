@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 using ModuleCatalog.Controllers;
 using ModuleCatalog.Services;
 using SharedKernel.Modules;
@@ -22,5 +24,14 @@ public sealed class ModuleCatalogModule : IModule
         services.AddControllers()
                 .AddApplicationPart(typeof(ModuleCatalogController).Assembly);
         services.AddSingleton<IModuleCatalogService, ModuleCatalogService>();
+    }
+
+    /// <inheritdoc />
+    public void RegisterHealthChecks(IHealthChecksBuilder healthChecksBuilder)
+    {
+        healthChecksBuilder.AddCheck(
+            "module-catalog-self", 
+            () => HealthCheckResult.Healthy("Module catalog module active."), 
+            tags: ["system", $"module:{Slug}"]);
     }
 }

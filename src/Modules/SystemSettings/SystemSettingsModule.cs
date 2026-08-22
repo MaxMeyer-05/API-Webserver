@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 using SharedKernel.Modules;
 
 using SystemSettings.Controllers;
@@ -23,5 +25,14 @@ public sealed class SystemSettingsModule : IModule
         services.AddControllers()
                 .AddApplicationPart(typeof(SystemSettingsController).Assembly);
         services.AddSingleton<ISystemSettingsService, SystemSettingsService>();
+    }
+
+    /// <inheritdoc />
+    public void RegisterHealthChecks(IHealthChecksBuilder healthChecksBuilder)
+    {
+        healthChecksBuilder.AddCheck(
+            "system-settings-self", 
+            () => HealthCheckResult.Healthy("System Settings module active."), 
+            tags: ["system", $"module:{Slug}"]);
     }
 }
