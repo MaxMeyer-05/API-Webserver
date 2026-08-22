@@ -13,6 +13,9 @@
     <Project Path="src/Modules/SystemSettings/SystemSettings.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/BuildingBlocks/">
+    <Project Path="tests/BuildingBlocks/SharedKernel.Tests/SharedKernel.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Modules/">
     <Project Path="tests/Modules/GroceryStore.Tests/GroceryStore.Tests.csproj" />
     <Project Path="tests/Modules/HealthDiagnostics.Tests/HealthDiagnostics.Tests.csproj" />
