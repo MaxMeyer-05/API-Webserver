@@ -11,9 +11,14 @@ using SharedKernel.Modules;
 
 namespace ModuleCatalog.Tests;
 
+[Trait("Category", "Module")]
+[Trait("Module", "ModuleCatalog")]
 public class ModuleCatalogModuleTest
 {
+    #region Metadata Tests
+
     [Fact]
+    [Trait("Feature", "Metadata")]
     public void Properties_ShouldReturnExpectedModuleMetadata()
     {
         // Arrange
@@ -28,7 +33,12 @@ public class ModuleCatalogModuleTest
         Assert.Equal("api/modules", module.StaticFileUrlPrefix);
     }
 
+    #endregion
+
+    #region Service Registration Tests
+
     [Fact]
+    [Trait("Feature", "ServiceRegistration")]
     public void ConfigureServices_ShouldRegisterModuleCatalogServiceAsSingleton()
     {
         // Arrange
@@ -49,6 +59,7 @@ public class ModuleCatalogModuleTest
     }
 
     [Fact]
+    [Trait("Feature", "ServiceRegistration")]
     public void ConfigureServices_ShouldAddControllerAssemblyToApplicationParts()
     {
         // Arrange
@@ -69,7 +80,12 @@ public class ModuleCatalogModuleTest
             part => part.Assembly == controllerAssembly);
     }
 
+            #endregion
+
+            #region Health Check Registration Tests
+
     [Fact]
+            [Trait("Feature", "HealthChecks")]
     public async Task RegisterHealthChecks_ShouldRegisterHealthyModuleCheck()
     {
         // Arrange
@@ -95,6 +111,7 @@ public class ModuleCatalogModuleTest
     }
 
     [Fact]
+    [Trait("Feature", "HealthChecks")]
     public async Task RegisterHealthChecks_ShouldFilterCorrectlyByTags()
     {
         // Arrange
@@ -115,4 +132,6 @@ public class ModuleCatalogModuleTest
         Assert.Single(systemReport.Entries);
         Assert.Empty(unrelatedReport.Entries);
     }
+
+    #endregion
 }

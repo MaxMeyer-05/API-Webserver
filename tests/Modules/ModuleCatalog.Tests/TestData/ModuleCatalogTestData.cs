@@ -11,6 +11,8 @@ namespace ModuleCatalog.Tests.TestData;
 
 public static class ModuleCatalogTestData
 {
+    #region DTO Fixtures
+
     public static IReadOnlyList<EndpointDto> RegisteredEndpointDtos =>
     [
         new("health", ["*"], "Health check"),
@@ -28,6 +30,10 @@ public static class ModuleCatalogTestData
             "api/modules"),
         new("store", "Grocery Store", null, "Standard", "api/store")
     ];
+
+    #endregion
+
+    #region Endpoint Fixtures
 
     public static IReadOnlyList<Endpoint> RegisteredEndpoints =>
     [
@@ -65,6 +71,10 @@ public static class ModuleCatalogTestData
             displayName);
     }
 
+    #endregion
+
+    #region Module Fixtures
+
     public static IModule CreateModule(
         string slug,
         string displayName,
@@ -80,4 +90,6 @@ public static class ModuleCatalogTestData
         moduleMock.SetupGet(m => m.StaticFileUrlPrefix).Returns(staticFileUrlPrefix);
         return moduleMock.Object;
     }
+
+    #endregion
 }

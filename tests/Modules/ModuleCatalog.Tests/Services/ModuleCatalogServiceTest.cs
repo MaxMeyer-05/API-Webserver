@@ -10,8 +10,12 @@ using SharedKernel.Modules;
 
 namespace ModuleCatalog.Tests.Services;
 
+[Trait("Category", "Service")]
+[Trait("Module", "ModuleCatalog")]
 public class ModuleCatalogServiceTest
 {
+    #region Test Setup Helpers
+
     private static ModuleCatalogService CreateService(
         IReadOnlyList<Endpoint>? endpoints = null,
         IEnumerable<IModule>? modules = null)
@@ -24,7 +28,12 @@ public class ModuleCatalogServiceTest
         return new ModuleCatalogService(endpointDataSourceMock.Object, modules ?? []);
     }
 
+    #endregion
+
+    #region GetRegisteredEndpoints Tests
+
     [Fact]
+    [Trait("Feature", "RegisteredEndpoints")]
     public void GetRegisteredEndpoints_ShouldMapFilterAndSortRouteEndpoints()
     {
         // Arrange
@@ -57,6 +66,7 @@ public class ModuleCatalogServiceTest
     }
 
     [Fact]
+    [Trait("Feature", "RegisteredEndpoints")]
     public void GetRegisteredEndpoints_ShouldFilterOutNonRouteEndpoints()
     {
         // Arrange
@@ -71,6 +81,7 @@ public class ModuleCatalogServiceTest
     }
 
     [Fact]
+    [Trait("Feature", "RegisteredEndpoints")]
     public void GetRegisteredEndpoints_ShouldDefaultToWildcardMethod_WhenHttpMethodMetadataMissing()
     {
         // Arrange
@@ -86,6 +97,7 @@ public class ModuleCatalogServiceTest
     }
 
     [Fact]
+    [Trait("Feature", "RegisteredEndpoints")]
     public void GetRegisteredEndpoints_ShouldReturnEmptyList_WhenNoEndpointsRegistered()
     {
         // Arrange
@@ -98,7 +110,12 @@ public class ModuleCatalogServiceTest
         Assert.Empty(result);
     }
 
+    #endregion
+
+    #region GetInstalledModules Tests
+
     [Fact]
+    [Trait("Feature", "InstalledModules")]
     public void GetInstalledModules_ShouldMapAndSortModulesBySlug()
     {
         // Arrange
@@ -129,6 +146,7 @@ public class ModuleCatalogServiceTest
     }
 
     [Fact]
+    [Trait("Feature", "InstalledModules")]
     public void GetInstalledModules_ShouldReturnEmptyList_WhenNoModulesInstalled()
     {
         // Arrange
@@ -140,4 +158,6 @@ public class ModuleCatalogServiceTest
         // Assert
         Assert.Empty(result);
     }
+
+    #endregion
 }

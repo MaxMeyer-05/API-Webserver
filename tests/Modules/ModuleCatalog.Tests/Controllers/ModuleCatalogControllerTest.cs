@@ -10,9 +10,14 @@ using ModuleCatalog.Tests.TestData;
 
 namespace ModuleCatalog.Tests.Controllers;
 
+[Trait("Category", "Controller")]
+[Trait("Module", "ModuleCatalog")]
 public class ModuleCatalogControllerTest
 {
+    #region GetRegisteredEndpoints Tests
+
     [Fact]
+    [Trait("Action", "GetRegisteredEndpoints")]
     public void GetRegisteredEndpoints_ShouldReturnOkWithRegisteredEndpoints()
     {
         // Arrange
@@ -38,7 +43,12 @@ public class ModuleCatalogControllerTest
         serviceMock.VerifyNoOtherCalls();
     }
 
+    #endregion
+
+    #region GetInstalledModules Tests
+
     [Fact]
+    [Trait("Action", "GetInstalledModules")]
     public void GetInstalledModules_ShouldReturnOkWithInstalledModules()
     {
         // Arrange
@@ -63,4 +73,6 @@ public class ModuleCatalogControllerTest
         serviceMock.Verify(s => s.GetInstalledModules(), Times.Once);
         serviceMock.VerifyNoOtherCalls();
     }
+
+    #endregion
 }
