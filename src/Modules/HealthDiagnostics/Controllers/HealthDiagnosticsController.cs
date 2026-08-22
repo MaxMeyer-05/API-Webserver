@@ -17,10 +17,14 @@ namespace HealthDiagnostics.Controllers;
 public class HealthDiagnosticsController : ControllerBase
 {
     private readonly IHealthDiagnosticsServices _diagnosticsService;
+    private readonly ILogger<HealthDiagnosticsController> _logger;
 
-    public HealthDiagnosticsController(IHealthDiagnosticsServices diagnosticsService)
+    public HealthDiagnosticsController(
+        IHealthDiagnosticsServices diagnosticsService, 
+        ILogger<HealthDiagnosticsController> logger)
     {
         _diagnosticsService = diagnosticsService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -37,10 +41,14 @@ public class HealthDiagnosticsController : ControllerBase
     [ProducesResponseType(typeof(HealthStatusResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetFullStatus([FromQuery] bool probeEndpoints, CancellationToken ct)
     {
+        _logger.LogDebug("Received request to get full health status.");
+
         var report = await _diagnosticsService.GetHealthReportAsync(
             predicate: null, 
             includeEndpointProbes: probeEndpoints, 
             ct: ct);
+
+        _logger.LogDebug("Health status report generated.");
 
         return report.Status == nameof(HealthStatus.Unhealthy)
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, report)
@@ -57,7 +65,12 @@ public class HealthDiagnosticsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<EndpointProbeResultDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ProbeAllEndpoints(CancellationToken ct)
     {
+        _logger.LogDebug("Received request to probe all endpoints.");
+
         var results = await _diagnosticsService.ProbeAllEndpointsAsync(ct: ct);
+
+        _logger.LogDebug("Endpoint probe results generated.");
+
         return Ok(results);
     }
 
@@ -76,10 +89,14 @@ public class HealthDiagnosticsController : ControllerBase
     [ProducesResponseType(typeof(HealthStatusResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetDatabaseStatus(CancellationToken ct)
     {
+        _logger.LogDebug("Received request to get database health status.");
+
         var report = await _diagnosticsService.GetHealthReportAsync(
             predicate: check => check.Tags.Contains("ready") || check.Tags.Contains("db"),
             includeEndpointProbes: false,
             ct: ct);
+
+        _logger.LogDebug("Database health status report generated.");
 
         return report.Status == nameof(HealthStatus.Unhealthy)
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, report)

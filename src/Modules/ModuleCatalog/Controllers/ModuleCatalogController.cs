@@ -16,10 +16,14 @@ namespace ModuleCatalog.Controllers;
 public sealed class ModuleCatalogController : ControllerBase
 {
     private readonly IModuleCatalogService _moduleCatalogService;
+    private readonly ILogger<ModuleCatalogController> _logger;
 
-    public ModuleCatalogController(IModuleCatalogService moduleCatalogService)
+    public ModuleCatalogController(
+        IModuleCatalogService moduleCatalogService,
+        ILogger<ModuleCatalogController> logger)
     {
         _moduleCatalogService = moduleCatalogService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -32,6 +36,7 @@ public sealed class ModuleCatalogController : ControllerBase
     [ProducesResponseType<IEnumerable<EndpointDto>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<EndpointDto>> GetRegisteredEndpoints()
     {
+        _logger.LogDebug("Retrieving registered endpoints from the module catalog.");
         return Ok(_moduleCatalogService.GetRegisteredEndpoints());
     }
 
@@ -45,6 +50,7 @@ public sealed class ModuleCatalogController : ControllerBase
     [ProducesResponseType<IEnumerable<ModuleDto>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<ModuleDto>> GetInstalledModules()
     {
+        _logger.LogDebug("Retrieving installed modules from the module catalog.");
         return Ok(_moduleCatalogService.GetInstalledModules());
     }
 }

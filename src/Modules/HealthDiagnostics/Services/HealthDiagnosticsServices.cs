@@ -15,19 +15,22 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
     private readonly EndpointDataSource _endpointDataSource;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHealthDiagnosticsMapper _mapper;
+    private readonly ILogger<HealthDiagnosticsServices> _logger;
 
     public HealthDiagnosticsServices(
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
         EndpointDataSource endpointDataSource,
         IHttpContextAccessor httpContextAccessor,
-        IHealthDiagnosticsMapper mapper)
+        IHealthDiagnosticsMapper mapper,
+        ILogger<HealthDiagnosticsServices> logger)
     {
         _healthCheckService = healthCheckService;
         _httpClientFactory = httpClientFactory;
         _endpointDataSource = endpointDataSource;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -120,10 +123,12 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
+            _logger.LogWarning("Health probe for '{Url}' was canceled.", url);
             throw;
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error occurred while probing endpoint '{Url}'.", url);
             return new EndpointProbeOutcome(
                 HealthCheckResult.Unhealthy($"Error calling '{url}'.", ex),
                 null);
