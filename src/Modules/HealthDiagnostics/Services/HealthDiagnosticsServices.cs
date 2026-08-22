@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Net;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+using HealthDiagnostics.Mappers;
 using HealthDiagnostics.Models;
 
 namespace HealthDiagnostics.Services;
@@ -11,17 +13,20 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly EndpointDataSource _endpointDataSource;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHealthDiagnosticsMapper _mapper;
 
     public HealthDiagnosticsServices(
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
         EndpointDataSource endpointDataSource,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IHealthDiagnosticsMapper mapper)
     {
         _healthCheckService = healthCheckService;
         _httpClientFactory = httpClientFactory;
         _endpointDataSource = endpointDataSource;
         _httpContextAccessor = httpContextAccessor;
+        _mapper = mapper;
     }
 
     /// <inheritdoc />
@@ -35,45 +40,20 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
             ? await _healthCheckService.CheckHealthAsync(ct)
             : await _healthCheckService.CheckHealthAsync(predicate, ct);
 
-        var checks = report.Entries.Select(entry => new HealthEntryDto(
-            Name: entry.Key,
-            Status: entry.Value.Status.ToString(),
-            Duration: $"{entry.Value.Duration.TotalMilliseconds:F1} ms",
-            Description: entry.Value.Description,
-            Error: entry.Value.Exception?.Message
-        )).ToList();
-
         IReadOnlyList<EndpointProbeResultDto>? endpointProbes = null;
         if (includeEndpointProbes)
         {
             endpointProbes = await ProbeAllEndpointsAsync(baseAddress, ct);
         }
 
-        return new HealthStatusResponse(
-            Status: report.Status.ToString(),
-            TotalDuration: $"{report.TotalDuration.TotalMilliseconds:F1} ms",
-            CheckedAtUtc: DateTime.UtcNow,
-            Checks: checks,
-            Endpoints: endpointProbes
-        );
+        return _mapper.ToHealthStatusResponse(report, endpointProbes, DateTime.UtcNow);
     }
 
     /// <inheritdoc />
     public async Task<HealthCheckResult> ProbeEndpointAsync(string url, CancellationToken ct = default)
     {
-        try
-        {
-            var client = _httpClientFactory.CreateClient("HealthProbeClient");
-            var response = await client.GetAsync(url, ct);
-
-            return response.IsSuccessStatusCode
-                ? HealthCheckResult.Healthy($"Endpoint '{url}' answered with {response.StatusCode} ({(int)response.StatusCode}).")
-                : HealthCheckResult.Degraded($"Endpoint '{url}' returned status {response.StatusCode} ({(int)response.StatusCode}).");
-        }
-        catch (Exception ex)
-        {
-            return HealthCheckResult.Unhealthy($"Error calling '{url}'.", ex);
-        }
+        var outcome = await ProbeEndpointCoreAsync(url, ct);
+        return outcome.Result;
     }
 
     /// <inheritdoc />
@@ -82,45 +62,71 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
         CancellationToken ct = default)
     {
         var targetBase = baseAddress ?? ResolveCurrentBaseAddress();
-        var probeRoutes = GetProbeableRoutes();
-        var results = new List<EndpointProbeResultDto>();
+        var probeTasks = GetProbeableRoutes()
+            .Select(route => ProbeRouteAsync(route, targetBase, ct));
 
-        foreach (var route in probeRoutes)
+        return await Task.WhenAll(probeTasks);
+    }
+
+    /// <summary>
+    /// Probes a specific route and returns its health check result.
+    /// </summary>
+    /// <param name="route">The route to probe.</param>
+    /// <param name="baseAddress">The base address for probing the route.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The endpoint probe result for the specified route.</returns>
+    private async Task<EndpointProbeResultDto> ProbeRouteAsync(
+        string route,
+        string baseAddress,
+        CancellationToken ct)
+    {
+        var fullUrl = $"{baseAddress.TrimEnd('/')}/{route.TrimStart('/')}";
+        var stopwatch = Stopwatch.StartNew();
+        var outcome = await ProbeEndpointCoreAsync(fullUrl, ct);
+        stopwatch.Stop();
+
+        return _mapper.ToEndpointProbeResult(
+            route,
+            "GET",
+            outcome.Result,
+            outcome.StatusCode,
+            stopwatch.Elapsed);
+    }
+
+    /// <summary>
+    /// Probes a specific endpoint and returns its health check result along with the HTTP status code.
+    /// </summary>
+    /// <param name="url">The URL of the endpoint to probe.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The endpoint probe outcome containing the health check result and HTTP status code.</returns>
+    private async Task<EndpointProbeOutcome> ProbeEndpointCoreAsync(
+        string url,
+        CancellationToken ct)
+    {
+        try
         {
-            var fullUrl = $"{targetBase.TrimEnd('/')}/{route.TrimStart('/')}";
-            var sw = Stopwatch.StartNew();
+            var client = _httpClientFactory.CreateClient("HealthProbeClient");
+            using var response = await client.GetAsync(
+                url,
+                HttpCompletionOption.ResponseHeadersRead,
+                ct);
 
-            try
-            {
-                var checkResult = await ProbeEndpointAsync(fullUrl, ct);
-                sw.Stop();
+            var result = response.IsSuccessStatusCode
+                ? HealthCheckResult.Healthy($"Endpoint '{url}' answered with {response.StatusCode} ({(int)response.StatusCode}).")
+                : HealthCheckResult.Degraded($"Endpoint '{url}' returned status {response.StatusCode} ({(int)response.StatusCode}).");
 
-                results.Add(new EndpointProbeResultDto(
-                    Route: route,
-                    HttpMethod: "GET",
-                    Status: checkResult.Status.ToString(),
-                    StatusCode: checkResult.Status == HealthStatus.Healthy ? 200 : null,
-                    Duration: $"{sw.ElapsedMilliseconds:F1} ms",
-                    Description: checkResult.Description,
-                    Error: checkResult.Exception?.Message
-                ));
-            }
-            catch (Exception ex)
-            {
-                sw.Stop();
-                results.Add(new EndpointProbeResultDto(
-                    Route: route,
-                    HttpMethod: "GET",
-                    Status: nameof(HealthStatus.Unhealthy),
-                    StatusCode: null,
-                    Duration: $"{sw.ElapsedMilliseconds:F1} ms",
-                    Description: "Endpoint could not be reached.",
-                    Error: ex.Message
-                ));
-            }
+            return new EndpointProbeOutcome(result, response.StatusCode);
         }
-
-        return results;
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return new EndpointProbeOutcome(
+                HealthCheckResult.Unhealthy($"Error calling '{url}'.", ex),
+                null);
+        }
     }
 
     /// <summary>
@@ -134,11 +140,13 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
             .Where(e =>
             {
                 var httpMethods = e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods;
-                bool isGet = httpMethods == null || httpMethods.Contains("GET");
+                bool isGet = httpMethods == null || httpMethods.Contains("GET", StringComparer.OrdinalIgnoreCase);
                 var pattern = e.RoutePattern.RawText ?? string.Empty;
 
                 bool hasParameters = pattern.Contains('{') || pattern.Contains('}');
-                bool isHealthRoute = pattern.StartsWith("api/health", StringComparison.OrdinalIgnoreCase);
+                bool isHealthRoute = pattern
+                    .TrimStart('/')
+                    .StartsWith("api/health", StringComparison.OrdinalIgnoreCase);
 
                 return isGet && !hasParameters && !isHealthRoute && !string.IsNullOrWhiteSpace(pattern);
             })
@@ -162,4 +170,8 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
 
         return "http://localhost:8080"; // Fallback base address if HttpContext is not available
     }
+
+    private sealed record EndpointProbeOutcome(
+        HealthCheckResult Result,
+        HttpStatusCode? StatusCode);
 }

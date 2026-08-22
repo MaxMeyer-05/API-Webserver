@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using HealthDiagnostics.Controllers;
+using HealthDiagnostics.Mappers;
 using HealthDiagnostics.Services;
 
 using SharedKernel.Modules;
@@ -56,6 +57,12 @@ public class HealthDiagnosticsModuleTest
             d => d.ServiceType == typeof(IHealthDiagnosticsServices));
         Assert.Equal(ServiceLifetime.Scoped, serviceDescriptor.Lifetime);
         Assert.Equal(typeof(HealthDiagnosticsServices), serviceDescriptor.ImplementationType);
+
+        var mapperDescriptor = Assert.Single(
+            services,
+            d => d.ServiceType == typeof(IHealthDiagnosticsMapper));
+        Assert.Equal(ServiceLifetime.Singleton, mapperDescriptor.Lifetime);
+        Assert.Equal(typeof(HealthDiagnosticsMapper), mapperDescriptor.ImplementationType);
 
         Assert.Contains(services, d => d.ServiceType == typeof(IHttpContextAccessor));
         Assert.Contains(services, d => d.ServiceType == typeof(IHttpClientFactory));

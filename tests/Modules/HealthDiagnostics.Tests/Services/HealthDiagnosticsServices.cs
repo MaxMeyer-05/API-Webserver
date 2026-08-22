@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+using HealthDiagnostics.Mappers;
 using HealthDiagnostics.Services;
 using HealthDiagnostics.Tests.TestData;
 
@@ -64,7 +65,8 @@ public class HealthDiagnosticsServiceTest
             healthCheckService,
             defaultClientFactory,
             endpointDataSourceMock.Object,
-            httpContextAccessorMock.Object);
+            httpContextAccessorMock.Object,
+            new HealthDiagnosticsMapper());
     }
 
     #endregion
@@ -258,6 +260,26 @@ public class HealthDiagnosticsServiceTest
         var probe = Assert.Single(results);
         Assert.Equal("/api/store", probe.Route);
         Assert.Equal("Healthy", probe.Status);
+    }
+
+    [Fact]
+    [Trait("Feature", "EndpointProbing")]
+    public async Task ProbeAllEndpointsAsync_ShouldPreserveNonSuccessStatusCode()
+    {
+        // Arrange
+        var clientFactory = HealthDiagnosticsTestData.CreateMockHttpClientFactory(
+            HttpStatusCode.InternalServerError);
+        var service = CreateService(
+            httpClientFactory: clientFactory,
+            endpoints: [HealthDiagnosticsTestData.CreateRouteEndpoint("api/store", ["GET"])]);
+
+        // Act
+        var results = await service.ProbeAllEndpointsAsync();
+
+        // Assert
+        var probe = Assert.Single(results);
+        Assert.Equal("Degraded", probe.Status);
+        Assert.Equal(500, probe.StatusCode);
     }
 
     #endregion
