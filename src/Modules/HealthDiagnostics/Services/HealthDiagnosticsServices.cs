@@ -1,5 +1,6 @@
-using System.Diagnostics;
 using System.Net;
+using System.Diagnostics;
+
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using HealthDiagnostics.Mappers;
@@ -171,6 +172,11 @@ public class HealthDiagnosticsServices : IHealthDiagnosticsServices
         return "http://localhost:8080"; // Fallback base address if HttpContext is not available
     }
 
+    /// <summary>
+    /// Represents the outcome of probing an endpoint, including the health check result and HTTP status code.
+    /// </summary>
+    /// <param name="Result">The health check result of the probe.</param>
+    /// <param name="StatusCode">The HTTP status code returned by the endpoint, if available.</param>
     private sealed record EndpointProbeOutcome(
         HealthCheckResult Result,
         HttpStatusCode? StatusCode);
