@@ -12,18 +12,28 @@ public class LocationMapper : ILocationMapper
     /// <inheritdoc/>
     public LocationDto ToLocationDto(Location location)
     {
-        throw new NotImplementedException();
+        return new LocationDto(            
+            location.ZipCode,
+            location.City
+        );
     }
 
     /// <inheritdoc/>
     public Location ToLocationEntity(LocationCreateDto locationDto)
     {
-        throw new NotImplementedException();
+        return new Location
+        {
+            ZipCode = locationDto.ZipCode,
+            City = locationDto.City
+        };
     }
 
     /// <inheritdoc/>
     public void UpdateLocationEntity(Location location, LocationUpdateDto locationUpdateDto)
     {
-        throw new NotImplementedException();
+        if (locationUpdateDto.City is not null)
+        {
+            location.City = locationUpdateDto.City;
+        }
     }
 }

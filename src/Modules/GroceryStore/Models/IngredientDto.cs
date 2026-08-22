@@ -14,6 +14,7 @@ namespace GroceryStore.Models;
 /// <param name="Allergens">A list of allergen references associated with the ingredient.</param>
 /// <param name="SupplierName">The name of the supplier associated with the ingredient.</param>
 public record IngredientDto(
+    int IngredientId,
     string Name, 
     string Unit, 
     decimal NetPrice, 

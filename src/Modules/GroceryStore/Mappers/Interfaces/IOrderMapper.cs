@@ -35,11 +35,11 @@ public interface IOrderMapper
 
 
     /// <summary>
-    /// Maps an <see cref="OrderCreateDto"/> to an <see cref="Order"/> entity.
+    /// Maps an <see cref="OrderItemCreateDto"/> to an <see cref="OrderItem"/> entity.
     /// </summary>
-    /// <param name="orderDto">The <see cref="OrderCreateDto"/> to map.</param>
-    /// <returns>The mapped <see cref="Order"/> entity.</returns>
-    Order ToOrderItemEntity(OrderCreateDto orderDto);
+    /// <param name="orderDto">The <see cref="OrderItemCreateDto"/> to map.</param>
+    /// <returns>The mapped <see cref="OrderItem"/> entity.</returns>
+    OrderItem ToOrderItemEntity(OrderItemCreateDto orderDto);
 
     /// <summary>
     /// Maps an <see cref="OrderItem"/> entity to an <see cref="OrderItemDto"/>.

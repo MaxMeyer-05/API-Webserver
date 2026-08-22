@@ -69,12 +69,12 @@ public record RecipeUpdateDto(
 /// <summary>
 /// Data transfer object (DTO) for RecipeIngredient entity
 /// </summary>
-/// <param name="IngredientName">The name of the ingredient.</param>
+/// <param name="Ingredient">The ingredient associated with the recipe ingredient.</param>
 /// <param name="Amount">The amount of the ingredient used in the recipe.</param>
 /// <param name="SupplierId">The identifier of the associated supplier.</param>
 /// <param name="SupplierName">The name of the supplier associated with the ingredient.</param>
 public record RecipeIngredientDto(
-    string IngredientName,
+    IngredientDto Ingredient,
     decimal Amount,
     Guid SupplierId,
     string SupplierName

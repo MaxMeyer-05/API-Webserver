@@ -10,8 +10,8 @@ namespace GroceryStore.Models;
 /// <param name="PhoneNumber">The phone number of the user (optional).</param>
 /// <param name="Address">The street address of the user.</param>
 /// <param name="Location">The location (zip code and city) of the user.</param>
-/// <param name="CreatedAt">The date and time when the user was created.</param>
-/// <param name="UpdatedAt">The date and time when the user was last updated.</param>
+/// <param name="CreatedAtDateTime">The date and time when the user was created.</param>
+/// <param name="UpdatedAtDateTime">The date and time when the user was last updated.</param>
 public record UserDto(
     string Role,
     string Name, 
@@ -20,8 +20,8 @@ public record UserDto(
     string? PhoneNumber, 
     string Address, 
     string Location,
-    DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime CreatedAtDateTime,
+    DateTime UpdatedAtDateTime
 );
 
 /// <summary>

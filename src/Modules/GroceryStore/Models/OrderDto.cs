@@ -44,11 +44,11 @@ public record OrderUpdateDto(
 /// <summary>
 /// Represents a data transfer object (DTO) for an order item.
 /// </summary>
-/// <param name="OrderId">The identifier of the order to which the item belongs.</param>
+/// <param name="Order">The identifier of the order to which the item belongs.</param>
 /// <param name="Ingredient">The ingredient associated with the order item.</param>
 /// <param name="Quantity">The quantity of the ingredient in the order item.</param>
 public record OrderItemDto(
-    OrderDto OrderId,
+    OrderDto Order,
     IngredientDto Ingredient,
     int Quantity
 );
