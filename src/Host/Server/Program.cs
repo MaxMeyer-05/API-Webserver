@@ -29,16 +29,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();
-
-foreach (var module in modules)
-{
-    app.MapHealthChecks($"/api/health/{module.Slug}", new()
-    {
-        Predicate = registration => registration.Tags.Contains($"module:{module.Slug}")
-    });
-}
 
 app.Run();

@@ -9,8 +9,10 @@ namespace ModuleCatalog.Controllers;
 /// Controller for managing and retrieving information about registered modules in the system.
 /// </summary>
 [ApiController]
-[Tags("Modules")]
 [Route("api/modules")]
+[Tags("ModuleCatalog")]
+[Produces("application/json")]
+
 public sealed class ModuleCatalogController : ControllerBase
 {
     private readonly IModuleCatalogService _moduleCatalogService;

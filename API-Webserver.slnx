@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/GroceryStore/GroceryStore.csproj" />
+    <Project Path="src/Modules/HealthDiagnostics/HealthDiagnostics.csproj" />
     <Project Path="src/Modules/ModuleCatalog/ModuleCatalog.csproj" />
     <Project Path="src/Modules/SystemSettings/SystemSettings.csproj" />
   </Folder>

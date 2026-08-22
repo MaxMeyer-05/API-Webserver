@@ -1,11 +1,17 @@
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using GroceryStore;
 using GroceryStore.Database.DbContexts;
 
+using HealthDiagnostics;
+using HealthDiagnostics.Controllers;
 using ModuleCatalog;
+using ModuleCatalog.Controllers;
 using SystemSettings;
+using SystemSettings.Controllers;
+
 using SharedKernel.Modules;
 using Server.Database.DbContexts;
 
@@ -20,29 +26,35 @@ public static class ServiceRegistration
     /// <returns>A read-only list of the registered modules.</returns>
     public static IReadOnlyList<IModule> AddServerServices(this WebApplicationBuilder builder)
     {
+        RegisterLogging(builder);
+        RegisterDatabases(builder.Services, builder.Configuration);
+
         var modules = RegisterModules(builder);
 
         RegisterHealthChecks(builder.Services, modules);
-        RegisterLogging(builder);
         RegisterApiServices(builder.Services);
-        RegisterDatabases(builder.Services, builder.Configuration);
 
         return modules;
     }
 
     /// <summary>
-    /// Creates the available modules and lets each module register its dependencies.
+    /// Creates the available modules, registers them in DI, and executes their service configuration.
     /// </summary>
     /// <param name="builder">The WebApplicationBuilder used to configure the application.</param>
     /// <returns>An array of the registered modules.</returns>
-    private static IModule[] RegisterModules(WebApplicationBuilder builder)
+    private static IReadOnlyList<IModule> RegisterModules(WebApplicationBuilder builder)
     {
-        var modules = new IModule[]
-        {
+        IModule[] modules =
+        [
             new ModuleCatalogModule(),
             new GroceryStoreModule(),
+            new HealthDiagnosticsModule(),
             new SystemSettingsModule()
-        };
+        ];
+
+        // Register modules in DI
+        builder.Services.AddSingleton<IEnumerable<IModule>>(modules);
+        builder.Services.AddSingleton<IReadOnlyList<IModule>>(modules);
 
         foreach (var module in modules)
         {
@@ -54,13 +66,24 @@ public static class ServiceRegistration
     }
 
     /// <summary>
-    /// Adds common health checks and the module-specific health checks.
+    /// Adds global database health checks and module-specific health checks.
     /// </summary>
     /// <param name="services">The service collection used to configure the application.</param>
     /// <param name="modules">The list of registered modules.</param>
     private static void RegisterHealthChecks(IServiceCollection services, IEnumerable<IModule> modules)
     {
         var healthChecks = services.AddHealthChecks();
+
+        healthChecks.AddDbContextCheck<GroceryStoreDbContext>(
+            name: "grocerystore-db",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["db", "ready"]);
+
+        healthChecks.AddDbContextCheck<ServerDbContext>(
+            name: "server-db",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["db", "ready"]);
+
         foreach (var module in modules)
         {
             module.RegisterHealthChecks(healthChecks);
@@ -73,21 +96,32 @@ public static class ServiceRegistration
     /// <param name="builder">The WebApplicationBuilder used to configure the application.</param>
     private static void RegisterLogging(WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, configuration) =>
+        builder.Host.UseSerilog((context, services, configuration) =>
         {
-            configuration.ReadFrom.Configuration(context.Configuration);
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext();
         });
     }
 
     /// <summary>
-    /// Registers the MVC controllers and OpenAPI services.
+    /// Registers the MVC controllers across all module assemblies and OpenAPI services.
     /// </summary>
     /// <param name="services">The service collection used to configure the application.</param>
     private static void RegisterApiServices(IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
-        services.AddControllers();
+
+        // Stellt sicher, dass Controller aus allen Modul-Assemblies gefunden werden
+        services.AddControllers(options =>
+            {
+                options.ReturnHttpNotAcceptable = true;
+            })
+                .AddApplicationPart(typeof(HealthDiagnosticsController).Assembly)
+                .AddApplicationPart(typeof(ModuleCatalogController).Assembly)
+                .AddApplicationPart(typeof(SystemSettingsController).Assembly);
     }
 
     /// <summary>

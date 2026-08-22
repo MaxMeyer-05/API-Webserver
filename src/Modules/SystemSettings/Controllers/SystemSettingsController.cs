@@ -5,7 +5,9 @@ using SystemSettings.Services;
 namespace SystemSettings.Controllers;
 
 [ApiController]
+[Tags("SystemSettings")]
 [Route("api/system-settings")]
+[Produces("application/json")]
 public class SystemSettingsController : ControllerBase
 {
     private readonly ISystemSettingsService _systemSettingsService;
