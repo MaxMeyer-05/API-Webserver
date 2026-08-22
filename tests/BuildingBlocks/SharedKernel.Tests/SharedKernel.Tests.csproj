@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Modules\SystemSettings\SystemSettings.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>

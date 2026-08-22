@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+using HealthDiagnostics.Mappers;
 using HealthDiagnostics.Services; 
 using SharedKernel.Modules;
 using HealthDiagnostics.Controllers;
@@ -30,6 +31,7 @@ public sealed class HealthDiagnosticsModule : IModule
             client.Timeout = TimeSpan.FromSeconds(5);
         });
 
+        services.AddSingleton<IHealthDiagnosticsMapper, HealthDiagnosticsMapper>();
         services.AddScoped<IHealthDiagnosticsServices, HealthDiagnosticsServices>();
     }
 
