@@ -13,6 +13,7 @@ public partial class Category
     /// Defines the unique identifier for the category.
     /// </summary>
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     /// <summary>

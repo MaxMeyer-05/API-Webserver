@@ -13,6 +13,7 @@ public partial class RecipeIngredient
     /// Defines the unique identifier for the recipe ingredient entry.
     /// </summary>
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     /// <summary>

@@ -15,26 +15,27 @@ public partial class User
     /// Defines the unique identifier for the user.
     /// </summary>
     [Key]
-    public Guid Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     /// <summary>
     /// Defines the role of the user, 
     /// which can be used for authorization purposes.
     /// </summary>
     [Required]
-    public string Role { get; set; } = "User";
-
-    /// <summary>
-    /// Defines the first name of the user.
-    /// </summary>
-    [Required]
-    public string FirstName { get; set; } = null!;
+    public string Role { get; set; } = "user";
 
     /// <summary>
     /// Defines the last name of the user.
     /// </summary>
     [Required]
     public string LastName { get; set; } = null!;
+    
+    /// <summary>
+    /// Defines the first name of the user.
+    /// </summary>
+    [Required]
+    public string FirstName { get; set; } = null!;
 
     /// <summary>
     /// Defines the hashed password of the user for authentication purposes.
@@ -47,6 +48,7 @@ public partial class User
     /// which can be used for communication and login purposes.
     /// </summary>
     [Required]
+    [EmailAddress]
     public string Email { get; set; } = null!;
 
     /// <summary>
@@ -56,6 +58,7 @@ public partial class User
     /// <remarks>
     /// This field is optional and can be null if the user does not provide a phone number.
     /// </remarks>
+    [Phone]
     public string? PhoneNumber { get; set; }
 
     /// <summary>

@@ -13,6 +13,7 @@ public partial class OrderItem
     /// Defines the unique identifier for the order item.
     /// </summary>
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     /// <summary>

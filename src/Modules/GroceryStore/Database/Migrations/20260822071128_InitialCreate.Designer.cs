@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroceryStore.Database.Migrations
 {
     [DbContext(typeof(GroceryStoreDbContext))]
-    [Migration("20260821185606_InitialCreate")]
+    [Migration("20260822071128_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -271,7 +271,6 @@ namespace GroceryStore.Database.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Role")

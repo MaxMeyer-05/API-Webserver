@@ -13,6 +13,7 @@ public partial class Allergen
     /// Defines the unique identifier for the allergen.
     /// </summary>
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     /// <summary>

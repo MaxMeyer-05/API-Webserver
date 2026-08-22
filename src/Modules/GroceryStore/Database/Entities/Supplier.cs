@@ -14,14 +14,15 @@ public partial class Supplier
     /// Defines the unique identifier for the supplier.
     /// </summary>
     [Key]
-    public Guid Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     /// <summary>
     /// Defines the role of the supplier, 
     /// which is required and defaults to "Supplier".
     /// </summary>
     [Required]
-    public string Role { get; set; } = "Supplier";
+    public string Role { get; set; } = "supplier";
 
     /// <summary>
     /// Defines the company name of the supplier.
@@ -42,7 +43,7 @@ public partial class Supplier
     /// <remarks>
     /// This field is optional and can be null if the supplier does not provide a phone number.
     /// </remarks>
-    [Required]
+    [Phone]
     public string? PhoneNumber { get; set; }
 
     /// <summary>
@@ -50,6 +51,7 @@ public partial class Supplier
     /// which can be used for communication and login purposes.
     /// </summary>
     [Required]
+    [EmailAddress]
     public string Email { get; set; } = null!;
 
     /// <summary>
