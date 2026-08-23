@@ -1,8 +1,7 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
-using GroceryStore.Mappers.Interfaces;
+using GroceryStore.Features.Users.Interfaces;
 
-namespace GroceryStore.Mappers;
+namespace GroceryStore.Features.Users;
 
 /// <summary>
 /// Mapper class for converting between User entities and DTOs.

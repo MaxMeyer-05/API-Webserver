@@ -1,4 +1,4 @@
-namespace GroceryStore.Models;
+namespace GroceryStore.Features.Users;
 
 /// <summary>
 /// Data Transfer Object (DTO) representing a user.
