@@ -1,8 +1,10 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
-using GroceryStore.Mappers.Interfaces;
 
-namespace GroceryStore.Mappers;
+using GroceryStore.Features.Recipes;
+using GroceryStore.Features.Orders.Interfaces;
+using GroceryStore.Features.Ingredients.Interfaces;
+
+namespace GroceryStore.Features.Orders;
 
 /// <summary>
 /// Mapper class for converting between Order entities and DTOs.

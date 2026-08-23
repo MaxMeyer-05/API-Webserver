@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using GroceryStore.Models;
 
-namespace GroceryStore.Controllers;
+namespace GroceryStore.Features.Orders;
 
 [ApiController]
 [Tags("Order")]

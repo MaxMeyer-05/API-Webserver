@@ -1,7 +1,7 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
+using GroceryStore.Features.Recipes;
 
-namespace GroceryStore.Mappers.Interfaces;
+namespace GroceryStore.Features.Orders.Interfaces;
 public interface IOrderMapper
 {
     /// <summary>
