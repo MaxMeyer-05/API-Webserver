@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
 using GroceryStore.Database.DbContexts;
-
-using GroceryStore.Features.Recipes;
 using GroceryStore.Features.Categories.Interfaces;
 
 namespace GroceryStore.Features.Categories;
@@ -60,15 +58,10 @@ public class CategoryRepository : ICategoryRepository
     {
         var categories = await _dbContext.Categories
             .Include(c => c.Recipes)
-            .Select(c => new CategoryDto(
-                c.Name,
-                c.SupplierId,
-                c.Recipes.Select(r => new RecipeRefDto(r.Name, r.SupplierId, r.Supplier.CompanyName)).ToList()
-            ))
             .ToListAsync();
 
         _logger.LogDebug("Retrieved all categories from the database: {@Categories}", categories);
-        return categories;
+        return categories.Select(c => _categoryMapper.ToCategoryDto(c));
     }
 
     /// <inheritdoc />
@@ -77,15 +70,10 @@ public class CategoryRepository : ICategoryRepository
         var category = await _dbContext.Categories
             .Include(c => c.Recipes)
             .Where(c => c.Id == categoryId)
-            .Select(c => new CategoryDto(
-                c.Name,
-                c.SupplierId,
-                c.Recipes.Select(r => new RecipeRefDto(r.Name, r.SupplierId, r.Supplier.CompanyName)).ToList()
-            ))
             .FirstOrDefaultAsync();
 
         _logger.LogDebug("Retrieved category with ID {CategoryId}: {@Category}", categoryId, category);
-        return category;
+        return category == null ? null : _categoryMapper.ToCategoryDto(category);
     }
 
     /// <inheritdoc />

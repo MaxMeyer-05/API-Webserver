@@ -91,7 +91,7 @@ public class CategoryController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the category is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the category.</response>
-    [HttpPatch("{supplierId}/categories/{categoryId}")]
+    [HttpPatch("{categoryId}/suppliers/{supplierId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -101,6 +101,7 @@ public class CategoryController : ControllerBase
         try
         {
             await _categoryService.UpdateCategoryAsync(supplierId, categoryId, category);
+            return NoContent();
         }
         catch (UnauthorizedAccessException)
         {
@@ -114,8 +115,6 @@ public class CategoryController : ControllerBase
         {
             return BadRequest();
         }
-
-        return NoContent();
     }
 
     /// <summary>
@@ -128,7 +127,7 @@ public class CategoryController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the category is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the category.</response>
-    [HttpDelete("{supplierId}/categories/{categoryId}")]
+    [HttpDelete("{categoryId}/suppliers/{supplierId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -138,6 +137,7 @@ public class CategoryController : ControllerBase
         try
         {
             await _categoryService.DeleteCategoryAsync(supplierId, categoryId);
+            return NoContent();
         }
         catch (UnauthorizedAccessException)
         {
@@ -151,7 +151,5 @@ public class CategoryController : ControllerBase
         {
             return BadRequest(ae.Message);
         }
-
-        return NoContent();
     }
 }

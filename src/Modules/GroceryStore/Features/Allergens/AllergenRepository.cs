@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 using GroceryStore.Database.DbContexts;
 using GroceryStore.Features.Allergens.Interfaces;
-using GroceryStore.Features.Ingredients;
 
 namespace GroceryStore.Features.Allergens;
 
@@ -59,15 +58,10 @@ public class AllergenRepository : IAllergenRepository
     {
         var allergens = await _dbContext.Allergens
             .Include(a => a.Ingredients)
-            .Select(a => new AllergenDto(
-                a.Name,
-                a.SupplierId,
-                a.Ingredients.Select(i => new IngredientRefDto(i.Name, i.SupplierId)).ToList()
-            ))
             .ToListAsync();
 
         _logger.LogDebug("Retrieved all allergens from the database: {@Allergens}", allergens);
-        return allergens;
+        return allergens.Select(a => _allergenMapper.ToAllergenDto(a));
     }
 
     /// <inheritdoc />
@@ -76,15 +70,10 @@ public class AllergenRepository : IAllergenRepository
         var allergen = await _dbContext.Allergens
             .Include(a => a.Ingredients)
             .Where(a => a.Id == allergenId)
-            .Select(a => new AllergenDto(
-                a.Name,
-                a.SupplierId,
-                a.Ingredients.Select(i => new IngredientRefDto(i.Name, i.SupplierId)).ToList()
-            ))
             .FirstOrDefaultAsync();
 
         _logger.LogDebug("Retrieved allergen with ID {AllergenId}: {@Allergen}", allergenId, allergen);
-        return allergen;
+        return allergen == null ? null : _allergenMapper.ToAllergenDto(allergen);
     }
 
     /// <inheritdoc />

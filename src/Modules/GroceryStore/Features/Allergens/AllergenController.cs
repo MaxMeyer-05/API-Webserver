@@ -91,7 +91,7 @@ public class AllergenController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the allergen.</response>
-    [HttpPatch("{supplierId}/allergens/{allergenId}")]
+    [HttpPatch("{allergenId}/suppliers/{supplierId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -101,6 +101,7 @@ public class AllergenController : ControllerBase
         try
         {
             await _allergenService.UpdateAllergenAsync(supplierId, allergenId, allergen);
+            return NoContent();
         }
         catch (KeyNotFoundException)
         {
@@ -114,8 +115,6 @@ public class AllergenController : ControllerBase
         {
             return BadRequest(ae.Message);
         }
-
-        return NoContent();
     }
 
     /// <summary>
@@ -128,7 +127,7 @@ public class AllergenController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the allergen.</response>
-    [HttpDelete("{supplierId}/allergens/{allergenId}")]
+    [HttpDelete("{allergenId}/suppliers/{supplierId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -138,6 +137,7 @@ public class AllergenController : ControllerBase
         try
         {
             await _allergenService.DeleteAllergenAsync(supplierId, allergenId);
+            return NoContent();
         }
         catch (KeyNotFoundException)
         {
@@ -151,7 +151,5 @@ public class AllergenController : ControllerBase
         {
             return BadRequest(ae.Message);
         }
-
-        return NoContent();
     }
 }
