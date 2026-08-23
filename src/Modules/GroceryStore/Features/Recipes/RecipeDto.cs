@@ -1,4 +1,7 @@
-namespace GroceryStore.Models;
+using GroceryStore.Features.Categories;
+using GroceryStore.Features.Ingredients;
+
+namespace GroceryStore.Features.Recipes;
 
 /// <summary>
 /// Represents a data transfer object (DTO) for a recipe.

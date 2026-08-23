@@ -1,7 +1,6 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
 
-namespace GroceryStore.Mappers.Interfaces;
+namespace GroceryStore.Features.Recipes.Interfaces;
 public interface IRecipeMapper
 {
     /// <summary>
