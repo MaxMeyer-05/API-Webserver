@@ -83,6 +83,8 @@ public class OrderRepository : IOrderRepository
 
         _orderMapper.UpdateOrderEntity(orderEntity, order);
         await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Updated order with UserOrderNumber {OrderNum} for user {UserId}", orderNum, userId);
     }
 
     /// <summary>
