@@ -32,7 +32,7 @@ public partial class OrderItem
     /// Defines the quantity of the ingredient in the order.
     /// </summary>
     [Required]
-    public int Quantity { get; set; }
+    public decimal Quantity { get; set; }
 
     /// <summary>
     /// Defines the ingredient included in the order.

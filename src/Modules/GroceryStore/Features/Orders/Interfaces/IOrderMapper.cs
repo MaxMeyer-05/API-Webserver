@@ -1,6 +1,4 @@
 using GroceryStore.Database.Entities;
-using GroceryStore.Features.Recipes;
-
 namespace GroceryStore.Features.Orders.Interfaces;
 public interface IOrderMapper
 {
@@ -8,16 +6,10 @@ public interface IOrderMapper
     /// Maps an <see cref="OrderCreateDto"/> to an <see cref="Order"/> entity.
     /// </summary>
     /// <param name="orderCreateDto">The <see cref="OrderCreateDto"/> to map.</param>
+    /// <param name="userOrderNumber">The user order number for the new order.</param>
+    /// <param name="totalAmount">The calculated total amount of the order.</param>
     /// <returns>The mapped <see cref="Order"/> entity.</returns>
-    Order ToOrderEntity(OrderCreateDto orderCreateDto);
-
-    /// <summary>
-    /// Maps an <see cref="Order"/> entity to an <see cref="OrderDto"/>.
-    /// </summary>
-    /// <param name="orderCreateDto">The <see cref="OrderCreateDto"/> to map.</param>
-    /// <param name="orderItems">The <see cref="RecipeDto"/> containing the order items.</param>
-    /// <returns>The mapped <see cref="Order"/> entity with the order items.</returns>
-    Order ToOrderEntity(OrderCreateDto orderCreateDto, RecipeDto orderItems);
+    Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber, decimal totalAmount);
 
     /// <summary>
     /// Maps an <see cref="Order"/> entity to an <see cref="OrderDto"/>.

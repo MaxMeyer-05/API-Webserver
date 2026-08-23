@@ -41,11 +41,13 @@ public class CategoryRepository : ICategoryRepository
     /// <inheritdoc />
     public async Task DeleteCategoryAsync(int categoryId)
     {
-        var categoryEntity = await _dbContext.Categories.FindAsync(categoryId) 
-            ?? throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+        var categoryEntity = await _dbContext.Categories
+            .Where(c => c.Id == categoryId)
+            .ExecuteDeleteAsync();
         
-        _dbContext.Categories.Remove(categoryEntity);
-        await _dbContext.SaveChangesAsync();
+        if (categoryEntity == 0)
+            throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+
         _logger.LogInformation("Deleted category with ID {CategoryId}", categoryId);
     }
 

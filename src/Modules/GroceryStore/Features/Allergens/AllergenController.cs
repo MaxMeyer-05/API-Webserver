@@ -25,7 +25,7 @@ public class AllergenController : ControllerBase
     /// <response code="200">Returns a list of all allergens.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<AllergenDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllAllergens()
+    public async Task<ActionResult<IEnumerable<AllergenDto>>> GetAllAllergens()
     {
         var allergens = await _allergenService.GetAllAllergensAsync();
         return Ok(allergens);
@@ -41,7 +41,7 @@ public class AllergenController : ControllerBase
     [HttpGet("{allergenId}")]
     [ProducesResponseType(typeof(AllergenDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAllergenById([FromRoute] int allergenId)
+    public async Task<ActionResult<AllergenDto>> GetAllergenById([FromRoute] int allergenId)
     {
         var allergen = await _allergenService.GetAllergenByIdAsync(allergenId);
         if (allergen == null)
@@ -63,7 +63,7 @@ public class AllergenController : ControllerBase
     [ProducesResponseType(typeof(AllergenDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CreateAllergen([FromBody] AllergenCreateDto allergen)
+    public async Task<ActionResult<AllergenDto>> CreateAllergen([FromBody] AllergenCreateDto allergen)
     {
         try
         {

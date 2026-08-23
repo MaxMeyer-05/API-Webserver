@@ -17,6 +17,12 @@ public partial class Order
     public int Id { get; set; }
 
     /// <summary>
+    /// Defines the order number assigned to the user for this order.
+    /// </summary>
+    [Required]
+    public int UserOrderNumber { get; set; }
+
+    /// <summary>
     /// Defines the identifier of the user who placed the order.
     /// </summary>
     [Required]

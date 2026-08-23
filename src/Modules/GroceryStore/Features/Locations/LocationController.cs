@@ -25,7 +25,7 @@ public class LocationController : ControllerBase
     /// <response code="200">Returns a list of all locations.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<LocationDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllLocations()
+    public async Task<ActionResult<IEnumerable<LocationDto>>> GetAllLocations()
     {
         var locations = await _locationService.GetAllLocationsAsync();
         return Ok(locations);
@@ -41,7 +41,7 @@ public class LocationController : ControllerBase
     [HttpGet("{zipCode}")]
     [ProducesResponseType(typeof(LocationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetLocationByZipCode([FromRoute] string zipCode)
+    public async Task<ActionResult<LocationDto>> GetLocationByZipCode([FromRoute] string zipCode)
     {
         var location = await _locationService.GetLocationByZipCodeAsync(zipCode);
         if (location == null)
@@ -61,7 +61,7 @@ public class LocationController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(LocationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateLocation([FromBody] LocationCreateDto location)
+    public async Task<ActionResult<LocationDto>> CreateLocation([FromBody] LocationCreateDto location)
     {
         try
         {

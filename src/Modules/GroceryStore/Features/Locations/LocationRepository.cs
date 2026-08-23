@@ -43,11 +43,11 @@ public class LocationRepository : ILocationRepository
     {
         var location = await _dbContext.Locations
             .Where(l => l.ZipCode == zipCode)
-            .FirstOrDefaultAsync() 
-            ?? throw new KeyNotFoundException($"Location with ZipCode {zipCode} not found");
-        
-        _dbContext.Locations.Remove(location);
-        await _dbContext.SaveChangesAsync();
+            .ExecuteDeleteAsync();
+
+        if (location == 0)
+            throw new KeyNotFoundException($"Location with ZipCode {zipCode} not found");
+
         _logger.LogInformation("Deleted location with ZipCode {ZipCode}", zipCode);
     }
 

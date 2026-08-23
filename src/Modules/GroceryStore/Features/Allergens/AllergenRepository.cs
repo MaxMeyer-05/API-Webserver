@@ -41,11 +41,13 @@ public class AllergenRepository : IAllergenRepository
     /// <inheritdoc />
     public async Task DeleteAllergenAsync(int allergenId)
     {
-        var allergenEntity = await _dbContext.Allergens.FindAsync(allergenId) 
-            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
-        
-        _dbContext.Allergens.Remove(allergenEntity);
-        await _dbContext.SaveChangesAsync();
+        var allergenEntity = await _dbContext.Allergens
+            .Where(a => a.Id == allergenId)
+            .ExecuteDeleteAsync();
+
+        if (allergenEntity == 0)
+            throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+
         _logger.LogInformation("Deleted allergen with ID {AllergenId}", allergenId);
     }
 

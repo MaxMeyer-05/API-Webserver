@@ -25,7 +25,7 @@ public class IngredientController : ControllerBase
     /// <response code="200">Returns a list of all ingredients.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<IngredientDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllIngredients()
+    public async Task<ActionResult<IEnumerable<IngredientDto>>> GetAllIngredients()
     {
         var ingredients = await _ingredientService.GetAllIngredientsAsync();
         return Ok(ingredients);
@@ -41,7 +41,7 @@ public class IngredientController : ControllerBase
     [HttpGet("{ingredientId}")]
     [ProducesResponseType(typeof(IngredientDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetIngredientById([FromRoute] int ingredientId)
+    public async Task<ActionResult<IngredientDto>> GetIngredientById([FromRoute] int ingredientId)
     {
         var ingredient = await _ingredientService.GetIngredientByIdAsync(ingredientId);
         if (ingredient == null)
@@ -63,7 +63,7 @@ public class IngredientController : ControllerBase
     [ProducesResponseType(typeof(IngredientDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CreateIngredient([FromBody] IngredientCreateDto ingredient)
+    public async Task<ActionResult<IngredientDto>> CreateIngredient([FromBody] IngredientCreateDto ingredient)
     {
         try
         {

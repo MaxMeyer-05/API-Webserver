@@ -56,7 +56,6 @@ public class LocationService
     /// </summary>
     /// <param name="zipCode">The zip code of the location to update.</param>
     /// <param name="location">The location update DTO containing the updated details of the location.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="KeyNotFoundException">Thrown if the location with the specified zip code is not found.</exception>
     public async Task UpdateLocationAsync(string zipCode, LocationUpdateDto location)
     {

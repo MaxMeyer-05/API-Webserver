@@ -11,6 +11,7 @@ public class SupplierMapper : ISupplierMapper
     /// <inheritdoc/>
     public void AnonymizeSupplierEntity(Supplier supplierEntity)
     {
+        supplierEntity.Id = Guid.NewGuid();
         supplierEntity.Role = "anonymized_supplier";
         supplierEntity.CompanyName = "Anonymized Supplier";
         supplierEntity.Street = "null";

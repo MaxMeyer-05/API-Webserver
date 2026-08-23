@@ -60,11 +60,13 @@ public class IngredientRepository : IIngredientRepository
     /// <inheritdoc />
     public async Task DeleteIngredientAsync(int ingredientId)
     {
-        var ingredientEntity = await _dbContext.Ingredients.FindAsync(ingredientId) 
-            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+        var ingredientEntity = await _dbContext.Ingredients
+            .Where(i => i.Id == ingredientId)
+            .ExecuteDeleteAsync();
+
+        if (ingredientEntity == 0)
+            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
             
-        _dbContext.Ingredients.Remove(ingredientEntity);
-        await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Deleted ingredient with ID {IngredientId}", ingredientId);
     }
 

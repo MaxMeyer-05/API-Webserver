@@ -8,33 +8,117 @@ namespace GroceryStore.Features.Orders;
 [Route("api/module/grocery-store/orders")]
 public class OrderController : ControllerBase
 {
-    [HttpGet]
-    public IActionResult GetOrders()
+    private readonly OrderService _orderService;
+
+    public OrderController(OrderService orderService)
     {
-        return Ok();
+        _orderService = orderService;
     }
 
-    [HttpGet("{orderId}")]
-    public IActionResult GetOrderById([FromRoute] int orderId)
+    /// <summary>
+    /// Retrieves all orders for a specific user.
+    /// </summary>
+    /// <param name="userId">The identifier of the user.</param>
+    /// <returns>Returns a collection of <see cref="OrderDto"/> representing the user's orders.</returns>
+    /// <response code="200">Returns a collection of <see cref="OrderDto"/> representing the user's orders.</response>
+    [HttpGet("user/{userId}")]
+    [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders([FromRoute] Guid userId)
     {
-        return Ok();
+        return Ok(await _orderService.GetAllOrdersAsync(userId));
     }
 
+    /// <summary>
+    /// Retrieves a specific order by its order number and user identifier.
+    /// </summary>
+    /// <param name="orderNum">The order number of the order to retrieve.</param>
+    /// <param name="userId">The identifier of the user who placed the order.</param>
+    /// <returns>Returns the <see cref="OrderDto"/> representing the requested order.</returns>
+    /// <response code="200">Returns the <see cref="OrderDto"/> representing the requested order.</response>
+    /// <response code="404">If the order with the specified order number and user identifier does not exist.</response>
+    [HttpGet("{orderNum}/user/{userId}")]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrderDto>> GetOrderById([FromRoute] int orderNum, [FromRoute] Guid userId)
+    {
+        var order = await _orderService.GetOrderByIdAsync(orderNum, userId);
+        if (order is null)
+        {
+            return NotFound();
+        }
+        return Ok(order);
+    }
+
+    /// <summary>
+    /// Creates a new order for a user.
+    /// </summary>
+    /// <param name="order">The <see cref="OrderCreateDto"/> containing the details of the order to be created.</param>
+    /// <returns>Returns the created <see cref="OrderDto"/> representing the newly created order.</returns>
+    /// <response code="201">Returns the created <see cref="OrderDto"/> representing the newly created order.</response>
+    /// <response code="400">If the request body is invalid or if the order cannot be created due to business logic constraints.</response>
+    /// <response code="404">If the specified user does not exist.</response>
     [HttpPost]
-    public IActionResult CreateOrder([FromBody] OrderCreateDto order)
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] OrderCreateDto order)
     {
-        return Created();
+        try
+        {
+            var createdOrder = await _orderService.CreateOrderAsync(order);
+            return CreatedAtAction(nameof(GetOrderById),createdOrder);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (KeyNotFoundException )
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpPatch("{orderId}")]
-    public IActionResult UpdateOrder([FromRoute] int orderId, [FromBody] OrderUpdateDto order)
+    /// <summary>
+    /// Updates an existing order for a user.
+    /// </summary>
+    /// <param name="orderNum">The order number of the order to update.</param>
+    /// <param name="userId">The identifier of the user who placed the order.</param>
+    /// <param name="order">The <see cref="OrderUpdateDto"/> containing the updated details of the order.</param>
+    /// <returns>Returns a 204 No Content response if the update is successful.</returns>
+    /// <response code="204">If the order is successfully updated.</response>
+    /// <response code="400">If the request body is invalid or if the order cannot be updated due to business logic constraints.</response>
+    /// <response code="404">If the specified order or user does not exist.</response>
+    /// <response code="403">If the user is not authorized to update the specified order.</response>
+    [HttpPatch("{orderNum}/user/{userId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UpdateOrder(
+        [FromRoute] int orderNum,
+        [FromRoute] Guid userId,
+        [FromBody] OrderUpdateDto order)
     {
-        return NoContent();
-    }
-
-    [HttpDelete("{orderId}")]
-    public IActionResult DeleteOrder([FromRoute] int orderId)
-    {
-        return NoContent();
+        try
+        {
+            await _orderService.UpdateOrderAsync(orderNum, userId, order);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
     }
 }

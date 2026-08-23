@@ -1,6 +1,5 @@
 using GroceryStore.Database.Entities;
 
-using GroceryStore.Features.Recipes;
 using GroceryStore.Features.Orders.Interfaces;
 using GroceryStore.Features.Ingredients.Interfaces;
 
@@ -22,6 +21,7 @@ public class OrderMapper : IOrderMapper
     public OrderDto ToOrderDto(Order orderEntity)
     {
         return new OrderDto(
+            UserOrderNumber: orderEntity.UserOrderNumber,
             UserId: orderEntity.UserId,
             OrderDate: orderEntity.OrderDate,
             TotalAmount: orderEntity.TotalAmount,
@@ -32,15 +32,15 @@ public class OrderMapper : IOrderMapper
     }
 
     /// <inheritdoc/>
-    public Order ToOrderEntity(OrderCreateDto orderCreateDto)
+    public Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber, decimal totalAmount)
     {
         return new Order
         {
+            UserOrderNumber = userOrderNumber,
             UserId = orderCreateDto.UserId,
-            TotalAmount = orderCreateDto.TotalAmount,
-            OrderItems = orderCreateDto.Items?.Select(i => new OrderItem
+            TotalAmount = totalAmount,
+            OrderItems = orderCreateDto.Ingredients?.Select(i => new OrderItem
             {
-                OrderId = i.OrderId,
                 IngredientId = i.IngredientId,
                 Quantity = i.Quantity
             }).ToList() ?? []
@@ -48,35 +48,9 @@ public class OrderMapper : IOrderMapper
     }
 
     /// <inheritdoc/>
-    public Order ToOrderEntity(OrderCreateDto orderCreateDto, RecipeDto orderItems)
-    {
-        var order = ToOrderEntity(orderCreateDto);
-        decimal totalAmount = 0;
-
-        foreach (var item in orderItems.Ingredients!)
-        {
-            var itemPrice = item.Ingredient.NetPrice;
-            var itemAmount = item.Amount;
-
-            order.OrderItems.Add(new OrderItem
-            {
-                OrderId = order.Id,
-                IngredientId = item.Ingredient.IngredientId,
-                Quantity = (int)itemAmount
-            });
-
-            totalAmount += itemPrice * itemAmount;
-        }
-
-        order.TotalAmount = totalAmount;
-        return order;
-    }
-
-    /// <inheritdoc/>
     public OrderItemDto ToOrderItemDto(OrderItem orderItemEntity)
     {
         return new OrderItemDto(
-            Order: ToOrderDto(orderItemEntity.Order),
             Ingredient: _ingredientMapper.ToIngredientDto(orderItemEntity.Ingredient),
             Quantity: orderItemEntity.Quantity
         );
@@ -87,7 +61,6 @@ public class OrderMapper : IOrderMapper
     {
         return new OrderItem
         {
-            OrderId = orderDto.OrderId,
             IngredientId = orderDto.IngredientId,
             Quantity = orderDto.Quantity
         };

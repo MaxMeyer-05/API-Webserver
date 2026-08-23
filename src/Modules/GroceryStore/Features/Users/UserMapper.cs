@@ -11,6 +11,7 @@ public class UserMapper : IUserMapper
     /// <inheritdoc/>
     public void AnonymizeUserEntity(User userEntity)
     {
+        userEntity.Id = Guid.NewGuid();
         userEntity.Role = "anonymized_user";
         userEntity.LastName = "null";
         userEntity.FirstName = "null";

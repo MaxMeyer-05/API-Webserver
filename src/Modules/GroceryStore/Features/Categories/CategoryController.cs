@@ -25,7 +25,7 @@ public class CategoryController : ControllerBase
     /// <response code="200">Returns a list of all categories.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllCategories()
+    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
     {
         var categories = await _categoryService.GetAllCategoriesAsync();
         return Ok(categories);
@@ -41,7 +41,7 @@ public class CategoryController : ControllerBase
     [HttpGet("{categoryId}")]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetCategoryById([FromRoute] int categoryId)
+    public async Task<ActionResult<CategoryDto>> GetCategoryById([FromRoute] int categoryId)
     {
         var category = await _categoryService.GetCategoryByIdAsync(categoryId);
         if (category == null)
@@ -63,7 +63,7 @@ public class CategoryController : ControllerBase
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateDto category)
+    public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryCreateDto category)
     {
         try
         {
