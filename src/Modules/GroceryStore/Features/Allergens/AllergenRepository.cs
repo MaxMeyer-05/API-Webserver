@@ -66,8 +66,7 @@ public class AllergenRepository : IAllergenRepository
             ))
             .ToListAsync();
 
-        _logger.LogDebug("Retrieved {Count} allergens from the database", allergens.Count);
-
+        _logger.LogDebug("Retrieved all allergens from the database: {@Allergens}", allergens);
         return allergens;
     }
 
@@ -84,8 +83,7 @@ public class AllergenRepository : IAllergenRepository
             ))
             .FirstOrDefaultAsync();
 
-        _logger.LogDebug("Retrieved allergen with ID {AllergenId} from the database", allergenId);
-
+        _logger.LogDebug("Retrieved allergen with ID {AllergenId}: {@Allergen}", allergenId, allergen);
         return allergen;
     }
 

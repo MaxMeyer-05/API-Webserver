@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GroceryStore.Features.Allergens;
 
 /// <summary>
-/// Represents a controller for managing allergens, 
-/// providing endpoints for CRUD operations on allergens.
+/// Controller for managing allergens in the grocery store module.
 /// </summary>
 [ApiController]
 [Tags("Allergen")]
@@ -58,9 +57,11 @@ public class AllergenController : ControllerBase
     /// <param name="allergen">The allergen to create.</param>
     /// <returns>The created allergen.</returns>
     /// <response code="201">Returns the created allergen.</response>
+    /// <response code="400">If the allergen data is invalid.</response>
     /// <response code="403">If the supplier is not authorized to create the allergen.</response>
     [HttpPost]
     [ProducesResponseType(typeof(AllergenDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CreateAllergen([FromBody] AllergenCreateDto allergen)
     {
@@ -73,6 +74,10 @@ public class AllergenController : ControllerBase
         {
             return Forbid();
         }
+        catch (ArgumentException ae)
+        {
+            return BadRequest(ae.Message);
+        }
     }
 
     /// <summary>
@@ -83,10 +88,12 @@ public class AllergenController : ControllerBase
     /// <param name="allergen">The updated allergen data.</param>
     /// <returns>No content if the update is successful.</returns>
     /// <response code="204">If the update is successful.</response>
+    /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the allergen.</response>
     [HttpPatch("{supplierId}/allergens/{allergenId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateAllergen([FromRoute] Guid supplierId, [FromRoute] int allergenId, [FromBody] AllergenUpdateDto allergen)
@@ -103,6 +110,10 @@ public class AllergenController : ControllerBase
         {
             return Forbid();
         }
+        catch (ArgumentException ae)
+        {
+            return BadRequest(ae.Message);
+        }
 
         return NoContent();
     }
@@ -114,11 +125,13 @@ public class AllergenController : ControllerBase
     /// <param name="allergenId">The ID of the allergen to delete.</param>
     /// <returns>No content if the deletion is successful.</returns>
     /// <response code="204">If the deletion is successful.</response>
+    /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the allergen.</response>
     [HttpDelete("{supplierId}/allergens/{allergenId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> DeleteAllergen([FromRoute] Guid supplierId, [FromRoute] int allergenId)
     {
@@ -133,6 +146,10 @@ public class AllergenController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             return Forbid();
+        }
+        catch (ArgumentException ae)
+        {
+            return BadRequest(ae.Message);
         }
 
         return NoContent();
