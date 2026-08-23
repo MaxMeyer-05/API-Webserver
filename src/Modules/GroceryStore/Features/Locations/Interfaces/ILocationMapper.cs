@@ -1,7 +1,6 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
 
-namespace GroceryStore.Mappers.Interfaces;
+namespace GroceryStore.Features.Locations.Interfaces;
 public interface ILocationMapper
 {
     /// <summary>

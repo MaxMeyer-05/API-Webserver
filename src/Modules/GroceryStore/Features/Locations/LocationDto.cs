@@ -1,4 +1,4 @@
-namespace GroceryStore.Models;
+namespace GroceryStore.Features.Locations;
 
 /// <summary>
 /// Represents a data transfer object (DTO) for a location.

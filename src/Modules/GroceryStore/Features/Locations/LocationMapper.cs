@@ -1,8 +1,7 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
-using GroceryStore.Mappers.Interfaces;
+using GroceryStore.Features.Locations.Interfaces;
 
-namespace GroceryStore.Mappers;
+namespace GroceryStore.Features.Locations;
 
 /// <summary>
 /// Mapper class for converting between Location entities and DTOs.
