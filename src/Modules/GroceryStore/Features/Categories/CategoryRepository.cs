@@ -41,13 +41,9 @@ public class CategoryRepository : ICategoryRepository
     /// <inheritdoc />
     public async Task DeleteCategoryAsync(int categoryId)
     {
-        var categoryEntity = await _dbContext.Categories.FindAsync(categoryId);
-        if (categoryEntity == null)
-        {
-            _logger.LogDebug("Category with ID {CategoryId} not found", categoryId);
-            throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-        }
-
+        var categoryEntity = await _dbContext.Categories.FindAsync(categoryId) 
+            ?? throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+        
         _dbContext.Categories.Remove(categoryEntity);
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Deleted category with ID {CategoryId}", categoryId);
@@ -79,13 +75,9 @@ public class CategoryRepository : ICategoryRepository
     /// <inheritdoc />
     public async Task UpdateCategoryAsync(int categoryId, CategoryUpdateDto category)
     {
-        var categoryEntity = await _dbContext.Categories.FindAsync(categoryId);
-        if (categoryEntity == null)
-        {
-            _logger.LogDebug("Category with ID {CategoryId} not found", categoryId);
-            throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-        }
-
+        var categoryEntity = await _dbContext.Categories.FindAsync(categoryId) 
+            ?? throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+        
         _categoryMapper.UpdateCategoryEntity(categoryEntity, category);
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Updated category with ID {CategoryId}", categoryId);

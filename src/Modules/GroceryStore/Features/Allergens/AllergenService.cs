@@ -54,12 +54,9 @@ public class AllergenService
     public async Task<AllergenDto> CreateAllergenAsync(AllergenCreateDto allergen)
     {
         _logger.LogDebug("Creating new allergen");
-        var supplier = await _supplierRepository.GetSupplierByIdAsync(allergen.SupplierId);
-        if (supplier == null)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} not found", allergen.SupplierId);
-            throw new UnauthorizedAccessException($"Only suppliers can create allergens. Supplier with ID {allergen.SupplierId} not found.");
-        }
+        _ = await _supplierRepository.GetSupplierByIdAsync(allergen.SupplierId) 
+                ?? throw new UnauthorizedAccessException($"Only suppliers can create allergens. Supplier with ID {allergen.SupplierId} not found.");
+
         return await _allergenRepository.CreateAllergenAsync(allergen);
     }
 
@@ -76,19 +73,11 @@ public class AllergenService
     public async Task UpdateAllergenAsync(Guid supplierId, int allergenId, AllergenUpdateDto allergen)
     {
         _logger.LogDebug("Updating allergen with ID {AllergenId}", allergenId);
-        var existingAllergen = await _allergenRepository.GetAllergenByIdAsync(allergenId);
-
-        if (existingAllergen == null)
-        {
-            _logger.LogDebug("Allergen with ID {AllergenId} not found", allergenId);
-            throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
-        }
+        var existingAllergen = await _allergenRepository.GetAllergenByIdAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
 
         if (existingAllergen.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to update allergen with ID {AllergenId}", supplierId, allergenId);
             throw new UnauthorizedAccessException($"Supplier with ID {supplierId} is not authorized to update allergen with ID {allergenId}");
-        }
 
         await _allergenRepository.UpdateAllergenAsync(allergenId, allergen);
     }
@@ -105,19 +94,11 @@ public class AllergenService
     public async Task DeleteAllergenAsync(Guid supplierId, int allergenId)
     {
         _logger.LogDebug("Deleting allergen with ID {AllergenId}", allergenId);
-        var existingAllergen = await _allergenRepository.GetAllergenByIdAsync(allergenId);
-
-        if (existingAllergen == null)
-        {
-            _logger.LogDebug("Allergen with ID {AllergenId} not found", allergenId);
-            throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
-        }
-
+        var existingAllergen = await _allergenRepository.GetAllergenByIdAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+            
         if (existingAllergen.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to delete allergen with ID {AllergenId}", supplierId, allergenId);
             throw new UnauthorizedAccessException($"Supplier with ID {supplierId} is not authorized to delete allergen with ID {allergenId}");
-        }
 
         await _allergenRepository.DeleteAllergenAsync(allergenId);
     }

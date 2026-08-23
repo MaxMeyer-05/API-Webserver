@@ -41,13 +41,9 @@ public class AllergenRepository : IAllergenRepository
     /// <inheritdoc />
     public async Task DeleteAllergenAsync(int allergenId)
     {
-        var allergenEntity = await _dbContext.Allergens.FindAsync(allergenId);
-        if (allergenEntity == null)
-        {
-            _logger.LogDebug("Allergen with ID {AllergenId} not found", allergenId);
-            throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
-        }
-
+        var allergenEntity = await _dbContext.Allergens.FindAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+        
         _dbContext.Allergens.Remove(allergenEntity);
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Deleted allergen with ID {AllergenId}", allergenId);
@@ -79,13 +75,9 @@ public class AllergenRepository : IAllergenRepository
     /// <inheritdoc />
     public async Task UpdateAllergenAsync(int allergenId, AllergenUpdateDto allergen)
     {
-        var allergenEntity = await _dbContext.Allergens.FindAsync(allergenId);
-        if (allergenEntity == null)
-        {
-            _logger.LogDebug("Allergen with ID {AllergenId} not found", allergenId);
-            throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
-        }
-
+        var allergenEntity = await _dbContext.Allergens.FindAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+            
         _allergenMapper.UpdateAllergenEntity(allergenEntity, allergen);
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Updated allergen with ID {AllergenId}", allergenId);

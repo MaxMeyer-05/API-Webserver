@@ -60,13 +60,9 @@ public class IngredientRepository : IIngredientRepository
     /// <inheritdoc />
     public async Task DeleteIngredientAsync(int ingredientId)
     {
-        var ingredientEntity = await _dbContext.Ingredients.FindAsync(ingredientId);
-        if (ingredientEntity == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
-        }
-
+        var ingredientEntity = await _dbContext.Ingredients.FindAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+            
         _dbContext.Ingredients.Remove(ingredientEntity);
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Deleted ingredient with ID {IngredientId}", ingredientId);
@@ -116,13 +112,9 @@ public class IngredientRepository : IIngredientRepository
     /// <inheritdoc />
     public async Task UpdateIngredientAsync(int ingredientId, IngredientUpdateDto ingredient)
     {
-        var ingredientEntity = await _dbContext.Ingredients.FindAsync(ingredientId);
-        if (ingredientEntity == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
-        }
-
+        var ingredientEntity = await _dbContext.Ingredients.FindAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+            
         _ingredientMapper.UpdateIngredientEntity(ingredientEntity, ingredient);
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Updated ingredient with ID {IngredientId}", ingredientId);
@@ -143,21 +135,12 @@ public class IngredientRepository : IIngredientRepository
         var ingredient = await _dbContext.Ingredients
             .Include(i => i.Allergens)
             .Where(i => i.Id == ingredientId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync() 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
 
-        if (ingredient == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
-        }
-
-        var allergen = await _dbContext.Allergens.FindAsync(allergenId);
-        if (allergen == null)
-        {
-            _logger.LogDebug("Allergen with ID {AllergenId} not found", allergenId);
-            throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
-        }
-
+        var allergen = await _dbContext.Allergens.FindAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+            
         return (ingredient.Allergens.Contains(allergen), ingredient, allergen);
     }
 }

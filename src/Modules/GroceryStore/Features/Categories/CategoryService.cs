@@ -53,13 +53,8 @@ public class CategoryService
     public async Task<CategoryDto> CreateCategoryAsync(CategoryCreateDto category)
     {
         _logger.LogDebug("Creating new category");
-        var supplier = await _supplierRepository.GetSupplierByIdAsync(category.SupplierId);
-        if (supplier == null)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} not found", category.SupplierId);
-            throw new UnauthorizedAccessException("Only suppliers are allowed to create categories.");
-        }
-
+        _ = await _supplierRepository.GetSupplierByIdAsync(category.SupplierId) 
+            ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create categories.");
         return await _categoryRepository.CreateCategoryAsync(category);
     }
 
@@ -76,18 +71,11 @@ public class CategoryService
     public async Task UpdateCategoryAsync(Guid supplierId, int categoryId, CategoryUpdateDto category)
     {
         _logger.LogDebug("Updating category with ID {CategoryId}", categoryId);
-        var existingCategory = await _categoryRepository.GetCategoryByIdAsync(categoryId);
-        if (existingCategory == null)
-        {
-            _logger.LogDebug("Category with ID {CategoryId} not found", categoryId);
-            throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
-        }
+        var existingCategory = await _categoryRepository.GetCategoryByIdAsync(categoryId) 
+            ?? throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
 
         if (existingCategory.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to update category with ID {CategoryId}", supplierId, categoryId);
             throw new UnauthorizedAccessException($"Supplier with ID {supplierId} is not authorized to update this category.");
-        }
 
         await _categoryRepository.UpdateCategoryAsync(categoryId, category);
     }
@@ -104,18 +92,11 @@ public class CategoryService
     public async Task DeleteCategoryAsync(Guid supplierId, int categoryId)
     {
         _logger.LogDebug("Deleting category with ID {CategoryId}", categoryId);
-        var existingCategory = await _categoryRepository.GetCategoryByIdAsync(categoryId);
-        if (existingCategory == null)
-        {
-            _logger.LogDebug("Category with ID {CategoryId} not found", categoryId);
-            throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
-        }
+        var existingCategory = await _categoryRepository.GetCategoryByIdAsync(categoryId) 
+            ?? throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
 
         if (existingCategory.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to delete category with ID {CategoryId}", supplierId, categoryId);
             throw new UnauthorizedAccessException($"Supplier with ID {supplierId} is not authorized to delete this category.");
-        }
 
         await _categoryRepository.DeleteCategoryAsync(categoryId);
     }

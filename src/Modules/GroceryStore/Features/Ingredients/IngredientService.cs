@@ -53,12 +53,8 @@ public class IngredientService
     public async Task<IngredientDto> CreateIngredientAsync(IngredientCreateDto ingredient)
     {
         _logger.LogDebug("Creating new ingredient");
-        var supplier = await _supplierRepository.GetSupplierByIdAsync(ingredient.SupplierId);
-        if (supplier == null)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} not found", ingredient.SupplierId);
-            throw new UnauthorizedAccessException("Only suppliers are allowed to create ingredients.");
-        }
+        _ = await _supplierRepository.GetSupplierByIdAsync(ingredient.SupplierId) 
+            ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create ingredients.");
 
         return await _ingredientRepository.CreateIngredientAsync(ingredient);
     }
@@ -75,18 +71,11 @@ public class IngredientService
     public async Task UpdateIngredientAsync(Guid supplierId, int ingredientId, IngredientUpdateDto ingredient)
     {
         _logger.LogDebug("Updating ingredient with ID {IngredientId}", ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId);
-        if (existingIngredient == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        }
-
+        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
+        
         if (existingIngredient.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to update ingredient with ID {IngredientId}", supplierId, ingredientId);
             throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can update it.");
-        }
 
         await _ingredientRepository.UpdateIngredientAsync(ingredientId, ingredient);
     }
@@ -102,18 +91,11 @@ public class IngredientService
     public async Task DeleteIngredientAsync(Guid supplierId, int ingredientId)
     {
         _logger.LogDebug("Deleting ingredient with ID {IngredientId}", ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId);
-        if (existingIngredient == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        }
-
+        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
+        
         if (existingIngredient.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to delete ingredient with ID {IngredientId}", supplierId, ingredientId);
             throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can delete it.");
-        }
 
         await _ingredientRepository.DeleteIngredientAsync(ingredientId);
     }
@@ -131,18 +113,11 @@ public class IngredientService
     public async Task AddAllergenToIngredientAsync(int ingredientId, int allergenId, Guid supplierId)
     {
         _logger.LogDebug("Adding allergen with ID {AllergenId} to ingredient with ID {IngredientId}", allergenId, ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId);
-        if (existingIngredient == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        }
-
+        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
+        
         if (existingIngredient.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to add allergen to ingredient with ID {IngredientId}", supplierId, ingredientId);
             throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can add allergens.");
-        }
 
         await _ingredientRepository.AddAllergenToIngredientAsync(ingredientId, allergenId);
     }
@@ -160,18 +135,11 @@ public class IngredientService
     public async Task RemoveAllergenFromIngredientAsync(int ingredientId, int allergenId, Guid supplierId)
     {
         _logger.LogDebug("Removing allergen with ID {AllergenId} from ingredient with ID {IngredientId}", allergenId, ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId);
-        if (existingIngredient == null)
-        {
-            _logger.LogDebug("Ingredient with ID {IngredientId} not found", ingredientId);
-            throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        }
-
+        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
+        
         if (existingIngredient.SupplierId != supplierId)
-        {
-            _logger.LogDebug("Supplier with ID {SupplierId} is not authorized to remove allergen from ingredient with ID {IngredientId}", supplierId, ingredientId);
             throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can remove allergens.");
-        }
 
         await _ingredientRepository.RemoveAllergenFromIngredientAsync(ingredientId, allergenId);
     }
