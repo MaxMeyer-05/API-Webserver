@@ -1,8 +1,7 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
-using GroceryStore.Mappers.Interfaces;
+using GroceryStore.Features.Suppliers.Interfaces;
 
-namespace GroceryStore.Mappers;
+namespace GroceryStore.Features.Suppliers;
 
 /// <summary>
 /// Mapper class for converting between Supplier entities and DTOs.

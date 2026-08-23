@@ -1,7 +1,6 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
 
-namespace GroceryStore.Mappers.Interfaces;
+namespace GroceryStore.Features.Suppliers.Interfaces;
 public interface ISupplierMapper
 {
     /// <summary>
