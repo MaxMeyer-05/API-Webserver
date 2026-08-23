@@ -1,8 +1,9 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
-using GroceryStore.Mappers.Interfaces;
 
-namespace GroceryStore.Mappers;
+using GroceryStore.Features.Ingredients;
+using GroceryStore.Features.Allergens.Interfaces;
+
+namespace GroceryStore.Features.Allergens;
 
 /// <summary>
 /// Mapper class for converting between Allergen entities and DTOs.

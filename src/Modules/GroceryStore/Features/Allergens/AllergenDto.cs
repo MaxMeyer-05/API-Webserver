@@ -1,4 +1,6 @@
-namespace GroceryStore.Models;
+using GroceryStore.Features.Ingredients;
+
+namespace GroceryStore.Features.Allergens;
 
 /// <summary>
 /// Represents a data transfer object (DTO) for an allergen.
