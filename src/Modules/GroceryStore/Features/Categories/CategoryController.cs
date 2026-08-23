@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using GroceryStore.Models;
 
-namespace GroceryStore.Controllers;
+namespace GroceryStore.Features.Categories;
 
 [ApiController]
 [Tags("Categorie")]
 [Produces("application/json")]
 [Route("api/module/grocery-store/categories")]
-public class CategorieController : ControllerBase
+public class CategoryController : ControllerBase
 {
     [HttpGet]
     public IActionResult GetCategories()

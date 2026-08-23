@@ -1,7 +1,6 @@
-using GroceryStore.Models;
 using GroceryStore.Database.Entities;
 
-namespace GroceryStore.Mappers.Interfaces;
+namespace GroceryStore.Features.Categories.Interfaces;
 public interface ICategoryMapper
 {
     /// <summary>
