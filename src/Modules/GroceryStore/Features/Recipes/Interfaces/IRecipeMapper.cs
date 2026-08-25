@@ -7,9 +7,8 @@ public interface IRecipeMapper
     /// Maps a <see cref="RecipeCreateDto"/> to a <see cref="Recipe"/> entity.
     /// </summary>
     /// <param name="recipeCreateDto">The <see cref="RecipeCreateDto"/> to map.</param>
-    /// <param name="supplierRecipeCount">The count of recipes for the supplier.</param>
     /// <returns>The mapped <see cref="Recipe"/> entity.</returns>
-    Recipe ToRecipeEntity(RecipeCreateDto recipeCreateDto, int supplierRecipeCount);
+    Recipe ToRecipeEntity(RecipeCreateDto recipeCreateDto);
 
     /// <summary>
     /// Maps a <see cref="Recipe"/> entity to a <see cref="RecipeDto"/>.

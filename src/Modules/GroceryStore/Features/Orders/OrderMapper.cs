@@ -21,7 +21,7 @@ public class OrderMapper : IOrderMapper
     public OrderDto ToOrderDto(Order orderEntity)
     {
         return new OrderDto(
-            UserOrderNumber: orderEntity.UserOrderNumber,
+            UserOrderNumber: orderEntity.User.Orders?.Count ?? 0,
             UserId: orderEntity.UserId,
             OrderDate: orderEntity.OrderDate,
             TotalAmount: orderEntity.TotalAmount,
@@ -32,11 +32,10 @@ public class OrderMapper : IOrderMapper
     }
 
     /// <inheritdoc/>
-    public Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber)
+    public Order ToOrderEntity(OrderCreateDto orderCreateDto)
     {
         return new Order
         {
-            UserOrderNumber = userOrderNumber,
             UserId = orderCreateDto.UserId,
             OrderDate = DateTime.UtcNow,
             OrderItems = orderCreateDto.Ingredients?.Select(i => new OrderItem

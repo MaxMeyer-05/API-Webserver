@@ -17,6 +17,7 @@ namespace GroceryStore.Features.Ingredients;
 /// <param name="SupplierName">The name of the supplier associated with the ingredient.</param>
 public record IngredientDto(
     int IngredientId,
+    int SupplierIngredientCount,
     string Name, 
     string Unit, 
     decimal NetPrice, 

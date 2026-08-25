@@ -26,19 +26,9 @@ public record OrderDto(
 /// </summary>
 /// <param name="UserId">The identifier of the user who placed the order.</param>
 /// <param name="Ingredients">Ingredients added directly to the order.</param>
-/// <param name="Recipes">Recipes whose ingredients should be added to the order.</param>
 public record OrderCreateDto(
     Guid UserId,
-    List<OrderItemCreateDto>? Ingredients = null,
-    List<RecipeOrderItemCreateDto>? Recipes = null
-);
-
-/// <summary>
-/// Represents a recipe and quantity included in an order.
-/// </summary>
-public record RecipeOrderItemCreateDto(
-    int RecipeId,
-    decimal Quantity
+    List<OrderItemCreateDto>? Ingredients = null
 );
 
 /// <summary>

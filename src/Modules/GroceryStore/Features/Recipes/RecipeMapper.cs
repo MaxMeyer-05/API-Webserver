@@ -25,7 +25,7 @@ public class RecipeMapper : IRecipeMapper
     public RecipeDto ToRecipeDto(Recipe recipeEntity)
     {
         return new RecipeDto(
-            SupplierRecipeCount: recipeEntity.SupplierRecipeCount,
+            SupplierRecipeCount: recipeEntity.Supplier.Recipes.Count,
             Name: recipeEntity.Name,
             Instructions: recipeEntity.Instructions,
             PreparationTime: recipeEntity.PreparationTime,
@@ -37,11 +37,10 @@ public class RecipeMapper : IRecipeMapper
     }
 
     /// <inheritdoc/>
-    public Recipe ToRecipeEntity(RecipeCreateDto recipeCreateDto, int supplierRecipeCount)
+    public Recipe ToRecipeEntity(RecipeCreateDto recipeCreateDto)
     {
         return new Recipe
         {
-            SupplierRecipeCount = supplierRecipeCount,
             Name = recipeCreateDto.Name,
             Instructions = recipeCreateDto.Instructions,
             PreparationTime = recipeCreateDto.PreparationTime,

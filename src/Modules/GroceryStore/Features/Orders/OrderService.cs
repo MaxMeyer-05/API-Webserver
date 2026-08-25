@@ -30,11 +30,11 @@ public class OrderService : IOrderService
     }
 
     /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<OrderDto> CreateOrderAsync(OrderCreateDto order)
     {
-        var userOrderNumber = await GetNextUserOrderNumberAsync(order.UserId);
-        var orderEntity = _orderMapper.ToOrderEntity(order, userOrderNumber);
+        var orderEntity = _orderMapper.ToOrderEntity(order);
 
         decimal totalAmount = 0;
         foreach (var item in orderEntity.OrderItems)
@@ -48,7 +48,7 @@ public class OrderService : IOrderService
 
         _logger.LogInformation("Created new order with Id {OrderId}", orderEntity.Id);
 
-        return await GetOrderByIdAsync(userOrderNumber, order.UserId)
+        return await GetOrderByIdAsync(orderEntity.Id, order.UserId)
             ?? throw new InvalidOperationException($"Created order with ID {orderEntity.Id} could not be loaded");
     }
 
@@ -71,6 +71,7 @@ public class OrderService : IOrderService
 
     /// <inheritdoc />
     /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
     public async Task<OrderDto?> GetOrderByIdAsync(int orderNum, Guid userId)
     {
         var order = await _dbContext.Orders
@@ -80,9 +81,12 @@ public class OrderService : IOrderService
                     .ThenInclude(ingredient => ingredient.Supplier)
             .Include(o => o.OrderItems)
                 .ThenInclude(item => item.Ingredient)
-            .Where(o => o.UserOrderNumber == orderNum && o.UserId == userId)
+            .Where(o => o.Id == orderNum && o.UserId == userId)
             .FirstOrDefaultAsync()        
-            ?? throw new KeyNotFoundException($"Order with UserOrderNumber {orderNum} not found");
+            ?? throw new KeyNotFoundException($"Order with ID {orderNum} not found");
+
+        if (order.UserId != userId)
+            throw new UnauthorizedAccessException($"User with ID {userId} does not have permission to access order with ID {orderNum}");
 
         return _orderMapper.ToOrderDto(order);
     }
@@ -94,35 +98,22 @@ public class OrderService : IOrderService
     public async Task UpdateOrderAsync(int orderNum, Guid userId, OrderUpdateDto order)
     {
         var orderEntity = await _dbContext.Orders
-            .Where(o => o.UserOrderNumber == orderNum && o.UserId == userId)
+            .Where(o => o.Id == orderNum && o.UserId == userId)
             .FirstOrDefaultAsync()
-            ?? throw new KeyNotFoundException($"Order with UserOrderNumber {orderNum} not found");
-
-        if (orderEntity.IsCanceled)
-            throw new InvalidOperationException($"Order with UserOrderNumber {orderNum} is already canceled and cannot be updated");
-        
-        if (orderEntity.IsCompleted)
-            throw new InvalidOperationException($"Order with UserOrderNumber {orderNum} is already completed and cannot be updated");
+            ?? throw new KeyNotFoundException($"Order with ID {orderNum} not found");
 
         if (orderEntity.UserId != userId)
-            throw new UnauthorizedAccessException($"User with ID {userId} does not have permission to update order with UserOrderNumber {orderNum}");
+            throw new UnauthorizedAccessException($"User with ID {userId} does not have permission to update order with ID {orderNum}");
+
+        if (orderEntity.IsCanceled)
+            throw new InvalidOperationException($"Order with ID {orderNum} is already canceled and cannot be updated");
+        
+        if (orderEntity.IsCompleted)
+            throw new InvalidOperationException($"Order with ID {orderNum} is already completed and cannot be updated");
         
         _orderMapper.UpdateOrderEntity(orderEntity, order);
         await _dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Updated order with UserOrderNumber {OrderNum} for user {UserId}", orderNum, userId);
-    }
-
-    /// <summary>
-    /// Gets the next user order number for a given user.
-    /// </summary>
-    /// <param name="userId">The unique identifier of the user.</param>
-    /// <returns>The next user-specific order number.</returns>
-    private async Task<int> GetNextUserOrderNumberAsync(Guid userId)
-    {
-        var lastOrder = await _dbContext.Orders
-            .CountAsync(o => o.UserId == userId);
-
-        return lastOrder + 1;
+        _logger.LogInformation("Updated order with ID {OrderNum} for user {UserId}", orderNum, userId);
     }
 }

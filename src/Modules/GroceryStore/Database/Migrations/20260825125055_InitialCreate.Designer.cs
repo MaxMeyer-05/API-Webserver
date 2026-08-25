@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroceryStore.Database.Migrations
 {
     [DbContext(typeof(GroceryStoreDbContext))]
-    [Migration("20260825105214_InitialCreate")]
+    [Migration("20260825125055_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -167,9 +167,6 @@ namespace GroceryStore.Database.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("UserOrderNumber")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -219,9 +216,6 @@ namespace GroceryStore.Database.Migrations
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("SupplierRecipeCount")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -469,7 +463,7 @@ namespace GroceryStore.Database.Migrations
             modelBuilder.Entity("GroceryStore.Database.Entities.Recipe", b =>
                 {
                     b.HasOne("GroceryStore.Database.Entities.Supplier", "Supplier")
-                        .WithMany()
+                        .WithMany("Recipes")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -545,6 +539,8 @@ namespace GroceryStore.Database.Migrations
             modelBuilder.Entity("GroceryStore.Database.Entities.Supplier", b =>
                 {
                     b.Navigation("Ingredients");
+
+                    b.Navigation("Recipes");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>

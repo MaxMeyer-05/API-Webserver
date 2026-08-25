@@ -86,6 +86,12 @@ public partial class Supplier
     public virtual ICollection<Ingredient> Ingredients { get; set; } = [];
 
     /// <summary>
+    /// Defines the collection of recipes associated with the supplier,
+    /// which can be used to track the supplier's recipe offerings.
+    /// </summary>
+    public virtual ICollection<Recipe> Recipes { get; set; } = [];
+
+    /// <summary>
     /// Defines the navigation property for the zip code, 
     /// which can be used to access additional information about the supplier's location.
     /// </summary>

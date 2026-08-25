@@ -15,6 +15,7 @@ public class IngredientMapper : IIngredientMapper
     {
         return new IngredientDto(
             IngredientId: ingredient.Id,
+            SupplierIngredientCount: ingredient.Supplier?.Ingredients.Count ?? 0,
             Name: ingredient.Name,
             Unit: ingredient.Unit,
             NetPrice: ingredient.NetPrice,

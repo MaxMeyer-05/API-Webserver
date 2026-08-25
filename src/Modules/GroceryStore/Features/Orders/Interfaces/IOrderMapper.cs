@@ -10,9 +10,8 @@ public interface IOrderMapper
     /// Maps an <see cref="OrderCreateDto"/> to an <see cref="Order"/> entity.
     /// </summary>
     /// <param name="orderCreateDto">The <see cref="OrderCreateDto"/> to map.</param>
-    /// <param name="userOrderNumber">The user order number for the new order.</param>
     /// <returns>The mapped <see cref="Order"/> entity.</returns>
-    Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber);
+    Order ToOrderEntity(OrderCreateDto orderCreateDto);
 
     /// <summary>
     /// Maps an <see cref="Order"/> entity to an <see cref="OrderDto"/>.

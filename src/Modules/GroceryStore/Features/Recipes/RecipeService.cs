@@ -85,9 +85,7 @@ public class RecipeService : IRecipeService
 	/// <exception cref="InvalidOperationException"></exception>
     public async Task<RecipeDto> CreateRecipeAsync(RecipeCreateDto recipe)
     {
-		var recipeEntity = _recipeMapper.ToRecipeEntity(
-			recipe, 
-			await GetNextSupplierRecipeCount(recipe.SupplierId));
+		var recipeEntity = _recipeMapper.ToRecipeEntity(recipe);
 			
 		_dbContext.Recipes.Add(recipeEntity);
 		await _dbContext.SaveChangesAsync();
@@ -220,12 +218,4 @@ public class RecipeService : IRecipeService
 
 		_logger.LogInformation("Updated recipe with Id {RecipeId}", recipeId);
     }
-
-	private async Task<int> GetNextSupplierRecipeCount(Guid supplierId)
-	{
-		var supplierRecipeCount = await _dbContext.Recipes
-			.CountAsync(r => r.SupplierId == supplierId);
-
-		return supplierRecipeCount + 1;
-	}
 }
