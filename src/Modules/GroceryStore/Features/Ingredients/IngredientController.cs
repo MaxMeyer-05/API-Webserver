@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using SharedKernel.Security.Interfaces;
+using GroceryStore.Features.Ingredients.Interfaces;
 
 namespace GroceryStore.Features.Ingredients;
 
@@ -14,11 +15,11 @@ namespace GroceryStore.Features.Ingredients;
 [Route("api/module/grocery-store/ingredients")]
 public class IngredientController : ControllerBase
 {
-    private readonly IngredientService _ingredientService;
+    private readonly IIngredientService _ingredientService;
     private readonly ICurrentUser _currentUser;
 
     public IngredientController(
-        IngredientService ingredientService,
+        IIngredientService ingredientService,
         ICurrentUser currentUser)
     {
         _ingredientService = ingredientService;

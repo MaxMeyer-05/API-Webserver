@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using SharedKernel.Security.Interfaces;
+using GroceryStore.Features.Orders.Interfaces;
 
 namespace GroceryStore.Features.Orders;
 
@@ -15,11 +16,11 @@ namespace GroceryStore.Features.Orders;
 [Route("api/module/grocery-store/orders")]
 public class OrderController : ControllerBase
 {
-    private readonly OrderService _orderService;
+    private readonly IOrderService _orderService;
     private readonly ICurrentUser _currentUser;
 
     public OrderController(
-        OrderService orderService, 
+        IOrderService orderService, 
         ICurrentUser currentUser)
     {
         _orderService = orderService;

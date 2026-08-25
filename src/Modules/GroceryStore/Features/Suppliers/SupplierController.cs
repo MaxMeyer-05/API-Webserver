@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using SharedKernel.Security.Interfaces;
+using GroceryStore.Features.Suppliers.Interfaces;
 
 namespace GroceryStore.Features.Suppliers;
 
@@ -14,12 +15,12 @@ namespace GroceryStore.Features.Suppliers;
 [Route("api/module/grocery-store/suppliers")]
 public class SupplierController : ControllerBase
 {
-    private readonly SupplierService _supplierService;
+    private readonly ISupplierService _supplierService;
     private readonly ICurrentUser _currentUser;
     private readonly ITokenService _tokenService;
 
     public SupplierController(
-        SupplierService supplierService,
+        ISupplierService supplierService,
         ICurrentUser currentUser,
         ITokenService tokenService)
     {

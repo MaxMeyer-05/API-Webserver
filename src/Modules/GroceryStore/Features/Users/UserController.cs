@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using SharedKernel.Security.Interfaces;
+using GroceryStore.Features.Users.Interfaces;
 
 namespace GroceryStore.Features.Users;
 
@@ -14,12 +15,12 @@ namespace GroceryStore.Features.Users;
 [Route("api/module/grocery-store/users")]
 public class UserController : ControllerBase
 {
-    private readonly UserService _userService;
+    private readonly IUserService _userService;
     private readonly ICurrentUser _currentUser;
     private readonly ITokenService _tokenService;
 
     public UserController(
-        UserService userService,
+        IUserService userService,
         ICurrentUser currentUser,
         ITokenService tokenService)
     {

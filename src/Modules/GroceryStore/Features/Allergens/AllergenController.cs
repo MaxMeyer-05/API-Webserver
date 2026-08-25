@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using SharedKernel.Security.Interfaces;
+using GroceryStore.Features.Allergens.Interfaces;
 
 namespace GroceryStore.Features.Allergens;
 
@@ -14,11 +15,11 @@ namespace GroceryStore.Features.Allergens;
 [Route("api/module/grocery-store/allergens")]
 public class AllergenController : ControllerBase
 {
-    private readonly AllergenService _allergenService;
+    private readonly IAllergenService _allergenService;
     private readonly ICurrentUser _currentUser;
 
     public AllergenController(
-        AllergenService allergenService, 
+        IAllergenService allergenService, 
         ICurrentUser currentUser)
     {
         _allergenService = allergenService;

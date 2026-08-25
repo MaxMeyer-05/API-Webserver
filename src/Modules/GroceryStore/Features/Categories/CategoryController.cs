@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using SharedKernel.Security.Interfaces;
+using GroceryStore.Features.Categories.Interfaces;
 
 namespace GroceryStore.Features.Categories;
 
@@ -14,11 +15,11 @@ namespace GroceryStore.Features.Categories;
 [Route("api/module/grocery-store/categories")]
 public class CategoryController : ControllerBase
 {
-    private readonly CategoryService _categoryService;
+    private readonly ICategoryService _categoryService;
     private readonly ICurrentUser _currentUser;
 
     public CategoryController(
-        CategoryService categoryService, 
+        ICategoryService categoryService, 
         ICurrentUser currentUser)
     {
         _categoryService = categoryService;

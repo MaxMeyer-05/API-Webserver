@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
+using GroceryStore.Features.Locations.Interfaces;
+
 namespace GroceryStore.Features.Locations;
 
 /// <summary>
@@ -12,9 +14,9 @@ namespace GroceryStore.Features.Locations;
 [Route("api/module/grocery-store/locations")]
 public class LocationController : ControllerBase
 {
-    private readonly LocationService _locationService;
+    private readonly ILocationService _locationService;
 
-    public LocationController(LocationService locationService)
+    public LocationController(ILocationService locationService)
     {
         _locationService = locationService;
     }
