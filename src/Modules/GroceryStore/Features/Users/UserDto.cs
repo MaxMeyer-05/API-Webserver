@@ -3,6 +3,7 @@ namespace GroceryStore.Features.Users;
 /// <summary>
 /// Data Transfer Object (DTO) representing a user.
 /// </summary>
+/// <param name="UserId">The unique identifier of the user.</param>
 /// <param name="Role">The role of the user (e.g., Admin, Customer).</param>
 /// <param name="Name">The full name of the user.</param>
 /// <param name="BirthDate">The birth date of the user.</param>
@@ -13,6 +14,7 @@ namespace GroceryStore.Features.Users;
 /// <param name="CreatedAtDateTime">The date and time when the user was created.</param>
 /// <param name="UpdatedAtDateTime">The date and time when the user was last updated.</param>
 public record UserDto(
+    Guid UserId,
     string Role,
     string Name, 
     DateOnly BirthDate, 
@@ -92,4 +94,16 @@ public record UserLoginDto(
 /// <param name="Password">The password of the user.</param>
 public record UserActionRequest (
     string? Password
+);
+
+/// <summary>
+/// Data Transfer Object (DTO) for authentication response.
+/// </summary>
+/// <param name="Token">The authentication token for the user.</param>
+/// <param name="UserId">The unique identifier of the user.</param>
+/// <param name="Role">The role of the user.</param>
+public record AuthResponseDto(
+    string Token,
+    Guid UserId,
+    string Role
 );

@@ -3,6 +3,7 @@ namespace GroceryStore.Features.Suppliers;
 /// <summary>
 /// Represents a data transfer object (DTO) for a supplier
 /// </summary>
+/// <param name="SupplierId">The unique identifier of the supplier.</param>
 /// <param name="Role">The role of the supplier.</param>
 /// <param name="CompanyName">The company name of the supplier.</param>
 /// <param name="Address">The address of the supplier.</param>
@@ -12,6 +13,7 @@ namespace GroceryStore.Features.Suppliers;
 /// <param name="CreatedAtDateTime">The date and time when the supplier was created.</param>
 /// <param name="UpdatedAtDateTime">The date and time when the supplier was last updated.</param>
 public record SupplierDto(
+    Guid SupplierId,
     string Role,
     string CompanyName, 
     string Address, 
@@ -80,4 +82,16 @@ public record SupplierLoginDto(
 /// <param name="Password">The password of the supplier.</param>
 public record SupplierActionRequest(
     string Password
+);
+
+/// <summary>
+/// Data Transfer Object (DTO) for authentication response.
+/// </summary>
+/// <param name="Token">The authentication token for the supplier.</param>
+/// <param name="SupplierId">The unique identifier of the supplier.</param>
+/// <param name="Role">The role of the supplier.</param>
+public record AuthResponseDto(
+    string Token,
+    Guid SupplierId,
+    string Role
 );

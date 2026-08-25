@@ -59,8 +59,6 @@ public sealed class GroceryStoreModule : IModule
             services.AddScoped<ILocationRepository, LocationRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IRecipeRepository, RecipeRepository>();
-            services.AddScoped<ISupplierRepository, SupplierRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<AllergenService>();
             services.AddScoped<CategoryService>();
@@ -68,7 +66,7 @@ public sealed class GroceryStoreModule : IModule
             services.AddScoped<LocationService>();
             services.AddScoped<OrderService>();
             services.AddScoped<RecipeService>();
-            services.AddScoped<SupplierService>();
-            services.AddScoped<UserService>();
+            services.AddScoped<ISupplierService, SupplierService>();
+            services.AddScoped<IUserService, UserService>();
     }
 }

@@ -27,6 +27,7 @@ public class UserMapper : IUserMapper
     public UserDto ToUserDto(User userEntity)
     {
         return new UserDto(
+            UserId: userEntity.Id,
             Role: userEntity.Role,
             Name: userEntity.FirstName + " " + userEntity.LastName,
             BirthDate: userEntity.BirthDate,

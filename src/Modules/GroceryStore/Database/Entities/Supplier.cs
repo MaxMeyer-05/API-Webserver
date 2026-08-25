@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroceryStore.Database.Entities;
@@ -8,6 +10,8 @@ namespace GroceryStore.Database.Entities;
 /// which contains information about suppliers providing ingredients to the store.
 /// </summary>
 [Table("suppliers")]
+[Index(nameof(Email), IsUnique = true)]
+[Index(nameof(PhoneNumber), IsUnique = true)]
 public partial class Supplier
 {
     /// <summary>
@@ -43,15 +47,15 @@ public partial class Supplier
     /// <remarks>
     /// This field is optional and can be null if the supplier does not provide a phone number.
     /// </remarks>
-    [Phone]
+    [Phone(ErrorMessage = "The phone number is not valid.")]
     public string? PhoneNumber { get; set; }
 
     /// <summary>
     /// Defines the email address of the supplier, 
     /// which can be used for communication and login purposes.
     /// </summary>
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "The email address is required.")]
+    [EmailAddress(ErrorMessage = "The email address is not valid.")]
     public string Email { get; set; } = null!;
 
     /// <summary>

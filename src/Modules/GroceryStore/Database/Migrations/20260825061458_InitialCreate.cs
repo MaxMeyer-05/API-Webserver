@@ -349,9 +349,33 @@ namespace GroceryStore.Database.Migrations
                 column: "SupplierId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_suppliers_Email",
+                table: "suppliers",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_suppliers_PhoneNumber",
+                table: "suppliers",
+                column: "PhoneNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_suppliers_ZipCode",
                 table: "suppliers",
                 column: "ZipCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_Email",
+                table: "users",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_PhoneNumber",
+                table: "users",
+                column: "PhoneNumber",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_ZipCode",

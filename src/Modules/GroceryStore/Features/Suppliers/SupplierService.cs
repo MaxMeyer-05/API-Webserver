@@ -1,44 +1,137 @@
+using Microsoft.EntityFrameworkCore;
+
+using GroceryStore.Database.DbContexts;
 using GroceryStore.Features.Suppliers.Interfaces;
 
 namespace GroceryStore.Features.Suppliers;
-public class SupplierService
+
+/// <summary>
+/// Service class for managing supplier data in the database.
+/// </summary>
+public class SupplierService : ISupplierService
 {
-    private readonly ISupplierRepository _supplierRepository;
+    private readonly GroceryStoreDbContext _dbContext;
+    private readonly ISupplierMapper _supplierMapper;
     private readonly ILogger<SupplierService> _logger;
 
     public SupplierService(
-        ISupplierRepository supplierRepository,
+        GroceryStoreDbContext dbContext, 
+        ISupplierMapper supplierMapper,
         ILogger<SupplierService> logger)
     {
-        _supplierRepository = supplierRepository;
+        _dbContext = dbContext;
+        _supplierMapper = supplierMapper;
         _logger = logger;
     }
 
+    /// <inheritdoc />
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task<SupplierDto> CreateSupplierAsync(SupplierRegistrationDto supplier)
+    {
+        var supplierEntity = _supplierMapper.ToSupplierEntity(supplier);
+
+        if (await IsEmailInUseAsync(supplierEntity.Email))
+            throw new InvalidOperationException("Email is already in use.");
+
+        if (supplierEntity.PhoneNumber is not null 
+            && await IsPhoneNumberInUseAsync(supplierEntity.PhoneNumber))
+            throw new InvalidOperationException("Phone number is already in use.");
+
+        await _dbContext.Suppliers.AddAsync(supplierEntity);
+        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("Created new supplier with Id {SupplierId}", supplierEntity.Id);
+        return _supplierMapper.ToSupplierDto(supplierEntity);
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task DeleteSupplierAsync(Guid supplierId, string password)
+    {
+        var supplier = await _dbContext.Suppliers
+            .Where(s => s.Id == supplierId)
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException($"Supplier with Id {supplierId} not found");
+
+        if (supplier.PasswordHash != HashPassword(password))
+            throw new InvalidOperationException("Invalid password.");
+
+        _supplierMapper.AnonymizeSupplierEntity(supplier);
+        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("Anonymized supplier with Id {SupplierId}", supplierId);
+    }
+
+    /// <inheritdoc />
     public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
     {
-        var suppliers = await _supplierRepository.GetAllSuppliersAsync();
-        return suppliers;
+        var suppliers = await _dbContext.Suppliers.ToListAsync();
+        return suppliers.Select(s => _supplierMapper.ToSupplierDto(s));
     }
 
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
     public async Task<SupplierDto?> GetSupplierByIdAsync(Guid supplierId)
     {
-        var supplier = await _supplierRepository.GetSupplierByIdAsync(supplierId);
-        return supplier;
+        var supplier = await _dbContext.Suppliers
+            .Where(s => s.Id == supplierId)
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException($"Supplier with Id {supplierId} not found");
+
+        return supplier is null ? null : _supplierMapper.ToSupplierDto(supplier);
     }
 
-    public async Task<SupplierDto> CreateSupplierAsync(SupplierRegistrationDto supplierRegistrationDto)
+    /// <inheritdoc />
+    public Task<bool> IsEmailInUseAsync(string email, Guid? excludedSupplierId = null)
     {
-        var createdSupplier = await _supplierRepository.CreateSupplierAsync(supplierRegistrationDto);
-        return createdSupplier;
+        return _dbContext.Suppliers
+            .AnyAsync(s => s.Email == email && (excludedSupplierId == null || s.Id != excludedSupplierId));
     }
 
-    public async Task UpdateSupplierAsync(Guid supplierId, SupplierUpdateDto supplierUpdateDto)
+    /// <inheritdoc />
+    public Task<bool> IsPhoneNumberInUseAsync(string phoneNumber, Guid? excludedSupplierId = null)
     {
-        await _supplierRepository.UpdateSupplierAsync(supplierId, supplierUpdateDto);
+        return _dbContext.Suppliers
+            .AnyAsync(s => s.PhoneNumber == phoneNumber && (excludedSupplierId == null || s.Id != excludedSupplierId));
     }
 
-    public async Task DeleteSupplierAsync(Guid supplierId)
+    /// <inheritdoc />
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    public async Task<SupplierDto?> LoginSupplierAsync(SupplierLoginDto supplier)
     {
-        await _supplierRepository.DeleteSupplierAsync(supplierId);
+        var existingSupplier = await _dbContext.Suppliers
+            .Where(s => s.Email == supplier.Email && s.PasswordHash == HashPassword(supplier.Password))
+            .FirstOrDefaultAsync()
+            ?? throw new UnauthorizedAccessException("Invalid email or password.");
+
+        return _supplierMapper.ToSupplierDto(existingSupplier);
     }
+
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task UpdateSupplierAsync(Guid supplierId, SupplierUpdateDto supplier)
+    {
+        var existingSupplier = await _dbContext.Suppliers
+            .Where(s => s.Id == supplierId)
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException($"Supplier with Id {supplierId} not found");
+
+        if (supplier.Email is not null && await IsEmailInUseAsync(supplier.Email, supplierId))
+            throw new InvalidOperationException("Email is already in use.");
+
+        if (supplier.PhoneNumber is not null && await IsPhoneNumberInUseAsync(supplier.PhoneNumber, supplierId))
+            throw new InvalidOperationException("Phone number is already in use.");
+
+        _supplierMapper.UpdateSupplierEntity(existingSupplier, supplier);
+        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("Updated supplier with Id {SupplierId}", supplierId);
+    }
+
+    /// <summary>
+    /// Hashes the provided password using BCrypt.
+    /// </summary>
+    /// <param name="password">The password to hash.</param>
+    /// <returns>The hashed password.</returns>
+    private static string HashPassword(string password)
+        => BCrypt.Net.BCrypt.HashPassword(password);
 }

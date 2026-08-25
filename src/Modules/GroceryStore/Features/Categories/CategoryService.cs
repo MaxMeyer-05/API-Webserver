@@ -10,16 +10,16 @@ namespace GroceryStore.Features.Categories;
 public class CategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
-    private readonly ISupplierRepository _supplierRepository;
+    private readonly ISupplierService _supplierService;
     private readonly ILogger<CategoryService> _logger;
 
     public CategoryService(
         ICategoryRepository categoryRepository, 
-        ISupplierRepository supplierRepository, 
+        ISupplierService supplierService, 
         ILogger<CategoryService> logger)
     {
         _categoryRepository = categoryRepository;
-        _supplierRepository = supplierRepository;
+        _supplierService = supplierService;
         _logger = logger;
     }
 
@@ -53,7 +53,7 @@ public class CategoryService
     public async Task<CategoryDto> CreateCategoryAsync(CategoryCreateDto category)
     {
         _logger.LogDebug("Creating new category");
-        _ = await _supplierRepository.GetSupplierByIdAsync(category.SupplierId) 
+        _ = await _supplierService.GetSupplierByIdAsync(category.SupplierId) 
             ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create categories.");
         return await _categoryRepository.CreateCategoryAsync(category);
     }

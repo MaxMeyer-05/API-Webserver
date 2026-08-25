@@ -10,16 +10,16 @@ namespace GroceryStore.Features.Ingredients;
 public class IngredientService
 {
     private readonly IIngredientRepository _ingredientRepository;
-    private readonly ISupplierRepository _supplierRepository;
+    private readonly ISupplierService _supplierService;
     private readonly ILogger<IngredientService> _logger;
 
     public IngredientService(
         IIngredientRepository ingredientRepository, 
-        ISupplierRepository supplierRepository, 
+        ISupplierService supplierService, 
         ILogger<IngredientService> logger)
     {
         _ingredientRepository = ingredientRepository;
-        _supplierRepository = supplierRepository;
+        _supplierService = supplierService;
         _logger = logger;
     }
 
@@ -53,7 +53,7 @@ public class IngredientService
     public async Task<IngredientDto> CreateIngredientAsync(IngredientCreateDto ingredient)
     {
         _logger.LogDebug("Creating new ingredient");
-        _ = await _supplierRepository.GetSupplierByIdAsync(ingredient.SupplierId) 
+        _ = await _supplierService.GetSupplierByIdAsync(ingredient.SupplierId) 
             ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create ingredients.");
 
         return await _ingredientRepository.CreateIngredientAsync(ingredient);

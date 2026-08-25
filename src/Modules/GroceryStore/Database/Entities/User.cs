@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroceryStore.Database.Entities;
@@ -9,6 +11,8 @@ namespace GroceryStore.Database.Entities;
 /// as well as authentication details.
 /// </summary>
 [Table("users")]
+[Index(nameof(Email), IsUnique = true)]
+[Index(nameof(PhoneNumber), IsUnique = true)]
 public partial class User
 {
     /// <summary>
@@ -47,8 +51,8 @@ public partial class User
     /// Defines the email address of the user, 
     /// which can be used for communication and login purposes.
     /// </summary>
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email address format.")]
     public string Email { get; set; } = null!;
 
     /// <summary>
@@ -58,7 +62,7 @@ public partial class User
     /// <remarks>
     /// This field is optional and can be null if the user does not provide a phone number.
     /// </remarks>
-    [Phone]
+    [Phone(ErrorMessage = "Invalid phone number format.")]
     public string? PhoneNumber { get; set; }
 
     /// <summary>

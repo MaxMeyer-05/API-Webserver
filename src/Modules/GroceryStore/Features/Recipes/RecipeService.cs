@@ -10,16 +10,16 @@ namespace GroceryStore.Features.Recipes;
 public class RecipeService
 {
     private readonly IRecipeRepository _recipeRepository;
-    private readonly ISupplierRepository _supplierRepository;
+    private readonly ISupplierService _supplierService;
     private readonly ILogger<RecipeService> _logger;
 
     public RecipeService(
         IRecipeRepository recipeRepository, 
-        ISupplierRepository supplierRepository,
+        ISupplierService supplierService,
         ILogger<RecipeService> logger)
     {
         _recipeRepository = recipeRepository;
-        _supplierRepository = supplierRepository;
+        _supplierService = supplierService;
         _logger = logger;
     }
 
@@ -53,7 +53,7 @@ public class RecipeService
     public async Task<RecipeDto> CreateRecipeAsync(RecipeCreateDto recipe)
     {
         _logger.LogDebug("Creating new recipe");
-        _ = await _supplierRepository.GetSupplierByIdAsync(recipe.SupplierId) 
+        _ = await _supplierService.GetSupplierByIdAsync(recipe.SupplierId) 
             ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create recipes.");
 
         return await _recipeRepository.CreateRecipeAsync(recipe);

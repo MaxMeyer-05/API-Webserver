@@ -26,6 +26,7 @@ public class SupplierMapper : ISupplierMapper
     public SupplierDto ToSupplierDto(Supplier supplierEntity)
     {
         return new SupplierDto(
+            SupplierId: supplierEntity.Id,
             Role: supplierEntity.Role,
             CompanyName: supplierEntity.CompanyName,
             Address: supplierEntity.Street + " " + supplierEntity.HouseNumber,

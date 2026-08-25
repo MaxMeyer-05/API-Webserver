@@ -10,16 +10,16 @@ namespace GroceryStore.Features.Allergens;
 public class AllergenService
 {
     private readonly IAllergenRepository _allergenRepository;
-    private readonly ISupplierRepository _supplierRepository;
+    private readonly ISupplierService _supplierService;
     private readonly ILogger<AllergenService> _logger;
 
     public AllergenService(
         IAllergenRepository allergenRepository, 
-        ISupplierRepository supplierRepository, 
+        ISupplierService supplierService, 
         ILogger<AllergenService> logger)
     {
         _allergenRepository = allergenRepository;
-        _supplierRepository = supplierRepository;
+        _supplierService = supplierService;
         _logger = logger;
     }
 
@@ -54,7 +54,7 @@ public class AllergenService
     public async Task<AllergenDto> CreateAllergenAsync(AllergenCreateDto allergen)
     {
         _logger.LogDebug("Creating new allergen");
-        _ = await _supplierRepository.GetSupplierByIdAsync(allergen.SupplierId) 
+        _ = await _supplierService.GetSupplierByIdAsync(allergen.SupplierId) 
                 ?? throw new UnauthorizedAccessException($"Only suppliers can create allergens. Supplier with ID {allergen.SupplierId} not found.");
 
         return await _allergenRepository.CreateAllergenAsync(allergen);
