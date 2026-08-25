@@ -1,146 +1,163 @@
+using Microsoft.EntityFrameworkCore;
+
 using GroceryStore.Features.Ingredients.Interfaces;
-using GroceryStore.Features.Suppliers.Interfaces;
+
+using GroceryStore.Database.DbContexts;
 
 namespace GroceryStore.Features.Ingredients;
 
 /// <summary>
-/// Represents a service for managing ingredients, 
-/// providing business logic and validation for ingredient-related operations.
+/// Represents the service responsible for managing ingredients in the grocery store application.
 /// </summary>
-public class IngredientService
+public class IngredientService : IIngredientService
 {
-    private readonly IIngredientRepository _ingredientRepository;
-    private readonly ISupplierService _supplierService;
+    private readonly GroceryStoreDbContext _dbContext;
+    private readonly IIngredientMapper _ingredientMapper;
     private readonly ILogger<IngredientService> _logger;
 
     public IngredientService(
-        IIngredientRepository ingredientRepository, 
-        ISupplierService supplierService, 
+        GroceryStoreDbContext dbContext,
+        IIngredientMapper ingredientMapper,
         ILogger<IngredientService> logger)
     {
-        _ingredientRepository = ingredientRepository;
-        _supplierService = supplierService;
+        _dbContext = dbContext;
+        _ingredientMapper = ingredientMapper;
         _logger = logger;
     }
-
-    /// <summary>
-    /// Retrieves all ingredients from the repository.
-    /// </summary>
-    /// <returns>Returns a collection of all ingredients.</returns>
-    public async Task<IEnumerable<IngredientDto>> GetAllIngredientsAsync()
-    {
-        _logger.LogDebug("Retrieving all ingredients");
-        return await _ingredientRepository.GetAllIngredientsAsync();
-    }
-
-    /// <summary>
-    /// Retrieves a specific ingredient by its ID.
-    /// </summary>
-    /// <param name="ingredientId">The ID of the ingredient to retrieve.</param>
-    /// <returns>Returns the ingredient DTO if found; otherwise, null.</returns>
-    public async Task<IngredientDto?> GetIngredientByIdAsync(int ingredientId)
-    {
-        _logger.LogDebug("Retrieving ingredient with ID {IngredientId}", ingredientId);
-        return await _ingredientRepository.GetIngredientByIdAsync(ingredientId);
-    }
-
-    /// <summary>
-    /// Creates a new ingredient in the repository.
-    /// </summary>
-    /// <param name="ingredient">The ingredient create DTO containing the details of the ingredient to create.</param>
-    /// <returns>Returns the created ingredient DTO.</returns>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to create the ingredient.</exception>
-    public async Task<IngredientDto> CreateIngredientAsync(IngredientCreateDto ingredient)
-    {
-        _logger.LogDebug("Creating new ingredient");
-        _ = await _supplierService.GetSupplierByIdAsync(ingredient.SupplierId) 
-            ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create ingredients.");
-
-        return await _ingredientRepository.CreateIngredientAsync(ingredient);
-    }
-
-    /// <summary>
-    /// Updates an existing ingredient in the repository.
-    /// </summary>
-    /// <param name="supplierId">The ID of the supplier attempting to update the ingredient.</param>
-    /// <param name="ingredientId">The ID of the ingredient to update.</param>
-    /// <param name="ingredient">The ingredient update DTO containing the updated details.</param>
-    /// <exception cref="KeyNotFoundException">Thrown if the ingredient to update does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to update the ingredient.</exception>
-    /// <remarks>Only the supplier who owns the ingredient can update it.</remarks>
-    public async Task UpdateIngredientAsync(Guid supplierId, int ingredientId, IngredientUpdateDto ingredient)
-    {
-        _logger.LogDebug("Updating ingredient with ID {IngredientId}", ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
-            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        
-        if (existingIngredient.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can update it.");
-
-        await _ingredientRepository.UpdateIngredientAsync(ingredientId, ingredient);
-    }
-
-    /// <summary>
-    /// Deletes an existing ingredient from the repository.
-    /// </summary>
-    /// <param name="supplierId">The ID of the supplier attempting to delete the ingredient.</param>
-    /// <param name="ingredientId">The ID of the ingredient to delete.</param>
-    /// <exception cref="KeyNotFoundException">Thrown if the ingredient to delete does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to delete the ingredient.</exception>
-    /// <remarks>Only the supplier who owns the ingredient can delete it.</remarks>
-    public async Task DeleteIngredientAsync(Guid supplierId, int ingredientId)
-    {
-        _logger.LogDebug("Deleting ingredient with ID {IngredientId}", ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
-            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        
-        if (existingIngredient.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can delete it.");
-
-        await _ingredientRepository.DeleteIngredientAsync(ingredientId);
-    }
-
-    /// <summary>
-    /// Adds an allergen to an existing ingredient in the repository.
-    /// </summary>
-    /// <param name="ingredientId">The ID of the ingredient to which the allergen will be added.</param>
-    /// <param name="allergenId">The ID of the allergen to add to the ingredient.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to add the allergen.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the ingredient does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to add the allergen.</exception>
-    /// <remarks>Only the supplier who owns the ingredient can add allergens.</remarks>
+    
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
     public async Task AddAllergenToIngredientAsync(int ingredientId, int allergenId, Guid supplierId)
     {
-        _logger.LogDebug("Adding allergen with ID {AllergenId} to ingredient with ID {IngredientId}", allergenId, ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
-            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        
-        if (existingIngredient.SupplierId != supplierId)
+        var ingredient = await _dbContext.Ingredients
+            .Include(i => i.Allergens)
+            .Where(i => i.Id == ingredientId)
+            .FirstOrDefaultAsync() 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+
+        if (ingredient.SupplierId != supplierId)
             throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can add allergens.");
 
-        await _ingredientRepository.AddAllergenToIngredientAsync(ingredientId, allergenId);
+        var allergen = await _dbContext.Allergens.FindAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+
+        if (!ingredient.Allergens.Contains(allergen))
+        {
+            ingredient.Allergens.Add(allergen);
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Added allergen with ID {AllergenId} to ingredient with ID {IngredientId}", allergenId, ingredientId);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Ingredient with ID {ingredientId} already has allergen with ID {allergenId}");
+        }
     }
 
-    /// <summary>
-    /// Removes an allergen from an existing ingredient in the repository.
-    /// </summary>
-    /// <param name="ingredientId">The ID of the ingredient from which the allergen will be removed.</param>
-    /// <param name="allergenId">The ID of the allergen to remove from the ingredient.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to remove the allergen.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the ingredient does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to remove the allergen.</exception>
-    /// <remarks>Only the supplier who owns the ingredient can remove allergens.</remarks>
+    /// <inheritdoc />
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task<IngredientDto> CreateIngredientAsync(IngredientCreateDto ingredient)
+    {
+        var ingredientEntity = _ingredientMapper.ToIngredientEntity(ingredient);
+
+        _dbContext.Ingredients.Add(ingredientEntity);
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Created new ingredient with ID {IngredientId}", ingredientEntity.Id);
+
+        return _ingredientMapper.ToIngredientDto(ingredientEntity)
+            ?? throw new InvalidOperationException("Failed to map the created ingredient entity to DTO");
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    public async Task DeleteIngredientAsync(int ingredientId, Guid supplierId)
+    {
+        var ingredientEntity = await _dbContext.Ingredients
+            .Where(i => i.Id == ingredientId)
+            .FirstOrDefaultAsync() 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+
+        if (ingredientEntity.SupplierId != supplierId)
+            throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can delete it.");
+
+        _dbContext.Ingredients.Remove(ingredientEntity);
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Deleted ingredient with ID {IngredientId}", ingredientId);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<IngredientDto>> GetAllIngredientsAsync()
+    {
+        var ingredients = await _dbContext.Ingredients
+            .Include(i => i.Allergens)
+            .Include(i => i.Supplier)
+            .ToListAsync();
+
+        _logger.LogDebug("Retrieved all ingredients from the database: {@Ingredients}", ingredients);
+        return ingredients.Select(i => _ingredientMapper.ToIngredientDto(i));
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    public async Task<IngredientDto?> GetIngredientByIdAsync(int ingredientId)
+    {
+        var ingredient = await _dbContext.Ingredients
+            .Include(i => i.Allergens)
+            .Include(i => i.Supplier)
+            .Where(i => i.Id == ingredientId)
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+
+        _logger.LogDebug("Retrieved ingredient with ID {IngredientId}: {@Ingredient}", ingredientId, ingredient);
+        return ingredient == null ? null : _ingredientMapper.ToIngredientDto(ingredient);
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     public async Task RemoveAllergenFromIngredientAsync(int ingredientId, int allergenId, Guid supplierId)
     {
-        _logger.LogDebug("Removing allergen with ID {AllergenId} from ingredient with ID {IngredientId}", allergenId, ingredientId);
-        var existingIngredient = await _ingredientRepository.GetIngredientByIdAsync(ingredientId) 
-            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found.");
-        
-        if (existingIngredient.SupplierId != supplierId)
+        var ingredient = await _dbContext.Ingredients
+            .Include(i => i.Allergens)
+            .Where(i => i.Id == ingredientId)
+            .FirstOrDefaultAsync() 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+
+        if (ingredient.SupplierId != supplierId)
             throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can remove allergens.");
 
-        await _ingredientRepository.RemoveAllergenFromIngredientAsync(ingredientId, allergenId);
+        var allergen = await _dbContext.Allergens.FindAsync(allergenId) 
+            ?? throw new KeyNotFoundException($"Allergen with ID {allergenId} not found");
+
+        var removed = ingredient.Allergens.Remove(allergen);
+        if (removed)
+        {
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Removed allergen with ID {AllergenId} from ingredient with ID {IngredientId}", allergenId, ingredientId);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Ingredient with ID {ingredientId} does not have allergen with ID {allergenId}");
+        }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    public async Task UpdateIngredientAsync(int ingredientId, Guid supplierId, IngredientUpdateDto ingredient)
+    {
+        var ingredientEntity = await _dbContext.Ingredients.FindAsync(ingredientId) 
+            ?? throw new KeyNotFoundException($"Ingredient with ID {ingredientId} not found");
+        
+        if (ingredientEntity.SupplierId != supplierId)
+            throw new UnauthorizedAccessException("Only the supplier who owns the ingredient can update it.");
+
+        _ingredientMapper.UpdateIngredientEntity(ingredientEntity, ingredient);
+        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("Updated ingredient with ID {IngredientId}", ingredientId);
     }
 }

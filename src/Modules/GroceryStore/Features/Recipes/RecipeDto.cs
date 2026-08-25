@@ -14,6 +14,7 @@ namespace GroceryStore.Features.Recipes;
 /// <param name="Categories">A list of category DTOs associated with the recipe.</param>
 /// <param name="Ingredients">A list of recipe ingredient DTOs associated with the recipe.</param>
 public record RecipeDto(
+    int SupplierRecipeCount,
     string Name,
     string? Instructions,
     int? PreparationTime,

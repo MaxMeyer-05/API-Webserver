@@ -1,9 +1,9 @@
 namespace GroceryStore.Features.Allergens.Interfaces;
 
 /// <summary>
-/// Defines the contract for a repository that manages allergens in the database.
+/// Defines the contract for a service that manages allergens in the database.
 /// </summary>
-public interface IAllergenRepository
+public interface IAllergenService
 {
     /// <summary>
     /// Retrieves all allergens from the database.
@@ -29,14 +29,14 @@ public interface IAllergenRepository
     /// Updates an existing allergen in the database.
     /// </summary>
     /// <param name="allergenId">The ID of the allergen to update.</param>
+    /// <param name="supplierId">The ID of the supplier requesting the update.</param>
     /// <param name="allergen">The updated allergen data.</param>
-    /// <returns>Returns a task representing the asynchronous operation.</returns>
-    Task UpdateAllergenAsync(int allergenId, AllergenUpdateDto allergen);
+    Task UpdateAllergenAsync(int allergenId, Guid supplierId, AllergenUpdateDto allergen);
 
     /// <summary>
     /// Deletes an allergen from the database by its ID.
     /// </summary>
     /// <param name="allergenId">The ID of the allergen to delete.</param>
-    /// <returns>Returns a task representing the asynchronous operation.</returns>
-    Task DeleteAllergenAsync(int allergenId);
+    /// <param name="supplierId">The ID of the supplier requesting the deletion.</param>
+    Task DeleteAllergenAsync(int allergenId, Guid supplierId);
 }

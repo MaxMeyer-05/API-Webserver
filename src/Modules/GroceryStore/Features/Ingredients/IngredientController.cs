@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+using SharedKernel.Security.Interfaces;
 
 namespace GroceryStore.Features.Ingredients;
 
@@ -12,10 +15,14 @@ namespace GroceryStore.Features.Ingredients;
 public class IngredientController : ControllerBase
 {
     private readonly IngredientService _ingredientService;
+    private readonly ICurrentUser _currentUser;
 
-    public IngredientController(IngredientService ingredientService)
+    public IngredientController(
+        IngredientService ingredientService,
+        ICurrentUser currentUser)
     {
         _ingredientService = ingredientService;
+        _currentUser = currentUser;
     }
 
     /// <summary>
@@ -27,8 +34,7 @@ public class IngredientController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<IngredientDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<IngredientDto>>> GetAllIngredients()
     {
-        var ingredients = await _ingredientService.GetAllIngredientsAsync();
-        return Ok(ingredients);
+        return Ok(await _ingredientService.GetAllIngredientsAsync());
     }
 
     /// <summary>
@@ -43,12 +49,15 @@ public class IngredientController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IngredientDto>> GetIngredientById([FromRoute] int ingredientId)
     {
-        var ingredient = await _ingredientService.GetIngredientByIdAsync(ingredientId);
-        if (ingredient == null)
+        try
         {
-            return NotFound();
+            var ingredient = await _ingredientService.GetIngredientByIdAsync(ingredientId);
+            return Ok(ingredient);
         }
-        return Ok(ingredient);
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     /// <summary>
@@ -58,11 +67,10 @@ public class IngredientController : ControllerBase
     /// <returns>The created ingredient.</returns>
     /// <response code="201">Returns the created ingredient.</response>
     /// <response code="400">If the ingredient data is invalid.</response>
-    /// <response code="403">If the supplier is not authorized to create the ingredient.</response>
-    [HttpPost]
+    [HttpPost("create")]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(typeof(IngredientDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<IngredientDto>> CreateIngredient([FromBody] IngredientCreateDto ingredient)
     {
         try
@@ -70,11 +78,7 @@ public class IngredientController : ControllerBase
             var createdIngredient = await _ingredientService.CreateIngredientAsync(ingredient);
             return CreatedAtAction(nameof(GetIngredientById), createdIngredient);
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-        catch (ArgumentException ae)
+        catch (InvalidOperationException ae)
         {
             return BadRequest(ae.Message);
         }
@@ -85,42 +89,35 @@ public class IngredientController : ControllerBase
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient.</param>
     /// <param name="allergenId">The ID of the allergen to add.</param>
-    /// <param name="supplierId">The ID of the supplier making the request.</param>
     /// <returns>No content if the operation is successful.</returns>
     /// <response code="204">If the allergen is successfully added to the ingredient.</response>
-    /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the ingredient or allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to add the allergen to the ingredient.</response>
-    [HttpPost("{ingredientId}/allergens/{allergenId}/suppliers/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpPost("{ingredientId}/allergens/{allergenId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddAllergenToIngredient([FromRoute] int ingredientId, [FromRoute] int allergenId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> AddAllergenToIngredient([FromRoute] int ingredientId, [FromRoute] int allergenId)
     {
         try
         {
-            await _ingredientService.AddAllergenToIngredientAsync(ingredientId, allergenId, supplierId);
+            await _ingredientService.AddAllergenToIngredientAsync(ingredientId, allergenId, _currentUser.UserId);
             return NoContent();
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
-        }
-        catch (ArgumentException ae)
-        {
-            return BadRequest(ae.Message);
+            return NotFound(ex.Message);
         }
     }
 
     /// <summary>
     /// Updates an existing ingredient in the repository.
     /// </summary>
-    /// <param name="supplierId">The ID of the supplier.</param>
     /// <param name="ingredientId">The ID of the ingredient to update.</param>
     /// <param name="ingredient">The updated ingredient data.</param>
     /// <returns>No content if the update is successful.</returns>
@@ -128,16 +125,17 @@ public class IngredientController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the ingredient is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the ingredient.</response>
-    [HttpPatch("{ingredientId}/suppliers/{supplierId}")]
+    [HttpPatch("{ingredientId}")]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateIngredient([FromRoute] Guid supplierId, [FromRoute] int ingredientId, [FromBody] IngredientUpdateDto ingredient)
+    public async Task<IActionResult> UpdateIngredient([FromRoute] int ingredientId, [FromBody] IngredientUpdateDto ingredient)
     {
         try
         {
-            await _ingredientService.UpdateIngredientAsync(supplierId, ingredientId, ingredient);
+            await _ingredientService.UpdateIngredientAsync(ingredientId, _currentUser.UserId, ingredient);
             return NoContent();
         }
         catch (UnauthorizedAccessException)
@@ -157,23 +155,23 @@ public class IngredientController : ControllerBase
     /// <summary>
     /// Deletes an existing ingredient from the repository.
     /// </summary>
-    /// <param name="supplierId">The ID of the supplier.</param>
     /// <param name="ingredientId">The ID of the ingredient to delete.</param>
     /// <returns>No content if the deletion is successful.</returns>
     /// <response code="204">If the deletion is successful.</response>
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the ingredient is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the ingredient.</response>
-    [HttpDelete("{ingredientId}/suppliers/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpDelete("{ingredientId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> DeleteIngredient([FromRoute] Guid supplierId, [FromRoute] int ingredientId)
+    public async Task<IActionResult> DeleteIngredient( [FromRoute] int ingredientId)
     {
         try
         {
-            await _ingredientService.DeleteIngredientAsync(supplierId, ingredientId);
+            await _ingredientService.DeleteIngredientAsync(ingredientId, _currentUser.UserId);
             return NoContent();
         }
         catch (UnauthorizedAccessException)
@@ -195,33 +193,33 @@ public class IngredientController : ControllerBase
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient.</param>
     /// <param name="allergenId">The ID of the allergen to remove.</param>
-    /// <param name="supplierId">The ID of the supplier making the request.</param>
     /// <returns>No content if the operation is successful.</returns>
     /// <response code="204">If the allergen is successfully removed from the ingredient.</response>
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the ingredient or allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to remove the allergen from the ingredient.</response>
-    [HttpDelete("{ingredientId}/allergens/{allergenId}/suppliers/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpDelete("{ingredientId}/allergens/{allergenId}")] 
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> RemoveAllergenFromIngredient([FromRoute] int ingredientId, [FromRoute] int allergenId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> RemoveAllergenFromIngredient([FromRoute] int ingredientId, [FromRoute] int allergenId)
     {
         try
         {
-            await _ingredientService.RemoveAllergenFromIngredientAsync(ingredientId, allergenId, supplierId);
+            await _ingredientService.RemoveAllergenFromIngredientAsync(ingredientId, allergenId, _currentUser.UserId);
             return NoContent();
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (ArgumentException ae)
+        catch (InvalidOperationException ae)
         {
             return BadRequest(ae.Message);
         }

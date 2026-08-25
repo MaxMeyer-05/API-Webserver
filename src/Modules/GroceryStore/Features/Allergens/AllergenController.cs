@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+using SharedKernel.Security.Interfaces;
 
 namespace GroceryStore.Features.Allergens;
 
@@ -12,10 +15,14 @@ namespace GroceryStore.Features.Allergens;
 public class AllergenController : ControllerBase
 {
     private readonly AllergenService _allergenService;
+    private readonly ICurrentUser _currentUser;
 
-    public AllergenController(AllergenService allergenService)
+    public AllergenController(
+        AllergenService allergenService, 
+        ICurrentUser currentUser)
     {
         _allergenService = allergenService;
+        _currentUser = currentUser;
     }
 
     /// <summary>
@@ -27,8 +34,7 @@ public class AllergenController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AllergenDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AllergenDto>>> GetAllAllergens()
     {
-        var allergens = await _allergenService.GetAllAllergensAsync();
-        return Ok(allergens);
+        return Ok(await _allergenService.GetAllAllergensAsync());
     }
 
     /// <summary>
@@ -43,12 +49,15 @@ public class AllergenController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AllergenDto>> GetAllergenById([FromRoute] int allergenId)
     {
-        var allergen = await _allergenService.GetAllergenByIdAsync(allergenId);
-        if (allergen == null)
+        try
         {
-            return NotFound();
+            var allergen = await _allergenService.GetAllergenByIdAsync(allergenId);
+            return Ok(allergen);
         }
-        return Ok(allergen);
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     /// <summary>
@@ -58,11 +67,10 @@ public class AllergenController : ControllerBase
     /// <returns>The created allergen.</returns>
     /// <response code="201">Returns the created allergen.</response>
     /// <response code="400">If the allergen data is invalid.</response>
-    /// <response code="403">If the supplier is not authorized to create the allergen.</response>
     [HttpPost]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(typeof(AllergenDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<AllergenDto>> CreateAllergen([FromBody] AllergenCreateDto allergen)
     {
         try
@@ -70,86 +78,70 @@ public class AllergenController : ControllerBase
             var createdAllergen = await _allergenService.CreateAllergenAsync(allergen);
             return CreatedAtAction(nameof(GetAllergenById), createdAllergen);
         }
-        catch (UnauthorizedAccessException)
+        catch (InvalidOperationException ex)
         {
-            return Forbid();
-        }
-        catch (ArgumentException ae)
-        {
-            return BadRequest(ae.Message);
+            return BadRequest(ex.Message);
         }
     }
 
     /// <summary>
     /// Updates an existing allergen in the repository.
     /// </summary>
-    /// <param name="supplierId">The ID of the supplier.</param>
     /// <param name="allergenId">The ID of the allergen to update.</param>
     /// <param name="allergen">The updated allergen data.</param>
     /// <returns>No content if the update is successful.</returns>
     /// <response code="204">If the update is successful.</response>
-    /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the allergen.</response>
-    [HttpPatch("{allergenId}/suppliers/{supplierId}")]
+    [HttpPatch("{allergenId}")]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateAllergen([FromRoute] Guid supplierId, [FromRoute] int allergenId, [FromBody] AllergenUpdateDto allergen)
+    public async Task<IActionResult> UpdateAllergen([FromRoute] int allergenId, [FromBody] AllergenUpdateDto allergen)
     {
         try
         {
-            await _allergenService.UpdateAllergenAsync(supplierId, allergenId, allergen);
+            await _allergenService.UpdateAllergenAsync(allergenId, _currentUser.UserId, allergen);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
-        }
-        catch (ArgumentException ae)
-        {
-            return BadRequest(ae.Message);
+            return Forbid(ex.Message);
         }
     }
 
     /// <summary>
     /// Deletes an allergen from the repository by its ID.
     /// </summary>
-    /// <param name="supplierId">The ID of the supplier.</param>
     /// <param name="allergenId">The ID of the allergen to delete.</param>
     /// <returns>No content if the deletion is successful.</returns>
     /// <response code="204">If the deletion is successful.</response>
-    /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the allergen.</response>
-    [HttpDelete("{allergenId}/suppliers/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpDelete("{allergenId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> DeleteAllergen([FromRoute] Guid supplierId, [FromRoute] int allergenId)
+    public async Task<IActionResult> DeleteAllergen([FromRoute] int allergenId)
     {
         try
         {
-            await _allergenService.DeleteAllergenAsync(supplierId, allergenId);
+            await _allergenService.DeleteAllergenAsync(allergenId, _currentUser.UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
-        }
-        catch (ArgumentException ae)
-        {
-            return BadRequest(ae.Message);
+            return Forbid(ex.Message);
         }
     }
 }

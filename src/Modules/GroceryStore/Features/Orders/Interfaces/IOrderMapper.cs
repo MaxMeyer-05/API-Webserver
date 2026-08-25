@@ -1,5 +1,9 @@
 using GroceryStore.Database.Entities;
 namespace GroceryStore.Features.Orders.Interfaces;
+
+/// <summary>
+/// Defines the contract for mapping between Order entities and DTOs.
+/// </summary>
 public interface IOrderMapper
 {
     /// <summary>
@@ -7,9 +11,8 @@ public interface IOrderMapper
     /// </summary>
     /// <param name="orderCreateDto">The <see cref="OrderCreateDto"/> to map.</param>
     /// <param name="userOrderNumber">The user order number for the new order.</param>
-    /// <param name="totalAmount">The calculated total amount of the order.</param>
     /// <returns>The mapped <see cref="Order"/> entity.</returns>
-    Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber, decimal totalAmount);
+    Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber);
 
     /// <summary>
     /// Maps an <see cref="Order"/> entity to an <see cref="OrderDto"/>.

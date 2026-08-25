@@ -1,9 +1,9 @@
 namespace GroceryStore.Features.Orders.Interfaces;
 
 /// <summary>
-/// Defines the contract for a repository that manages orders in the database.
+/// Defines the contract for a service that manages orders in the grocery store application.
 /// </summary>
-public interface IOrderRepository
+public interface IOrderService
 {
     /// <summary>
     /// Retrieves all orders for a specific user from the database.
@@ -26,7 +26,7 @@ public interface IOrderRepository
     /// <param name="order">The order DTO containing the data for the new order.</param>
     /// <param name="totalAmount">The calculated total amount of the order.</param>
     /// <returns>The created order DTO.</returns>
-    Task<OrderDto> CreateOrderAsync(OrderCreateDto order, decimal totalAmount);
+    Task<OrderDto> CreateOrderAsync(OrderCreateDto order);
 
     /// <summary>
     /// Updates an existing order in the database.
@@ -34,6 +34,5 @@ public interface IOrderRepository
     /// <param name="orderNum">The user-specific order number.</param>
     /// <param name="userId">The unique identifier of the user.</param>
     /// <param name="order">The order DTO containing the updated data.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task UpdateOrderAsync(int orderNum, Guid userId, OrderUpdateDto order);
 }

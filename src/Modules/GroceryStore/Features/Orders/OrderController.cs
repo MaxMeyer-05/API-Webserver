@@ -1,7 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+using SharedKernel.Security.Interfaces;
 
 namespace GroceryStore.Features.Orders;
 
+/// <summary>
+/// Controller for managing orders in the grocery store module.
+/// </summary>
+[Authorize]
 [ApiController]
 [Tags("Order")]
 [Produces("application/json")]
@@ -9,10 +16,14 @@ namespace GroceryStore.Features.Orders;
 public class OrderController : ControllerBase
 {
     private readonly OrderService _orderService;
+    private readonly ICurrentUser _currentUser;
 
-    public OrderController(OrderService orderService)
+    public OrderController(
+        OrderService orderService, 
+        ICurrentUser currentUser)
     {
         _orderService = orderService;
+        _currentUser = currentUser;
     }
 
     /// <summary>
@@ -21,11 +32,11 @@ public class OrderController : ControllerBase
     /// <param name="userId">The identifier of the user.</param>
     /// <returns>Returns a collection of <see cref="OrderDto"/> representing the user's orders.</returns>
     /// <response code="200">Returns a collection of <see cref="OrderDto"/> representing the user's orders.</response>
-    [HttpGet("user/{userId}")]
+    [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders([FromRoute] Guid userId)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
     {
-        return Ok(await _orderService.GetAllOrdersAsync(userId));
+        return Ok(await _orderService.GetAllOrdersAsync(_currentUser.UserId));
     }
 
     /// <summary>
@@ -36,17 +47,20 @@ public class OrderController : ControllerBase
     /// <returns>Returns the <see cref="OrderDto"/> representing the requested order.</returns>
     /// <response code="200">Returns the <see cref="OrderDto"/> representing the requested order.</response>
     /// <response code="404">If the order with the specified order number and user identifier does not exist.</response>
-    [HttpGet("{orderNum}/user/{userId}")]
+    [HttpGet("{orderNum}")]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderDto>> GetOrderById([FromRoute] int orderNum, [FromRoute] Guid userId)
+    public async Task<ActionResult<OrderDto>> GetOrderById([FromRoute] int orderNum)
     {
-        var order = await _orderService.GetOrderByIdAsync(orderNum, userId);
-        if (order is null)
+        try
         {
-            return NotFound();
+            var order = await _orderService.GetOrderByIdAsync(orderNum, _currentUser.UserId);
+            return Ok(order);
         }
-        return Ok(order);
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     /// <summary>
@@ -56,25 +70,15 @@ public class OrderController : ControllerBase
     /// <returns>Returns the created <see cref="OrderDto"/> representing the newly created order.</returns>
     /// <response code="201">Returns the created <see cref="OrderDto"/> representing the newly created order.</response>
     /// <response code="400">If the request body is invalid or if the order cannot be created due to business logic constraints.</response>
-    /// <response code="404">If the specified user does not exist.</response>
-    [HttpPost]
+    [HttpPost("create")]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] OrderCreateDto order)
     {
         try
         {
             var createdOrder = await _orderService.CreateOrderAsync(order);
             return CreatedAtAction(nameof(GetOrderById),createdOrder);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (KeyNotFoundException )
-        {
-            return NotFound();
         }
         catch (InvalidOperationException ex)
         {
@@ -93,32 +97,31 @@ public class OrderController : ControllerBase
     /// <response code="400">If the request body is invalid or if the order cannot be updated due to business logic constraints.</response>
     /// <response code="404">If the specified order or user does not exist.</response>
     /// <response code="403">If the user is not authorized to update the specified order.</response>
-    [HttpPatch("{orderNum}/user/{userId}")]
+    [HttpPatch("{orderNum}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateOrder(
         [FromRoute] int orderNum,
-        [FromRoute] Guid userId,
         [FromBody] OrderUpdateDto order)
     {
         try
         {
-            await _orderService.UpdateOrderAsync(orderNum, userId, order);
+            await _orderService.UpdateOrderAsync(orderNum, _currentUser.UserId, order);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
         }
     }
 }

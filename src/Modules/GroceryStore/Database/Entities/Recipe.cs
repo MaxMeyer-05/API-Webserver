@@ -17,6 +17,12 @@ public partial class Recipe
     public int Id { get; set; }
 
     /// <summary>
+    /// Defines how many recipes a supplier has.
+    /// </summary>
+    [Required]
+    public int SupplierRecipeCount { get; set; }
+
+    /// <summary>
     /// Defines the name of the recipe.
     /// </summary>
     [Required]

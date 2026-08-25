@@ -151,6 +151,7 @@ namespace GroceryStore.Database.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    SupplierRecipeCount = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Instructions = table.Column<string>(type: "TEXT", nullable: true),
                     PreparationTime = table.Column<int>(type: "INTEGER", nullable: true),
@@ -317,6 +318,12 @@ namespace GroceryStore.Database.Migrations
                 name: "IX_ingredients_SupplierId",
                 table: "ingredients",
                 column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_locations_ZipCode",
+                table: "locations",
+                column: "ZipCode",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_order_items_IngredientId",

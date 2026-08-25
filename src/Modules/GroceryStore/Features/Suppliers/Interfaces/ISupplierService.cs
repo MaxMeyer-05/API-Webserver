@@ -46,7 +46,6 @@ public interface ISupplierService
     /// </summary>
     /// <param name="supplierId">The unique identifier of the supplier to update.</param>
     /// <param name="supplier">The supplier update data transfer object.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task UpdateSupplierAsync(Guid supplierId, SupplierUpdateDto supplier);
 
     /// <summary>
@@ -54,7 +53,6 @@ public interface ISupplierService
     /// </summary>
     /// <param name="supplierId">The unique identifier of the supplier to delete.</param>
     /// <param name="password">The password of the supplier for verification.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task DeleteSupplierAsync(Guid supplierId, string password);
 
     /// <summary>

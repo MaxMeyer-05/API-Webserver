@@ -1,9 +1,9 @@
 namespace GroceryStore.Features.Categories.Interfaces;
 
 /// <summary>
-/// Defines the contract for a repository that manages categories in the database.
+/// Defines the contract for a category service that provides operations for managing categories.
 /// </summary>
-public interface ICategoryRepository
+public interface ICategoryService
 {
     /// <summary>
     /// Retrieves all categories from the database.
@@ -29,14 +29,14 @@ public interface ICategoryRepository
     /// Updates an existing category in the database.
     /// </summary>
     /// <param name="categoryId">The ID of the category to update.</param>
+    /// <param name="supplierId">The ID of the supplier attempting to update the category.</param>
     /// <param name="category">The category DTO containing the updated data.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task UpdateCategoryAsync(int categoryId, CategoryUpdateDto category);
+    Task UpdateCategoryAsync(int categoryId, Guid supplierId, CategoryUpdateDto category);
 
     /// <summary>
     /// Deletes a category from the database by its ID.
     /// </summary>
     /// <param name="categoryId">The ID of the category to delete.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task DeleteCategoryAsync(int categoryId);
+    /// <param name="supplierId">The ID of the supplier attempting to delete the category.</param>
+    Task DeleteCategoryAsync(int categoryId, Guid supplierId);
 }

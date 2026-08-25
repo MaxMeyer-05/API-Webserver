@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroceryStore.Database.Entities;
@@ -7,6 +9,7 @@ namespace GroceryStore.Database.Entities;
 /// Represents a location identified by its postal code.
 /// </summary>
 [Table("locations")]
+[Index(nameof(ZipCode), IsUnique = true)]
 public partial class Location
 {
     /// <summary>

@@ -32,13 +32,13 @@ public class OrderMapper : IOrderMapper
     }
 
     /// <inheritdoc/>
-    public Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber, decimal totalAmount)
+    public Order ToOrderEntity(OrderCreateDto orderCreateDto, int userOrderNumber)
     {
         return new Order
         {
             UserOrderNumber = userOrderNumber,
             UserId = orderCreateDto.UserId,
-            TotalAmount = totalAmount,
+            OrderDate = DateTime.UtcNow,
             OrderItems = orderCreateDto.Ingredients?.Select(i => new OrderItem
             {
                 IngredientId = i.IngredientId,

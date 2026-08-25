@@ -137,6 +137,9 @@ namespace GroceryStore.Database.Migrations
 
                     b.HasKey("ZipCode");
 
+                    b.HasIndex("ZipCode")
+                        .IsUnique();
+
                     b.ToTable("locations");
                 });
 
@@ -213,6 +216,9 @@ namespace GroceryStore.Database.Migrations
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("SupplierRecipeCount")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

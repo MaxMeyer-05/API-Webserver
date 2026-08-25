@@ -46,7 +46,6 @@ public interface IUserService
     /// </summary>
     /// <param name="userId">The unique identifier of the user to update.</param>
     /// <param name="user">The user update data transfer object.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task UpdateUserAsync(Guid userId, UserUpdateDto user);
 
     /// <summary>
@@ -54,7 +53,6 @@ public interface IUserService
     /// </summary>
     /// <param name="userId">The unique identifier of the user to delete.</param>
     /// <param name="password">The password of the user to confirm deletion.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task DeleteUserAsync(Guid userId, string password);
 
     /// <summary>

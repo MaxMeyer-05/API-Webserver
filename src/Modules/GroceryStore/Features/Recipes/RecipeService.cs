@@ -1,186 +1,231 @@
+using Microsoft.EntityFrameworkCore;
+
+using GroceryStore.Database.DbContexts;
+using GroceryStore.Database.Entities;
+
 using GroceryStore.Features.Recipes.Interfaces;
-using GroceryStore.Features.Suppliers.Interfaces;
 
 namespace GroceryStore.Features.Recipes;
 
-/// <summary>
-/// Represents a service for managing recipes, 
-/// providing business logic and validation for recipe-related operations.
-/// </summary>
-public class RecipeService
+public class RecipeService : IRecipeService
 {
-    private readonly IRecipeRepository _recipeRepository;
-    private readonly ISupplierService _supplierService;
-    private readonly ILogger<RecipeService> _logger;
+	private readonly GroceryStoreDbContext _dbContext;
+	private readonly IRecipeMapper _recipeMapper;
+	private readonly ILogger<RecipeService> _logger;
 
-    public RecipeService(
-        IRecipeRepository recipeRepository, 
-        ISupplierService supplierService,
-        ILogger<RecipeService> logger)
-    {
-        _recipeRepository = recipeRepository;
-        _supplierService = supplierService;
-        _logger = logger;
-    }
+	public RecipeService(
+		GroceryStoreDbContext dbContext, 
+		IRecipeMapper recipeMapper,
+		ILogger<RecipeService> logger)
+	{
+		_dbContext = dbContext;
+		_recipeMapper = recipeMapper;
+		_logger = logger;
+	}
 
-    /// <summary>
-    /// Retrieves all recipes from the repository.
-    /// </summary>
-    /// <returns>Returns a collection of all recipes.</returns>
-    public async Task<IEnumerable<RecipeDto>> GetAllRecipesAsync()
-    {
-        _logger.LogDebug("Retrieving all recipes");
-        return await _recipeRepository.GetAllRecipesAsync();
-    }
-
-    /// <summary>
-    /// Retrieves a recipe by its ID from the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to retrieve.</param>
-    /// <returns>Returns the recipe if found; otherwise, null.</returns>
-    public async Task<RecipeDto?> GetRecipeByIdAsync(int recipeId)
-    {
-        _logger.LogDebug("Retrieving recipe with ID {RecipeId}", recipeId);
-        return await _recipeRepository.GetRecipeByIdAsync(recipeId);
-    }
-
-    /// <summary>
-    /// Creates a new recipe in the repository.
-    /// </summary>
-    /// <param name="recipe">The recipe create DTO containing the details of the recipe to create.</param>
-    /// <returns>Returns the created recipe DTO.</returns>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to create the recipe.</exception>
-    public async Task<RecipeDto> CreateRecipeAsync(RecipeCreateDto recipe)
-    {
-        _logger.LogDebug("Creating new recipe");
-        _ = await _supplierService.GetSupplierByIdAsync(recipe.SupplierId) 
-            ?? throw new UnauthorizedAccessException("Only suppliers are allowed to create recipes.");
-
-        return await _recipeRepository.CreateRecipeAsync(recipe);
-    }
-
-    /// <summary>
-    /// Updates an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to update.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to update the recipe.</param>
-    /// <param name="recipe">The recipe update DTO containing the updated details of the recipe.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the recipe to update does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to update the recipe.</exception>
-    public async Task UpdateRecipeAsync(int recipeId, Guid supplierId, RecipeUpdateDto recipe)
-    {
-        _logger.LogDebug("Updating recipe with ID {RecipeId}", recipeId);
-        var existingRecipe = await _recipeRepository.GetRecipeByIdAsync(recipeId)
-            ?? throw new KeyNotFoundException($"Recipe with ID {recipeId} not found.");
-
-        if (existingRecipe.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who created the recipe can update it.");
-
-        await _recipeRepository.UpdateRecipeAsync(recipeId, recipe);
-    }
-
-    /// <summary>
-    /// Deletes an existing recipe from the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to delete.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to delete the recipe.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the recipe to delete does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to delete the recipe.</exception>
-    public async Task DeleteRecipeAsync(int recipeId, Guid supplierId)
-    {
-        _logger.LogDebug("Deleting recipe with ID {RecipeId}", recipeId);
-        var existingRecipe = await _recipeRepository.GetRecipeByIdAsync(recipeId)
-            ?? throw new KeyNotFoundException($"Recipe with ID {recipeId} not found.");
-
-        if (existingRecipe.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who created the recipe can delete it.");
-
-        await _recipeRepository.DeleteRecipeAsync(recipeId);
-    }
-
-    /// <summary>
-    /// Adds a category to an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to which the category will be added.</param>
-    /// <param name="categoryId">The ID of the category to add to the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to add the category.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the recipe to which the category is being added does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to add the category to the recipe.</exception>
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+	/// <exception cref="UnauthorizedAccessException"></exception>
+	/// <exception cref="InvalidOperationException"></exception>
     public async Task AddCategoryToRecipeAsync(int recipeId, int categoryId, Guid supplierId)
     {
-        _logger.LogDebug("Adding category with ID {CategoryId} to recipe with ID {RecipeId}", categoryId, recipeId);
-        var existingRecipe = await _recipeRepository.GetRecipeByIdAsync(recipeId)
-            ?? throw new KeyNotFoundException($"Recipe with ID {recipeId} not found.");
+		var recipe = await _dbContext.Recipes
+			.Where(item => item.Id == recipeId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found");
 
-        if (existingRecipe.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who created the recipe can add categories to it.");
+		if (recipe.SupplierId != supplierId)
+			throw new UnauthorizedAccessException($"Not authorized to add category to recipe with Id {recipeId} as supplier with Id {supplierId}");
 
-        await _recipeRepository.AddCategoryToRecipeAsync(recipeId, categoryId);
+		var category = await _dbContext.Categories
+			.Where(item => item.Id == categoryId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Category with Id {categoryId} not found");
+		
+		if (recipe.Categories.Contains(category))
+			throw new InvalidOperationException($"Recipe with Id {recipeId} already has category with Id {categoryId}");
+
+		recipe.Categories.Add(category);
+		await _dbContext.SaveChangesAsync();
+		_logger.LogInformation("Added category with Id {CategoryId} to recipe with Id {RecipeId}", categoryId, recipeId);
     }
 
-    /// <summary>
-    /// Removes a category from an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe from which the category will be removed.</param>
-    /// <param name="categoryId">The ID of the category to remove from the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to remove the category.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the recipe from which the category is being removed does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to remove the category from the recipe.</exception>
-    public async Task RemoveCategoryFromRecipeAsync(int recipeId, int categoryId, Guid supplierId)
-    {
-        _logger.LogDebug("Removing category with ID {CategoryId} from recipe with ID {RecipeId}", categoryId, recipeId);
-        var existingRecipe = await _recipeRepository.GetRecipeByIdAsync(recipeId)
-            ?? throw new KeyNotFoundException($"Recipe with ID {recipeId} not found.");
-
-        if (existingRecipe.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who created the recipe can remove categories from it.");
-
-        await _recipeRepository.RemoveCategoryFromRecipeAsync(recipeId, categoryId);
-    }
-
-    /// <summary>
-    /// Adds an ingredient to an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to which the ingredient will be added.</param>
-    /// <param name="ingredientId">The ID of the ingredient to add to the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to add the ingredient.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the recipe to which the ingredient is being added does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to add the ingredient to the recipe.</exception>
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+	/// <exception cref="UnauthorizedAccessException"></exception>
+	/// <exception cref="InvalidOperationException"></exception>
     public async Task AddIngredientToRecipeAsync(int recipeId, int ingredientId, Guid supplierId)
     {
-        _logger.LogDebug("Adding ingredient with ID {IngredientId} to recipe with ID {RecipeId}", ingredientId, recipeId);
-        var existingRecipe = await _recipeRepository.GetRecipeByIdAsync(recipeId)
-            ?? throw new KeyNotFoundException($"Recipe with ID {recipeId} not found.");
+		var recipe = await _dbContext.Recipes
+			.Where(item => item.Id == recipeId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found");
 
-        if (existingRecipe.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who created the recipe can add ingredients to it.");
+		if (recipe.SupplierId != supplierId)
+			throw new UnauthorizedAccessException($"Not authorized to add ingredient to recipe with Id {recipeId} as supplier with Id {supplierId}");
 
-        await _recipeRepository.AddIngredientToRecipeAsync(recipeId, ingredientId);
+		var ingredient = await _dbContext.RecipeIngredients
+			.Where(item => item.IngredientId == ingredientId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Ingredient with Id {ingredientId} not found");
+
+		if (recipe.RecipeIngredients.Any(ri => ri.IngredientId == ingredientId))
+			throw new InvalidOperationException($"Recipe with Id {recipeId} already has ingredient with Id {ingredientId}");
+
+		recipe.RecipeIngredients.Add(new RecipeIngredient
+		{
+			RecipeId = recipeId,
+			IngredientId = ingredientId
+		});
+		await _dbContext.SaveChangesAsync();
+		_logger.LogInformation("Added ingredient with Id {IngredientId} to recipe with Id {RecipeId}", ingredientId, recipeId);
     }
 
-    /// <summary>
-    /// Removes an ingredient from an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe from which the ingredient will be removed.</param>
-    /// <param name="ingredientId">The ID of the ingredient to remove from the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to remove the ingredient.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown if the recipe from which the ingredient is being removed does not exist.</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the supplier is not authorized to remove the ingredient from the recipe.</exception>
+	/// <inheritdoc />
+	/// <exception cref="InvalidOperationException"></exception>
+    public async Task<RecipeDto> CreateRecipeAsync(RecipeCreateDto recipe)
+    {
+		var recipeEntity = _recipeMapper.ToRecipeEntity(
+			recipe, 
+			await GetNextSupplierRecipeCount(recipe.SupplierId));
+			
+		_dbContext.Recipes.Add(recipeEntity);
+		await _dbContext.SaveChangesAsync();
+
+		_logger.LogInformation("Created new recipe with Id {RecipeId}", recipeEntity.Id);
+
+		return _recipeMapper.ToRecipeDto(recipeEntity)
+			?? throw new InvalidOperationException($"Created recipe with ID {recipeEntity.Id} could not be loaded");
+    }
+
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+	/// <exception cref="UnauthorizedAccessException"></exception>
+    public async Task DeleteRecipeAsync(int recipeId, Guid supplierId)
+    {
+		var recipe = await _dbContext.Recipes
+			.Where(item => item.Id == recipeId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found or not authorized");
+
+		if (recipe.SupplierId != supplierId)
+			throw new UnauthorizedAccessException($"Not authorized to delete recipe with Id {recipeId} as supplier with Id {supplierId}");
+
+		_dbContext.Recipes.Remove(recipe);
+		await _dbContext.SaveChangesAsync();
+		_logger.LogInformation("Deleted recipe with Id {RecipeId}", recipeId);
+    }
+
+	/// <inheritdoc />
+    public async Task<IEnumerable<RecipeDto>> GetAllRecipesAsync()
+    {
+		var recipes = await _dbContext.Recipes
+			.AsNoTracking()
+			.Include(item => item.Supplier)
+			.Include(item => item.RecipeIngredients)
+				.ThenInclude(item => item.Ingredient)
+					.ThenInclude(item => item.Supplier)
+			.Include(item => item.RecipeIngredients)
+				.ThenInclude(item => item.Ingredient)
+					.ThenInclude(item => item.Allergens)
+			.ToListAsync();
+
+		return recipes.Select(item => _recipeMapper.ToRecipeDto(item));
+    }
+
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+    public async Task<RecipeDto?> GetRecipeByIdAsync(int recipeId)
+    {
+		var recipe = await _dbContext.Recipes
+			.AsNoTracking()
+			.Include(item => item.Supplier)
+			.Include(item => item.RecipeIngredients)
+				.ThenInclude(item => item.Ingredient)
+					.ThenInclude(item => item.Supplier)
+			.Include(item => item.RecipeIngredients)
+				.ThenInclude(item => item.Ingredient)
+					.ThenInclude(item => item.Allergens)
+			.FirstOrDefaultAsync(item => item.Id == recipeId)
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found");
+
+		return _recipeMapper.ToRecipeDto(recipe);
+    }
+
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+	/// <exception cref="UnauthorizedAccessException"></exception>
+	/// <exception cref="InvalidOperationException"></exception>
+    public async Task RemoveCategoryFromRecipeAsync(int recipeId, int categoryId, Guid supplierId)
+    {
+		var recipe = await _dbContext.Recipes
+			.Where(item => item.Id == recipeId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found");
+
+		if (recipe.SupplierId != supplierId)
+			throw new UnauthorizedAccessException($"Not authorized to remove category from recipe with Id {recipeId} as supplier with Id {supplierId}");
+		
+		var category = await _dbContext.Categories
+			.Where(item => item.Id == categoryId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Category with Id {categoryId} not found");
+
+		if (!recipe.Categories.Contains(category))
+			throw new InvalidOperationException($"Recipe with Id {recipeId} does not have category with Id {categoryId}");
+
+		recipe.Categories.Remove(category);
+		await _dbContext.SaveChangesAsync();
+		_logger.LogInformation("Removed category with Id {CategoryId} from recipe with Id {RecipeId}", categoryId, recipeId);
+    }
+
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+	/// <exception cref="UnauthorizedAccessException"></exception>
+	/// <exception cref="InvalidOperationException"></exception>
     public async Task RemoveIngredientFromRecipeAsync(int recipeId, int ingredientId, Guid supplierId)
     {
-        _logger.LogDebug("Removing ingredient with ID {IngredientId} from recipe with ID {RecipeId}", ingredientId, recipeId);
-        var existingRecipe = await _recipeRepository.GetRecipeByIdAsync(recipeId)
-            ?? throw new KeyNotFoundException($"Recipe with ID {recipeId} not found.");
+		var recipe = await _dbContext.Recipes
+			.Where(item => item.Id == recipeId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found");
 
-        if (existingRecipe.SupplierId != supplierId)
-            throw new UnauthorizedAccessException("Only the supplier who created the recipe can remove ingredients from it.");
+		if (recipe.SupplierId != supplierId)
+			throw new UnauthorizedAccessException($"Not authorized to remove ingredient from recipe with Id {recipeId} as supplier with Id {supplierId}");
 
-        await _recipeRepository.RemoveIngredientFromRecipeAsync(recipeId, ingredientId);
+		var recipeIngredient = recipe.RecipeIngredients
+			.FirstOrDefault(ri => ri.IngredientId == ingredientId)
+			?? throw new InvalidOperationException($"Recipe with Id {recipeId} does not have ingredient with Id {ingredientId}");
+		
+		recipe.RecipeIngredients.Remove(recipeIngredient);
+		await _dbContext.SaveChangesAsync();
+		_logger.LogInformation("Removed ingredient with Id {IngredientId} from recipe with Id {RecipeId}", ingredientId, recipeId);
     }
+
+	/// <inheritdoc />
+	/// <exception cref="KeyNotFoundException"></exception>
+	/// <exception cref="UnauthorizedAccessException"></exception>
+    public async Task UpdateRecipeAsync(int recipeId, Guid supplierId, RecipeUpdateDto recipe)
+    {
+		var recipeEntity = await _dbContext.Recipes
+			.Where(item => item.Id == recipeId)
+			.FirstOrDefaultAsync()
+			?? throw new KeyNotFoundException($"Recipe with Id {recipeId} not found");
+
+		if (recipeEntity.SupplierId != supplierId)
+			throw new UnauthorizedAccessException($"Not authorized to update recipe with Id {recipeId} as supplier with Id {supplierId}");
+
+		_recipeMapper.UpdateRecipeEntity(recipeEntity, recipe);
+		await _dbContext.SaveChangesAsync();
+
+		_logger.LogInformation("Updated recipe with Id {RecipeId}", recipeId);
+    }
+
+	private async Task<int> GetNextSupplierRecipeCount(Guid supplierId)
+	{
+		var supplierRecipeCount = await _dbContext.Recipes
+			.CountAsync(r => r.SupplierId == supplierId);
+
+		return supplierRecipeCount + 1;
+	}
 }

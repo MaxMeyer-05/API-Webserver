@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroceryStore.Database.Migrations
 {
     [DbContext(typeof(GroceryStoreDbContext))]
-    [Migration("20260825061458_InitialCreate")]
+    [Migration("20260825105214_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -140,6 +140,9 @@ namespace GroceryStore.Database.Migrations
 
                     b.HasKey("ZipCode");
 
+                    b.HasIndex("ZipCode")
+                        .IsUnique();
+
                     b.ToTable("locations");
                 });
 
@@ -216,6 +219,9 @@ namespace GroceryStore.Database.Migrations
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("SupplierRecipeCount")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

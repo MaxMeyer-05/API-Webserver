@@ -1,9 +1,9 @@
 namespace GroceryStore.Features.Locations.Interfaces;
 
 /// <summary>
-/// Defines the contract for a repository that manages locations in the database.
+/// Defines the contract for a service that manages locations in the grocery store application.
 /// </summary>
-public interface ILocationRepository
+public interface ILocationService
 {
     /// <summary>
     /// Retrieves all locations from the database.
@@ -30,13 +30,11 @@ public interface ILocationRepository
     /// </summary>
     /// <param name="zipCode">The zip code of the location to update.</param>
     /// <param name="location">The location DTO containing the updated data.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task UpdateLocationAsync(string zipCode, LocationUpdateDto location);
 
     /// <summary>
     /// Deletes a location from the database by its zip code.
     /// </summary>
     /// <param name="zipCode">The zip code of the location to delete.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     Task DeleteLocationAsync(string zipCode);
 }

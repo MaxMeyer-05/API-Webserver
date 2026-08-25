@@ -1,9 +1,9 @@
 namespace GroceryStore.Features.Ingredients.Interfaces;
 
 /// <summary>
-/// Defines the contract for a repository that manages ingredients in the database.
+/// Defines the contract for a service that manages ingredients in the database.
 /// </summary>
-public interface IIngredientRepository
+public interface IIngredientService
 {
     /// <summary>
     /// Retrieves all ingredients from the database.
@@ -29,16 +29,16 @@ public interface IIngredientRepository
     /// Updates an existing ingredient in the database.
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient to update.</param>
+    /// <param name="supplierId">The ID of the supplier attempting to update the ingredient.</param>
     /// <param name="ingredient">The ingredient DTO containing the updated data.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task UpdateIngredientAsync(int ingredientId, IngredientUpdateDto ingredient);
+    Task UpdateIngredientAsync(int ingredientId, Guid supplierId, IngredientUpdateDto ingredient);
 
     /// <summary>
     /// Deletes an ingredient from the database by its ID.
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient to delete.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task DeleteIngredientAsync(int ingredientId);
+    /// <param name="supplierId">The ID of the supplier attempting to delete the ingredient.</param>
+    Task DeleteIngredientAsync(int ingredientId, Guid supplierId);
 
 
     /// <summary>
@@ -46,14 +46,14 @@ public interface IIngredientRepository
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient to which the allergen will be added.</param>
     /// <param name="allergenId">The ID of the allergen to be added to the ingredient.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task AddAllergenToIngredientAsync(int ingredientId, int allergenId);
+    /// <param name="supplierId">The ID of the supplier attempting to add the allergen.</param>
+    Task AddAllergenToIngredientAsync(int ingredientId, int allergenId, Guid supplierId);
 
     /// <summary>
     /// Removes an allergen from a specific ingredient in the database.
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient from which the allergen will be removed.</param>
     /// <param name="allergenId">The ID of the allergen to be removed from the ingredient.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task RemoveAllergenFromIngredientAsync(int ingredientId, int allergenId);
+    /// <param name="supplierId">The ID of the supplier attempting to remove the allergen.</param>
+    Task RemoveAllergenFromIngredientAsync(int ingredientId, int allergenId, Guid supplierId);
 }

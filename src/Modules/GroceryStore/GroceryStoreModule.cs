@@ -53,19 +53,12 @@ public sealed class GroceryStoreModule : IModule
             services.AddSingleton<ISupplierMapper, SupplierMapper>();
             services.AddSingleton<IUserMapper, UserMapper>();
 
-            services.AddScoped<IAllergenRepository, AllergenRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<IIngredientRepository, IngredientRepository>();
-            services.AddScoped<ILocationRepository, LocationRepository>();
-            services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddScoped<IRecipeRepository, RecipeRepository>();
-
-            services.AddScoped<AllergenService>();
-            services.AddScoped<CategoryService>();
-            services.AddScoped<IngredientService>();
-            services.AddScoped<LocationService>();
-            services.AddScoped<OrderService>();
-            services.AddScoped<RecipeService>();
+            services.AddScoped<IAllergenService, AllergenService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IIngredientService, IngredientService>();
+            services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IRecipeService, RecipeService>();
             services.AddScoped<ISupplierService, SupplierService>();
             services.AddScoped<IUserService, UserService>();
     }

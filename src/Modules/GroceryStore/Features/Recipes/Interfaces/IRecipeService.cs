@@ -1,9 +1,9 @@
 namespace GroceryStore.Features.Recipes.Interfaces;
 
 /// <summary>
-/// Defines the contract for a repository that manages recipes in the database.
+/// Defines the contract for a service that manages recipes in the database.
 /// </summary>
-public interface IRecipeRepository
+public interface IRecipeService
 {
 	/// <summary>
 	/// Retrieves all recipes from the database.
@@ -30,39 +30,45 @@ public interface IRecipeRepository
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>
 	/// <param name="categoryId">The unique identifier of the category.</param>
-	Task AddCategoryToRecipeAsync(int recipeId, int categoryId);
+	/// <param name="supplierId">The unique identifier of the supplier attempting to add the category to the recipe.</param>
+	Task AddCategoryToRecipeAsync(int recipeId, int categoryId, Guid supplierId);
 
 	/// <summary>
 	/// Adds an ingredient to a specific recipe in the database.
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>
 	/// <param name="ingredientId">The unique identifier of the ingredient.</param>
-	Task AddIngredientToRecipeAsync(int recipeId, int ingredientId);
+	/// <param name="supplierId">The unique identifier of the supplier attempting to add the ingredient to the recipe.</param>
+	Task AddIngredientToRecipeAsync(int recipeId, int ingredientId, Guid supplierId);
 
 	/// <summary>
 	/// Updates an existing recipe in the database.
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>
+	/// <param name="supplierId">The unique identifier of the supplier attempting to update the recipe.</param>
 	/// <param name="recipe">The recipe update DTO.</param>
-	Task UpdateRecipeAsync(int recipeId, RecipeUpdateDto recipe);
+	Task UpdateRecipeAsync(int recipeId, Guid supplierId, RecipeUpdateDto recipe);
 
 	/// <summary>
 	/// Deletes a specific recipe from the database.
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>
-	Task DeleteRecipeAsync(int recipeId);
+	/// <param name="supplierId">The unique identifier of the supplier attempting to delete the recipe.</param>
+	Task DeleteRecipeAsync(int recipeId, Guid supplierId);
 
 	/// <summary>
 	/// Removes a category from a specific recipe in the database.
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>
 	/// <param name="categoryId">The unique identifier of the category.</param>
-	Task RemoveCategoryFromRecipeAsync(int recipeId, int categoryId);
+	/// <param name="supplierId">The unique identifier of the supplier attempting to remove the category from the recipe.</param>
+	Task RemoveCategoryFromRecipeAsync(int recipeId, int categoryId, Guid supplierId);
 
 	/// <summary>
 	/// Removes an ingredient from a specific recipe in the database.
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>
 	/// <param name="ingredientId">The unique identifier of the ingredient.</param>
-	Task RemoveIngredientFromRecipeAsync(int recipeId, int ingredientId);
+	/// <param name="supplierId">The unique identifier of the supplier attempting to remove the ingredient from the recipe.</param>
+	Task RemoveIngredientFromRecipeAsync(int recipeId, int ingredientId, Guid supplierId);
 }

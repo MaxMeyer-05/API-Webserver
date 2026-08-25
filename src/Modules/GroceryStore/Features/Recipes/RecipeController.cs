@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+using SharedKernel.Security.Interfaces;
 
 namespace GroceryStore.Features.Recipes;
 
@@ -12,10 +15,14 @@ namespace GroceryStore.Features.Recipes;
 public class RecipeController : ControllerBase
 {
     private readonly RecipeService _recipeService;
+    private readonly ICurrentUser _currentUser;
 
-    public RecipeController(RecipeService recipeService)
+    public RecipeController(
+        RecipeService recipeService, 
+        ICurrentUser currentUser)
     {
         _recipeService = recipeService;
+        _currentUser = currentUser;
     }
 
     /// <summary>
@@ -42,12 +49,15 @@ public class RecipeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RecipeDto>> GetRecipeById([FromRoute] int recipeId)
     {
-        var recipe = await _recipeService.GetRecipeByIdAsync(recipeId);
-        if (recipe is null)
+        try
         {
-            return NotFound();
+            var recipe = await _recipeService.GetRecipeByIdAsync(recipeId);
+            return Ok(recipe);
         }
-        return Ok(recipe);
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     /// <summary>
@@ -58,7 +68,8 @@ public class RecipeController : ControllerBase
     /// <response code="201">Returns the created <see cref="RecipeDto"/> representing the newly created recipe.</response>
     /// <response code="400">If the request body is invalid or if the recipe cannot be created due to business logic constraints.</response>
     /// <response code="403">If the supplier is not authorized to create the recipe.</response>
-    [HttpPost]
+    [HttpPost("create")]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(typeof(RecipeDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -69,13 +80,9 @@ public class RecipeController : ControllerBase
             var createdRecipe = await _recipeService.CreateRecipeAsync(recipe);
             return CreatedAtAction(nameof(GetRecipeById), createdRecipe);
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(ex.Message);
         }
     }
 
@@ -84,29 +91,35 @@ public class RecipeController : ControllerBase
     /// </summary>
     /// <param name="recipeId">The ID of the recipe to which the category will be added.</param>
     /// <param name="categoryId">The ID of the category to add to the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to add the category.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the category was successfully added to the recipe.</response>
+    /// <response code="400">If the category cannot be added due to business logic constraints.</response>
     /// <response code="404">If the recipe or category does not exist.</response>
     /// <response code="403">If the supplier is not authorized to add the category to the recipe.</response>
-    [HttpPost("{recipeId}/categories/{categoryId}/supplier/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpPost("{recipeId}/categories/{categoryId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddCategoryToRecipe([FromRoute] int recipeId, [FromRoute] int categoryId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> AddCategoryToRecipe([FromRoute] int recipeId, [FromRoute] int categoryId)
     {
         try
         {
-            await _recipeService.AddCategoryToRecipeAsync(recipeId, categoryId, supplierId);
+            await _recipeService.AddCategoryToRecipeAsync(recipeId, categoryId, _currentUser.UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 
@@ -115,29 +128,35 @@ public class RecipeController : ControllerBase
     /// </summary>
     /// <param name="recipeId">The ID of the recipe to which the ingredient will be added.</param>
     /// <param name="ingredientId">The ID of the ingredient to add to the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to add the ingredient.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the ingredient was successfully added to the recipe.</response>
+    /// <response code="400">If the ingredient cannot be added due to business logic constraints.</response>
     /// <response code="404">If the recipe or ingredient does not exist.</response>
     /// <response code="403">If the supplier is not authorized to add the ingredient to the recipe.</response>
-    [HttpPost("{recipeId}/ingredients/{ingredientId}/supplier/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpPost("{recipeId}/ingredients/{ingredientId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddIngredientToRecipe([FromRoute] int recipeId, [FromRoute] int ingredientId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> AddIngredientToRecipe([FromRoute] int recipeId, [FromRoute] int ingredientId)
     {
         try
         {
-            await _recipeService.AddIngredientToRecipeAsync(recipeId, ingredientId, supplierId);
+            await _recipeService.AddIngredientToRecipeAsync(recipeId, ingredientId, _currentUser.UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 
@@ -145,30 +164,30 @@ public class RecipeController : ControllerBase
     /// Updates an existing recipe in the repository.
     /// </summary>
     /// <param name="recipeId">The ID of the recipe to update.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to update the recipe.</param>
     /// <param name="recipe">The <see cref="RecipeUpdateDto"/> containing the updated details of the recipe.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the recipe was successfully updated.</response>
     /// <response code="404">If the recipe does not exist.</response>
     /// <response code="403">If the supplier is not authorized to update the recipe.</response>
-    [HttpPatch("{recipeId}/supplier/{supplierId}")]
+    [HttpPatch("{recipeId}")]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateRecipe([FromRoute] int recipeId, [FromRoute] Guid supplierId, [FromBody] RecipeUpdateDto recipe)
+    public async Task<IActionResult> UpdateRecipe([FromRoute] int recipeId, [FromBody] RecipeUpdateDto recipe)
     {
         try
         {
-            await _recipeService.UpdateRecipeAsync(recipeId, supplierId, recipe);
+            await _recipeService.UpdateRecipeAsync(recipeId, _currentUser.UserId, recipe);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
         }
     }
 
@@ -176,29 +195,29 @@ public class RecipeController : ControllerBase
     /// Deletes an existing recipe from the repository.
     /// </summary>
     /// <param name="recipeId">The ID of the recipe to delete.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to delete the recipe.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the recipe was successfully deleted.</response>
     /// <response code="404">If the recipe does not exist.</response>
     /// <response code="403">If the supplier is not authorized to delete the recipe.</response>
-    [HttpDelete("{recipeId}/supplier/{supplierId}")]
+    [HttpDelete("{recipeId}/delete")]
+    [Authorize(Roles = "Supplier")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> DeleteRecipe([FromRoute] int recipeId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> DeleteRecipe([FromRoute] int recipeId)
     {
         try
         {
-            await _recipeService.DeleteRecipeAsync(recipeId, supplierId);
+            await _recipeService.DeleteRecipeAsync(recipeId, _currentUser.UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
         }
     }
 
@@ -207,29 +226,35 @@ public class RecipeController : ControllerBase
     /// </summary>
     /// <param name="recipeId">The ID of the recipe from which the category will be removed.</param>
     /// <param name="categoryId">The ID of the category to remove from the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to remove the category.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the category was successfully removed from the recipe.</response>
+    /// <response code="400">If the category cannot be removed due to business logic constraints.</response>
     /// <response code="404">If the recipe or category does not exist.</response>
     /// <response code="403">If the supplier is not authorized to remove the category from the recipe.</response>
-    [HttpDelete("{recipeId}/categories/{categoryId}/supplier/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpDelete("{recipeId}/categories/{categoryId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> RemoveCategoryFromRecipe([FromRoute] int recipeId, [FromRoute] int categoryId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> RemoveCategoryFromRecipe([FromRoute] int recipeId, [FromRoute] int categoryId)
     {
         try
         {
-            await _recipeService.RemoveCategoryFromRecipeAsync(recipeId, categoryId, supplierId);
+            await _recipeService.RemoveCategoryFromRecipeAsync(recipeId, categoryId, _currentUser.UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 
@@ -238,29 +263,35 @@ public class RecipeController : ControllerBase
     /// </summary>
     /// <param name="recipeId">The ID of the recipe from which the ingredient will be removed.</param>
     /// <param name="ingredientId">The ID of the ingredient to remove from the recipe.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to remove the ingredient.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the ingredient was successfully removed from the recipe.</response>
+    /// <response code="400">If the ingredient cannot be removed due to business logic constraints.</response>
     /// <response code="404">If the recipe or ingredient does not exist.</response>
     /// <response code="403">If the supplier is not authorized to remove the ingredient from the recipe.</response>
-    [HttpDelete("{recipeId}/ingredients/{ingredientId}/supplier/{supplierId}")]
+    [Authorize(Roles = "Supplier")]
+    [HttpDelete("{recipeId}/ingredients/{ingredientId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> RemoveIngredientFromRecipe([FromRoute] int recipeId, [FromRoute] int ingredientId, [FromRoute] Guid supplierId)
+    public async Task<IActionResult> RemoveIngredientFromRecipe([FromRoute] int recipeId, [FromRoute] int ingredientId)
     {
         try
         {
-            await _recipeService.RemoveIngredientFromRecipeAsync(recipeId, ingredientId, supplierId);
+            await _recipeService.RemoveIngredientFromRecipeAsync(recipeId, ingredientId, _currentUser.UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound();
+            return NotFound(ex.Message);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return Forbid(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }
