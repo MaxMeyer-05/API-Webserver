@@ -50,7 +50,7 @@ public class UserService : IUserService
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException($"User with Id {userId} not found");
 
-        if (user.PasswordHash != HashPassword(password))
+        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             throw new InvalidOperationException("Invalid password.");
 
         _userMapper.AnonymizeUserEntity(user);
@@ -94,12 +94,12 @@ public class UserService : IUserService
     public async Task<UserDto?> LoginUserAsync(UserLoginDto user)
     {
         var userEntity = await _dbContext.Users
-            .Where(u =>
-                   u.Email == user.Email 
-                && u.PasswordHash == HashPassword(user.Password)
-                )
+            .Where(u => u.Email == user.Email)
             .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException("Invalid email or password.");
+
+        if (!BCrypt.Net.BCrypt.Verify(user.Password, userEntity.PasswordHash))
+            throw new UnauthorizedAccessException("Invalid email or password.");
 
         return userEntity is null ? null : _userMapper.ToUserDto(userEntity);
     }

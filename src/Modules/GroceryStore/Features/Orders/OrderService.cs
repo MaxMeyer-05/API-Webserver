@@ -60,9 +60,6 @@ public class OrderService : IOrderService
             .Include(order => order.OrderItems)
                 .ThenInclude(item => item.Ingredient)
                     .ThenInclude(ingredient => ingredient.Supplier)
-            .Include(order => order.OrderItems)
-                .ThenInclude(item => item.Ingredient)
-                    .ThenInclude(ingredient => ingredient.Name)
             .Where(o => o.UserId == userId)
             .ToListAsync();
 

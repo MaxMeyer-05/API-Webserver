@@ -53,7 +53,7 @@ public class SupplierService : ISupplierService
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException($"Supplier with Id {supplierId} not found");
 
-        if (supplier.PasswordHash != HashPassword(password))
+        if (!BCrypt.Net.BCrypt.Verify(password, supplier.PasswordHash))
             throw new InvalidOperationException("Invalid password.");
 
         _supplierMapper.AnonymizeSupplierEntity(supplier);
@@ -99,9 +99,12 @@ public class SupplierService : ISupplierService
     public async Task<SupplierDto?> LoginSupplierAsync(SupplierLoginDto supplier)
     {
         var existingSupplier = await _dbContext.Suppliers
-            .Where(s => s.Email == supplier.Email && s.PasswordHash == HashPassword(supplier.Password))
+            .Where(s => s.Email == supplier.Email)
             .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException("Invalid email or password.");
+
+        if (!BCrypt.Net.BCrypt.Verify(supplier.Password, existingSupplier.PasswordHash))
+            throw new UnauthorizedAccessException("Invalid email or password.");
 
         return _supplierMapper.ToSupplierDto(existingSupplier);
     }
@@ -126,12 +129,4 @@ public class SupplierService : ISupplierService
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Updated supplier with Id {SupplierId}", supplierId);
     }
-
-    /// <summary>
-    /// Hashes the provided password using BCrypt.
-    /// </summary>
-    /// <param name="password">The password to hash.</param>
-    /// <returns>The hashed password.</returns>
-    private static string HashPassword(string password)
-        => BCrypt.Net.BCrypt.HashPassword(password);
 }

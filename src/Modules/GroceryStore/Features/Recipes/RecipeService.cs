@@ -64,12 +64,13 @@ public class RecipeService : IRecipeService
 		if (recipe.SupplierId != supplierId)
 			throw new UnauthorizedAccessException($"Not authorized to add ingredient to recipe with Id {recipeId} as supplier with Id {supplierId}");
 
-		var ingredient = await _dbContext.RecipeIngredients
-			.Where(item => item.IngredientId == ingredientId)
+		var ingredient = await _dbContext.Ingredients
+			.Where(item => item.Id == ingredientId)
 			.FirstOrDefaultAsync()
 			?? throw new KeyNotFoundException($"Ingredient with Id {ingredientId} not found");
 
-		if (recipe.RecipeIngredients.Any(ri => ri.IngredientId == ingredientId))
+		if (await _dbContext.RecipeIngredients.AnyAsync(item =>
+			item.RecipeId == recipeId && item.IngredientId == ingredientId))
 			throw new InvalidOperationException($"Recipe with Id {recipeId} already has ingredient with Id {ingredientId}");
 
 		recipe.RecipeIngredients.Add(new RecipeIngredient
@@ -191,11 +192,11 @@ public class RecipeService : IRecipeService
 		if (recipe.SupplierId != supplierId)
 			throw new UnauthorizedAccessException($"Not authorized to remove ingredient from recipe with Id {recipeId} as supplier with Id {supplierId}");
 
-		var recipeIngredient = recipe.RecipeIngredients
-			.FirstOrDefault(ri => ri.IngredientId == ingredientId)
+		var recipeIngredient = await _dbContext.RecipeIngredients
+			.FirstOrDefaultAsync(item => item.RecipeId == recipeId && item.IngredientId == ingredientId)
 			?? throw new InvalidOperationException($"Recipe with Id {recipeId} does not have ingredient with Id {ingredientId}");
 		
-		recipe.RecipeIngredients.Remove(recipeIngredient);
+		_dbContext.RecipeIngredients.Remove(recipeIngredient);
 		await _dbContext.SaveChangesAsync();
 		_logger.LogInformation("Removed ingredient with Id {IngredientId} from recipe with Id {RecipeId}", ingredientId, recipeId);
     }

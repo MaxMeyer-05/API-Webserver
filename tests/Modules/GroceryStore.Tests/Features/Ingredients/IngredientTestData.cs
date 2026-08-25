@@ -57,8 +57,10 @@ public static class IngredientTestData
         int stock = 50,
         Guid? supplierId = null,
         string supplierName = "Biohof Nord",
-        List<AllergenDto>? allergens = null) => new(
+        List<AllergenDto>? allergens = null,
+        int supplierIngredientCount = 0) => new(
         IngredientId: ingredientId,
+        SupplierIngredientCount: supplierIngredientCount,
         Name: name,
         Unit: unit,
         NetPrice: netPrice,
