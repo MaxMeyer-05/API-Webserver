@@ -70,7 +70,7 @@ public class RecipeController : ControllerBase
     /// <response code="400">If the request body is invalid or if the recipe cannot be created due to business logic constraints.</response>
     /// <response code="403">If the supplier is not authorized to create the recipe.</response>
     [HttpPost("create")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(typeof(RecipeDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -97,7 +97,7 @@ public class RecipeController : ControllerBase
     /// <response code="400">If the category cannot be added due to business logic constraints.</response>
     /// <response code="404">If the recipe or category does not exist.</response>
     /// <response code="403">If the supplier is not authorized to add the category to the recipe.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [HttpPost("{recipeId}/categories/{categoryId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -134,7 +134,7 @@ public class RecipeController : ControllerBase
     /// <response code="400">If the ingredient cannot be added due to business logic constraints.</response>
     /// <response code="404">If the recipe or ingredient does not exist.</response>
     /// <response code="403">If the supplier is not authorized to add the ingredient to the recipe.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [HttpPost("{recipeId}/ingredients/{ingredientId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -171,7 +171,7 @@ public class RecipeController : ControllerBase
     /// <response code="404">If the recipe does not exist.</response>
     /// <response code="403">If the supplier is not authorized to update the recipe.</response>
     [HttpPatch("{recipeId}")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -201,7 +201,7 @@ public class RecipeController : ControllerBase
     /// <response code="404">If the recipe does not exist.</response>
     /// <response code="403">If the supplier is not authorized to delete the recipe.</response>
     [HttpDelete("{recipeId}/delete")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -232,7 +232,7 @@ public class RecipeController : ControllerBase
     /// <response code="400">If the category cannot be removed due to business logic constraints.</response>
     /// <response code="404">If the recipe or category does not exist.</response>
     /// <response code="403">If the supplier is not authorized to remove the category from the recipe.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [HttpDelete("{recipeId}/categories/{categoryId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -269,7 +269,7 @@ public class RecipeController : ControllerBase
     /// <response code="400">If the ingredient cannot be removed due to business logic constraints.</response>
     /// <response code="404">If the recipe or ingredient does not exist.</response>
     /// <response code="403">If the supplier is not authorized to remove the ingredient from the recipe.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [HttpDelete("{recipeId}/ingredients/{ingredientId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

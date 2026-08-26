@@ -6,7 +6,7 @@ namespace GroceryStore.Features.Orders;
 /// Represents a data transfer object (DTO) for an order.
 /// </summary>
 /// <param name="OrderId">The unique identifier of the order.</param>
-/// <param name="UserId">The identifier of the user who placed the order.</param>
+/// <param name="CustomerId">The identifier of the user who placed the order.</param>
 /// <param name="OrderDate">The date and time when the order was placed.</param>
 /// <param name="TotalAmount">The total amount of the order.</param>
 /// <param name="IsCanceled">Indicates whether the order has been canceled.</param>
@@ -14,8 +14,8 @@ namespace GroceryStore.Features.Orders;
 /// <param name="Items">A list of order item DTOs associated with the order.</param>
 public record OrderDto(
     int OrderId,
-    int UserOrderNumber,
-    Guid UserId,
+    int CustomerOrderNumber,
+    Guid CustomerId,
     DateTime OrderDate,
     decimal TotalAmount,
     bool IsCanceled,
@@ -26,10 +26,10 @@ public record OrderDto(
 /// <summary>
 /// Represents a data transfer object (DTO) for creating a new order.
 /// </summary>
-/// <param name="UserId">The identifier of the user who placed the order.</param>
+/// <param name="CustomerId">The identifier of the user who placed the order.</param>
 /// <param name="Ingredients">Ingredients added directly to the order.</param>
 public record OrderCreateDto(
-    Guid UserId,
+    Guid CustomerId,
     List<OrderItemCreateDto>? Ingredients = null
 );
 

@@ -69,7 +69,7 @@ public class AllergenController : ControllerBase
     /// <response code="201">Returns the created allergen.</response>
     /// <response code="400">If the allergen data is invalid.</response>
     [HttpPost]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(typeof(AllergenDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AllergenDto>> CreateAllergen([FromBody] AllergenCreateDto allergen)
@@ -95,7 +95,7 @@ public class AllergenController : ControllerBase
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the allergen.</response>
     [HttpPatch("{allergenId}")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -124,7 +124,7 @@ public class AllergenController : ControllerBase
     /// <response code="204">If the deletion is successful.</response>
     /// <response code="404">If the allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the allergen.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [HttpDelete("{allergenId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

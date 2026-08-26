@@ -29,15 +29,15 @@ public class OrderMapperTest
     public void ToOrderDto_ShouldMapAllProperties_WhenOrderHasUserAndItems()
     {
         // Arrange
-        var user = GroceryStoreTestData.CreateUser();
+        var user = GroceryStoreTestData.CreateCustomer();
         var ingredient = GroceryStoreTestData.CreateIngredient(Guid.NewGuid(), "Milch");
         var order = OrderTestData.CreateOrder(
             id: 10,
-            userId: user.Id,
+            customerId: user.Id,
             totalAmount: 45.00m,
             isCanceled: false,
             isCompleted: true,
-            user: user);
+            customer: user);
 
         var orderItem = OrderTestData.CreateOrderItem(1, order.Id, ingredient.Id, 3, ingredient);
         order.OrderItems.Add(orderItem);
@@ -63,8 +63,8 @@ public class OrderMapperTest
 
         // Assert
         Assert.NotNull(dto);
-        Assert.Equal(1, dto.UserOrderNumber);
-        Assert.Equal(user.Id, dto.UserId);
+        Assert.Equal(1, dto.CustomerOrderNumber);
+        Assert.Equal(user.Id, dto.CustomerId);
         Assert.Equal(45.00m, dto.TotalAmount);
         Assert.False(dto.IsCanceled);
         Assert.True(dto.IsCompleted);
@@ -80,8 +80,8 @@ public class OrderMapperTest
     public void ToOrderDto_ShouldReturnEmptyItems_WhenOrderItemsIsNull()
     {
         // Arrange
-        var user = GroceryStoreTestData.CreateUser();
-        var order = OrderTestData.CreateOrder(userId: user.Id, user: user, items: []);
+        var user = GroceryStoreTestData.CreateCustomer();
+        var order = OrderTestData.CreateOrder(customerId: user.Id, customer: user, items: []);
         user.Orders.Add(order);
 
         // Act
@@ -101,9 +101,9 @@ public class OrderMapperTest
     public void ToOrderEntity_ShouldMapCreateDtoToEntityWithOrderItems()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
         var createDto = new OrderCreateDto(
-            UserId: userId,
+            CustomerId: customerId,
             Ingredients:
             [
                 new OrderItemCreateDto(101, 2),
@@ -115,7 +115,7 @@ public class OrderMapperTest
 
         // Assert
         Assert.NotNull(entity);
-        Assert.Equal(userId, entity.UserId);
+        Assert.Equal(customerId, entity.CustomerId);
         Assert.Equal(2, entity.OrderItems.Count);
         Assert.Contains(entity.OrderItems, i => i.IngredientId == 101 && i.Quantity == 2);
         Assert.Contains(entity.OrderItems, i => i.IngredientId == 102 && i.Quantity == 5);

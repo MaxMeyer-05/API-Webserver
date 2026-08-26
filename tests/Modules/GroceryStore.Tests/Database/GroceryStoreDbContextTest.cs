@@ -143,7 +143,7 @@ public class GroceryStoreDbContextTest : IDisposable
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
         var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
         var ingredient1 = GroceryStoreTestData.CreateIngredient(supplier.Id, "Apfel", 0.89m);
         var ingredient2 = GroceryStoreTestData.CreateIngredient(supplier.Id, "Banane", 1.19m);
 
@@ -153,20 +153,20 @@ public class GroceryStoreDbContextTest : IDisposable
 
         _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
         // Act
         var loadedOrder = await _context.Orders
-            .Include(o => o.User)
+            .Include(o => o.Customer)
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Ingredient)
             .FirstOrDefaultAsync(o => o.Id == order.Id);
 
         // Assert
         Assert.NotNull(loadedOrder);
-        Assert.Equal(user.Id, loadedOrder.UserId);
+        Assert.Equal(user.Id, loadedOrder.CustomerId);
         Assert.Equal(2, loadedOrder.OrderItems.Count);
         Assert.Contains(loadedOrder.OrderItems, item => item.Ingredient.Name == "Apfel" && item.Quantity == 2);
         Assert.Contains(loadedOrder.OrderItems, item => item.Ingredient.Name == "Banane" && item.Quantity == 3);
@@ -178,11 +178,11 @@ public class GroceryStoreDbContextTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
         var order = GroceryStoreTestData.CreateOrder(user.Id);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -208,14 +208,14 @@ public class GroceryStoreDbContextTest : IDisposable
     {
         // Arrange & Act
         var supplier = new Supplier();
-        var user = new User();
+        var user = new Customer();
         var order = new Order();
 
         // Assert
         Assert.NotEqual(Guid.Empty, supplier.Id);
         Assert.Equal("supplier", supplier.Role);
         Assert.NotEqual(Guid.Empty, user.Id);
-        Assert.Equal("user", user.Role);
+        Assert.Equal("customer", user.Role);
         Assert.False(order.IsCanceled);
         Assert.False(order.IsCompleted);
     }

@@ -32,5 +32,5 @@ public partial class Location
     /// <summary>
     /// Defines the users located in this postal code area.
     /// </summary>
-    public virtual ICollection<User> Users { get; set; } = [];
+    public virtual ICollection<Customer> Customers { get; set; } = [];
 }

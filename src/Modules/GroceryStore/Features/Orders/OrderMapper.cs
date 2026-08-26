@@ -22,8 +22,8 @@ public class OrderMapper : IOrderMapper
     {
         return new OrderDto(
             OrderId: orderEntity.Id,
-            UserOrderNumber: orderEntity.User.Orders?.Count ?? 0,
-            UserId: orderEntity.UserId,
+            CustomerOrderNumber: orderEntity.Customer.Orders?.Count ?? 0,
+            CustomerId: orderEntity.CustomerId,
             OrderDate: orderEntity.OrderDate,
             TotalAmount: orderEntity.TotalAmount,
             IsCanceled: orderEntity.IsCanceled,
@@ -37,7 +37,7 @@ public class OrderMapper : IOrderMapper
     {
         return new Order
         {
-            UserId = orderCreateDto.UserId,
+            CustomerId = orderCreateDto.CustomerId,
             OrderDate = DateTime.UtcNow,
             OrderItems = orderCreateDto.Ingredients?.Select(i => new OrderItem
             {

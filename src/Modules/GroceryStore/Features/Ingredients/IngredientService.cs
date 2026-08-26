@@ -58,6 +58,12 @@ public class IngredientService : IIngredientService
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<IngredientDto> CreateIngredientAsync(IngredientCreateDto ingredient)
     {
+        var supplierExists = await _dbContext.Suppliers
+            .AnyAsync(supplier => supplier.Id == ingredient.SupplierId);
+
+        if (!supplierExists)
+            throw new InvalidOperationException($"Supplier with ID {ingredient.SupplierId} not found");
+
         var ingredientEntity = _ingredientMapper.ToIngredientEntity(ingredient);
 
         _dbContext.Ingredients.Add(ingredientEntity);

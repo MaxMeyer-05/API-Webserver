@@ -48,19 +48,19 @@ public class OrderService : IOrderService
 
         _logger.LogInformation("Created new order with Id {OrderId}", orderEntity.Id);
 
-        return await GetOrderByIdAsync(orderEntity.Id, order.UserId)
+        return await GetOrderByIdAsync(orderEntity.Id, order.CustomerId)
             ?? throw new InvalidOperationException($"Created order with ID {orderEntity.Id} could not be loaded");
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync(Guid userId)
+    public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync(Guid customerId)
     {
         var orders = await _dbContext.Orders
             .AsNoTracking()
             .Include(order => order.OrderItems)
                 .ThenInclude(item => item.Ingredient)
                     .ThenInclude(ingredient => ingredient.Supplier)
-            .Where(o => o.UserId == userId)
+            .Where(o => o.CustomerId == customerId)
             .ToListAsync();
 
         return orders.Select(o => _orderMapper.ToOrderDto(o));
@@ -69,7 +69,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     /// <exception cref="KeyNotFoundException"></exception>
     /// <exception cref="UnauthorizedAccessException"></exception>
-    public async Task<OrderDto?> GetOrderByIdAsync(int orderNum, Guid userId)
+    public async Task<OrderDto?> GetOrderByIdAsync(int orderNum, Guid customerId)
     {
         var order = await _dbContext.Orders
             .AsNoTracking()
@@ -78,12 +78,12 @@ public class OrderService : IOrderService
                     .ThenInclude(ingredient => ingredient.Supplier)
             .Include(o => o.OrderItems)
                 .ThenInclude(item => item.Ingredient)
-            .Where(o => o.Id == orderNum && o.UserId == userId)
+            .Where(o => o.Id == orderNum && o.CustomerId == customerId)
             .FirstOrDefaultAsync()        
             ?? throw new KeyNotFoundException($"Order with ID {orderNum} not found");
 
-        if (order.UserId != userId)
-            throw new UnauthorizedAccessException($"User with ID {userId} does not have permission to access order with ID {orderNum}");
+        if (order.CustomerId != customerId)
+            throw new UnauthorizedAccessException($"Customer with ID {customerId} does not have permission to access order with ID {orderNum}");
 
         return _orderMapper.ToOrderDto(order);
     }
@@ -92,15 +92,15 @@ public class OrderService : IOrderService
     /// <exception cref="KeyNotFoundException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="UnauthorizedAccessException"></exception>
-    public async Task UpdateOrderAsync(int orderNum, Guid userId, OrderUpdateDto order)
+    public async Task UpdateOrderAsync(int orderNum, Guid customerId, OrderUpdateDto order)
     {
         var orderEntity = await _dbContext.Orders
-            .Where(o => o.Id == orderNum && o.UserId == userId)
+            .Where(o => o.Id == orderNum && o.CustomerId == customerId)
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException($"Order with ID {orderNum} not found");
 
-        if (orderEntity.UserId != userId)
-            throw new UnauthorizedAccessException($"User with ID {userId} does not have permission to update order with ID {orderNum}");
+        if (orderEntity.CustomerId != customerId)
+            throw new UnauthorizedAccessException($"Customer with ID {customerId} does not have permission to update order with ID {orderNum}");
 
         if (orderEntity.IsCanceled)
             throw new InvalidOperationException($"Order with ID {orderNum} is already canceled and cannot be updated");
@@ -111,6 +111,6 @@ public class OrderService : IOrderService
         _orderMapper.UpdateOrderEntity(orderEntity, order);
         await _dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Updated order with ID {OrderNum} for user {UserId}", orderNum, userId);
+        _logger.LogInformation("Updated order with ID {OrderNum} for customer {CustomerId}", orderNum, customerId);
     }
 }

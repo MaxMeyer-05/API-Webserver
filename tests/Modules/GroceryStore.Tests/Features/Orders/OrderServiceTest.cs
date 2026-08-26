@@ -57,19 +57,19 @@ public class OrderServiceTest : IDisposable
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
         var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
         var ingredientEntity = GroceryStoreTestData.CreateIngredient(supplier.Id, "Milch", 1.50m);
 
         _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Ingredients.Add(ingredientEntity);
         await _context.SaveChangesAsync();
 
         var createDto = new OrderCreateDto(user.Id, [new OrderItemCreateDto(ingredientEntity.Id, 2)]);
         var orderEntity = new Order
         {
-            UserId = user.Id,
+            CustomerId = user.Id,
             OrderDate = DateTime.UtcNow,
             OrderItems = [new OrderItem { IngredientId = ingredientEntity.Id, Quantity = 2 }]
         };
@@ -98,10 +98,10 @@ public class OrderServiceTest : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(user.Id, result.UserId);
+        Assert.Equal(user.Id, result.CustomerId);
         Assert.Equal(3.00m, result.TotalAmount);
 
-        var persistedOrder = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.UserId == user.Id);
+        var persistedOrder = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.CustomerId == user.Id);
         Assert.NotNull(persistedOrder);
         Assert.Single(persistedOrder.OrderItems);
     }
@@ -116,18 +116,18 @@ public class OrderServiceTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user1 = GroceryStoreTestData.CreateUser(email: "user1@example.com", zipCode: location.ZipCode);
-        var user2 = GroceryStoreTestData.CreateUser(email: "user2@example.com", zipCode: location.ZipCode);
+        var user1 = GroceryStoreTestData.CreateCustomer(email: "user1@example.com", zipCode: location.ZipCode);
+        var user2 = GroceryStoreTestData.CreateCustomer(email: "user2@example.com", zipCode: location.ZipCode);
 
-        var order1 = OrderTestData.CreateOrder(userId: user1.Id);
-        var order2 = OrderTestData.CreateOrder(userId: user2.Id);
+        var order1 = OrderTestData.CreateOrder(customerId: user1.Id);
+        var order2 = OrderTestData.CreateOrder(customerId: user2.Id);
 
         _context.Locations.Add(location);
-        _context.Users.AddRange(user1, user2);
+        _context.Customers.AddRange(user1, user2);
         _context.Orders.AddRange(order1, order2);
         await _context.SaveChangesAsync();
 
-        _mapperMock.Setup(m => m.ToOrderDto(It.Is<Order>(o => o.UserId == user1.Id)))
+        _mapperMock.Setup(m => m.ToOrderDto(It.Is<Order>(o => o.CustomerId == user1.Id)))
             .Returns(OrderTestData.CreateOrderDto(1, user1.Id));
 
         // Act
@@ -137,7 +137,7 @@ public class OrderServiceTest : IDisposable
         Assert.NotNull(result);
         var list = result.ToList();
         var singleOrder = Assert.Single(list);
-        Assert.Equal(user1.Id, singleOrder.UserId);
+        Assert.Equal(user1.Id, singleOrder.CustomerId);
     }
 
     [Fact]
@@ -146,11 +146,11 @@ public class OrderServiceTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -162,7 +162,7 @@ public class OrderServiceTest : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(user.Id, result.UserId);
+        Assert.Equal(user.Id, result.CustomerId);
     }
 
     [Fact]
@@ -171,12 +171,12 @@ public class OrderServiceTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user1 = GroceryStoreTestData.CreateUser(email: "u1@test.com", zipCode: location.ZipCode);
-        var user2 = GroceryStoreTestData.CreateUser(email: "u2@test.com", zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user1.Id);
+        var user1 = GroceryStoreTestData.CreateCustomer(email: "u1@test.com", zipCode: location.ZipCode);
+        var user2 = GroceryStoreTestData.CreateCustomer(email: "u2@test.com", zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user1.Id);
 
         _context.Locations.Add(location);
-        _context.Users.AddRange(user1, user2);
+        _context.Customers.AddRange(user1, user2);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -195,11 +195,11 @@ public class OrderServiceTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id, isCanceled: false, isCompleted: false);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: false, isCompleted: false);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -223,11 +223,11 @@ public class OrderServiceTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id, isCanceled: true);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: true);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -245,11 +245,11 @@ public class OrderServiceTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id, isCompleted: true);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id, isCompleted: true);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 

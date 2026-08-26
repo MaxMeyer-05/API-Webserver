@@ -1,14 +1,14 @@
 using GroceryStore.Database.Entities;
 
-using GroceryStore.Features.Users;
+using GroceryStore.Features.Customers;
 
-namespace GroceryStore.Tests.Features.Users;
+namespace GroceryStore.Tests.Features.Customers;
 
-public static class UserTestData
+public static class CustomerTestData
 {
     #region Entity Fixtures
 
-    public static User CreateUser(
+    public static Customer CreateCustomer(
         Guid? id = null,
         string firstName = "Anna",
         string lastName = "Meier",
@@ -19,7 +19,7 @@ public static class UserTestData
         string? phoneNumber = null) => new()
     {
         Id = id ?? Guid.NewGuid(),
-        Role = "user",
+        Role = "customer",
         FirstName = firstName,
         LastName = lastName,
         Email = email,
@@ -38,13 +38,13 @@ public static class UserTestData
 
     #region DTO Fixtures
 
-    public static UserDto CreateUserDto(
-        Guid? userId = null,
+    public static CustomerDto CreateCustomerDto(
+        Guid? customerId = null,
         string firstName = "Anna",
         string lastName = "Meier",
         string email = "anna.meier@example.com",
-        string role = "user") => new(
-        UserId: userId ?? Guid.NewGuid(),
+        string role = "customer") => new(
+        CustomerId: customerId ?? Guid.NewGuid(),
         Role: role,
         Name: $"{firstName} {lastName}",
         BirthDate: new DateOnly(1995, 5, 20),
@@ -55,7 +55,7 @@ public static class UserTestData
         CreatedAtDateTime: DateTime.UtcNow,
         UpdatedAtDateTime: DateTime.UtcNow);
 
-    public static UserRegistrationDto CreateUserRegistrationDto(
+    public static CustomerRegistrationDto CreateCustomerRegistrationDto(
         string firstName = "Max",
         string lastName = "Mustermann",
         string email = "max.mustermann@example.com",
@@ -72,7 +72,7 @@ public static class UserTestData
         Password: password,
         ConfirmPassword: confirmPassword);
 
-    public static UserUpdateDto CreateUserUpdateDto(
+    public static CustomerUpdateDto CreateCustomerUpdateDto(
         string? firstName = "Maximilian",
         string? lastName = "Mustermann",
         string? email = "m.mustermann@example.com",
@@ -90,7 +90,7 @@ public static class UserTestData
         Password: password,
         ConfirmPassword: confirmPassword);
 
-    public static UserLoginDto CreateUserLoginDto(
+    public static CustomerLoginDto CreateCustomerLoginDto(
         string email = "anna.meier@example.com",
         string password = "SecretPassword123!") => new(
         Email: email,

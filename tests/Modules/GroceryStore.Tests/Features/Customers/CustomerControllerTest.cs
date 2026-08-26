@@ -8,41 +8,41 @@ using Microsoft.Extensions.Logging;
 using GroceryStore.Database.DbContexts;
 using GroceryStore.Database.Entities;
 
-using GroceryStore.Features.Users;
-using GroceryStore.Features.Users.Interfaces;
+using GroceryStore.Features.Customers;
+using GroceryStore.Features.Customers.Interfaces;
 
 using GroceryStore.Tests.TestData;
 using SharedKernel.Security.Interfaces;
 
-namespace GroceryStore.Tests.Features.Users;
+namespace GroceryStore.Tests.Features.Customers;
 
 [Trait("Category", "Controller")]
 [Trait("Module", "GroceryStore")]
-[Trait("Feature", "Users")]
-public class UserControllerTest : IDisposable
+[Trait("Feature", "Customers")]
+public class CustomerControllerTest : IDisposable
 {
     private readonly GroceryStoreDbContext _context;
     private readonly IDisposable _connection;
-    private readonly Mock<IUserMapper> _mapperMock;
-    private readonly Mock<ILogger<UserService>> _loggerMock;
+    private readonly Mock<ICustomerMapper> _mapperMock;
+    private readonly Mock<ILogger<CustomerService>> _loggerMock;
     private readonly Mock<ICurrentUser> _currentUserMock;
     private readonly Mock<ITokenService> _tokenServiceMock;
-    private readonly UserService _service;
-    private readonly UserController _controller;
+    private readonly CustomerService _service;
+    private readonly CustomerController _controller;
 
-    public UserControllerTest()
+    public CustomerControllerTest()
     {
         var (context, connection) = GroceryStoreTestData.CreateInMemoryDbContext();
         _context = context;
         _connection = connection;
 
-        _mapperMock = new Mock<IUserMapper>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<UserService>>();
+        _mapperMock = new Mock<ICustomerMapper>(MockBehavior.Strict);
+        _loggerMock = new Mock<ILogger<CustomerService>>();
         _currentUserMock = new Mock<ICurrentUser>(MockBehavior.Strict);
         _tokenServiceMock = new Mock<ITokenService>(MockBehavior.Strict);
 
-        _service = new UserService(_context, _mapperMock.Object, _loggerMock.Object);
-        _controller = new UserController(_service, _currentUserMock.Object, _tokenServiceMock.Object);
+        _service = new CustomerService(_context, _mapperMock.Object, _loggerMock.Object);
+        _controller = new CustomerController(_service, _currentUserMock.Object, _tokenServiceMock.Object);
     }
 
     public void Dispose()
@@ -56,48 +56,48 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Get")]
-    public async Task GetUsers_ShouldReturnOkWithUsersList()
+    public async Task GetCustomers_ShouldReturnOkWithCustomersList()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = UserTestData.CreateUser(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
-        var expectedDto = UserTestData.CreateUserDto(user.Id);
-        _mapperMock.Setup(m => m.ToUserDto(It.IsAny<User>())).Returns(expectedDto);
+        var expectedDto = CustomerTestData.CreateCustomerDto(user.Id);
+        _mapperMock.Setup(m => m.ToCustomerDto(It.IsAny<Customer>())).Returns(expectedDto);
 
         // Act
-        var result = await _controller.GetUsers();
+        var result = await _controller.GetCustomers();
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
-        var list = Assert.IsAssignableFrom<IEnumerable<UserDto>>(okResult.Value);
+        var list = Assert.IsAssignableFrom<IEnumerable<CustomerDto>>(okResult.Value);
         Assert.Single(list);
     }
 
     [Fact]
     [Trait("Action", "Get")]
-    public async Task GetCurrentUser_ShouldReturnOk_WhenUserExists()
+    public async Task GetCurrentCustomer_ShouldReturnOk_WhenCustomerExists()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = UserTestData.CreateUser(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
 
-        var expectedDto = UserTestData.CreateUserDto(user.Id);
-        _mapperMock.Setup(m => m.ToUserDto(It.Is<User>(u => u.Id == user.Id))).Returns(expectedDto);
+        var expectedDto = CustomerTestData.CreateCustomerDto(user.Id);
+        _mapperMock.Setup(m => m.ToCustomerDto(It.Is<Customer>(u => u.Id == user.Id))).Returns(expectedDto);
 
         // Act
-        var result = await _controller.GetCurrentUser();
+        var result = await _controller.GetCurrentCustomer();
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -107,13 +107,13 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Get")]
-    public async Task GetCurrentUser_ShouldReturnNotFound_WhenUserDoesNotExist()
+    public async Task GetCurrentCustomer_ShouldReturnNotFound_WhenCustomerDoesNotExist()
     {
         // Arrange
         _currentUserMock.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
 
         // Act
-        var result = await _controller.GetCurrentUser();
+        var result = await _controller.GetCurrentCustomer();
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result.Result);
@@ -126,49 +126,49 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Create")]
-    public async Task CreateUser_ShouldReturnCreatedAtAction_WhenValid()
+    public async Task CreateCustomer_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
 
-        var registrationDto = UserTestData.CreateUserRegistrationDto();
-        var entity = UserTestData.CreateUser(email: registrationDto.Email, zipCode: location.ZipCode);
-        var createdDto = UserTestData.CreateUserDto(entity.Id, email: registrationDto.Email);
+        var registrationDto = CustomerTestData.CreateCustomerRegistrationDto();
+        var entity = CustomerTestData.CreateCustomer(email: registrationDto.Email, zipCode: location.ZipCode);
+        var createdDto = CustomerTestData.CreateCustomerDto(entity.Id, email: registrationDto.Email);
 
-        _mapperMock.Setup(m => m.ToUserEntity(registrationDto)).Returns(entity);
-        _mapperMock.Setup(m => m.ToUserDto(entity)).Returns(createdDto);
+        _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entity);
+        _mapperMock.Setup(m => m.ToCustomerDto(entity)).Returns(createdDto);
 
         // Act
-        var result = await _controller.CreateUser(registrationDto);
+        var result = await _controller.CreateCustomer(registrationDto);
 
         // Assert
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
-        Assert.Equal(nameof(UserController.CreateUser), createdAtResult.ActionName);
+        Assert.Equal(nameof(CustomerController.CreateCustomer), createdAtResult.ActionName);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
     [Fact]
     [Trait("Action", "Create")]
-    public async Task CreateUser_ShouldReturnBadRequest_WhenEmailOrPhoneInUse()
+    public async Task CreateCustomer_ShouldReturnBadRequest_WhenEmailOrPhoneInUse()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var existing = UserTestData.CreateUser(email: "used@domain.de", zipCode: location.ZipCode);
+        var existing = CustomerTestData.CreateCustomer(email: "used@domain.de", zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(existing);
+        _context.Customers.Add(existing);
         await _context.SaveChangesAsync();
 
-        var registrationDto = UserTestData.CreateUserRegistrationDto(email: "used@domain.de");
-        var entity = UserTestData.CreateUser(email: "used@domain.de", zipCode: location.ZipCode);
+        var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(email: "used@domain.de");
+        var entity = CustomerTestData.CreateCustomer(email: "used@domain.de", zipCode: location.ZipCode);
 
-        _mapperMock.Setup(m => m.ToUserEntity(registrationDto)).Returns(entity);
+        _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entity);
 
         // Act
-        var result = await _controller.CreateUser(registrationDto);
+        var result = await _controller.CreateCustomer(registrationDto);
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
@@ -182,51 +182,51 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Login")]
-    public async Task LoginUser_ShouldReturnOkWithToken_WhenCredentialsAreValid()
+    public async Task LoginCustomer_ShouldReturnOkWithToken_WhenCredentialsAreValid()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
         const string rawPassword = "CorrectPass123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
-        var user = UserTestData.CreateUser(
+        var user = CustomerTestData.CreateCustomer(
             email: "login@domain.de",
             passwordHash: passwordHash,
             zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
-        var userDto = UserTestData.CreateUserDto(user.Id, email: user.Email, role: "user");
-        _mapperMock.Setup(m => m.ToUserDto(It.Is<User>(u => u.Id == user.Id))).Returns(userDto);
-        _tokenServiceMock.Setup(t => t.GenerateToken(user.Id, "login@domain.de", "user", null))
+        var userDto = CustomerTestData.CreateCustomerDto(user.Id, email: user.Email, role: "customer");
+        _mapperMock.Setup(m => m.ToCustomerDto(It.Is<Customer>(u => u.Id == user.Id))).Returns(userDto);
+        _tokenServiceMock.Setup(t => t.GenerateToken(user.Id, "login@domain.de", "customer", null))
             .Returns("generated_user_jwt_token");
 
-        var loginDto = new UserLoginDto("login@domain.de", rawPassword);
+        var loginDto = new CustomerLoginDto("login@domain.de", rawPassword);
 
         // Act
-        var result = await _controller.LoginUser(loginDto);
+        var result = await _controller.LoginCustomer(loginDto);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
 
-        var authResponse = Assert.IsType<AuthResponseDto>(okResult.Value);
+        var authResponse = Assert.IsType<CustomerAuthResponseDto>(okResult.Value);
         Assert.Equal("generated_user_jwt_token", authResponse.Token);
-        Assert.Equal(user.Id, authResponse.UserId);
-        Assert.Equal("user", authResponse.Role);
+        Assert.Equal(user.Id, authResponse.CustomerId);
+        Assert.Equal("customer", authResponse.Role);
     }
 
     [Fact]
     [Trait("Action", "Login")]
-    public async Task LoginUser_ShouldReturnUnauthorized_WhenCredentialsAreInvalid()
+    public async Task LoginCustomer_ShouldReturnUnauthorized_WhenCredentialsAreInvalid()
     {
         // Arrange
-        var loginDto = new UserLoginDto("nonexistent@domain.de", "WrongPass");
+        var loginDto = new CustomerLoginDto("nonexistent@domain.de", "WrongPass");
 
         // Act
-        var result = await _controller.LoginUser(loginDto);
+        var result = await _controller.LoginCustomer(loginDto);
 
         // Assert
         var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result.Result);
@@ -240,22 +240,22 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Update")]
-    public async Task UpdateUser_ShouldReturnNoContent_WhenSuccessful()
+    public async Task UpdateCustomer_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = UserTestData.CreateUser(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
-        var updateDto = UserTestData.CreateUserUpdateDto(email: "newemail@domain.de");
-        _mapperMock.Setup(m => m.UpdateUserEntity(user, updateDto));
+        var updateDto = CustomerTestData.CreateCustomerUpdateDto(email: "newemail@domain.de");
+        _mapperMock.Setup(m => m.UpdateCustomerEntity(user, updateDto));
 
         // Act
-        var result = await _controller.UpdateUser(updateDto);
+        var result = await _controller.UpdateCustomer(updateDto);
 
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
@@ -264,14 +264,14 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Update")]
-    public async Task UpdateUser_ShouldReturnNotFound_WhenUserMissing()
+    public async Task UpdateCustomer_ShouldReturnNotFound_WhenCustomerMissing()
     {
         // Arrange
         _currentUserMock.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
-        var updateDto = UserTestData.CreateUserUpdateDto();
+        var updateDto = CustomerTestData.CreateCustomerUpdateDto();
 
         // Act
-        var result = await _controller.UpdateUser(updateDto);
+        var result = await _controller.UpdateCustomer(updateDto);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -284,24 +284,24 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Delete")]
-    public async Task DeleteUser_ShouldReturnNoContent_WhenPasswordIsCorrect()
+    public async Task DeleteCustomer_ShouldReturnNoContent_WhenPasswordIsCorrect()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
         const string rawPassword = "CorrectPass123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
-        var user = UserTestData.CreateUser(passwordHash: passwordHash, zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(passwordHash: passwordHash, zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
-        _mapperMock.Setup(m => m.AnonymizeUserEntity(user));
+        _mapperMock.Setup(m => m.AnonymizeCustomerEntity(user));
 
         // Act
-        var result = await _controller.DeleteUser(rawPassword);
+        var result = await _controller.DeleteCustomer(rawPassword);
 
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
@@ -310,22 +310,22 @@ public class UserControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Delete")]
-    public async Task DeleteUser_ShouldReturnBadRequest_WhenPasswordIsIncorrect()
+    public async Task DeleteCustomer_ShouldReturnBadRequest_WhenPasswordIsIncorrect()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = UserTestData.CreateUser(
+        var user = CustomerTestData.CreateCustomer(
             passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"),
             zipCode: location.ZipCode);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
 
         // Act
-        var result = await _controller.DeleteUser("WrongPassword");
+        var result = await _controller.DeleteCustomer("WrongPassword");
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);

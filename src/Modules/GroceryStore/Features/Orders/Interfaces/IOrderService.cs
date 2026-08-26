@@ -8,17 +8,17 @@ public interface IOrderService
     /// <summary>
     /// Retrieves all orders for a specific user from the database.
     /// </summary>
-    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="customerId">The unique identifier of the customer.</param>
     /// <returns>A collection of order DTOs.</returns>
-    Task<IEnumerable<OrderDto>> GetAllOrdersAsync(Guid userId);
+    Task<IEnumerable<OrderDto>> GetAllOrdersAsync(Guid customerId);
 
     /// <summary>
     /// Retrieves a specific order by its ID from the database.
     /// </summary>
     /// <param name="orderNum">The user-specific order number.</param>
-    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="customerId">The unique identifier of the customer.</param>
     /// <returns>The order DTO if found; otherwise, null.</returns>
-    Task<OrderDto?> GetOrderByIdAsync(int orderNum, Guid userId);
+    Task<OrderDto?> GetOrderByIdAsync(int orderNum, Guid customerId);
 
     /// <summary>
     /// Creates a new order in the database.
@@ -32,7 +32,7 @@ public interface IOrderService
     /// Updates an existing order in the database.
     /// </summary>
     /// <param name="orderNum">The user-specific order number.</param>
-    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="customerId">The unique identifier of the customer.</param>
     /// <param name="order">The order DTO containing the updated data.</param>
-    Task UpdateOrderAsync(int orderNum, Guid userId, OrderUpdateDto order);
+    Task UpdateOrderAsync(int orderNum, Guid customerId, OrderUpdateDto order);
 }

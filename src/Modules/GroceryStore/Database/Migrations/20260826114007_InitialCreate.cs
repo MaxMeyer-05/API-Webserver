@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GroceryStore.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedLocations : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,35 @@ namespace GroceryStore.Database.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_locations", x => x.ZipCode);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "customers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Role = table.Column<string>(type: "TEXT", nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
+                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
+                    BirthDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
+                    Street = table.Column<string>(type: "TEXT", nullable: false),
+                    HouseNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    ZipCode = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedAtDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAtDateTime = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_customers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_customers_locations_ZipCode",
+                        column: x => x.ZipCode,
+                        principalTable: "locations",
+                        principalColumn: "ZipCode",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -53,31 +82,25 @@ namespace GroceryStore.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "users",
+                name: "orders",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    BirthDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    Street = table.Column<string>(type: "TEXT", nullable: false),
-                    HouseNumber = table.Column<string>(type: "TEXT", nullable: false),
-                    ZipCode = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAtDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtDateTime = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CustomerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "TEXT", nullable: false),
+                    IsCanceled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_users", x => x.Id);
+                    table.PrimaryKey("PK_orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_users_locations_ZipCode",
-                        column: x => x.ZipCode,
-                        principalTable: "locations",
-                        principalColumn: "ZipCode",
+                        name: "FK_orders_customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "customers",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -170,29 +193,6 @@ namespace GroceryStore.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "orders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "TEXT", nullable: false),
-                    IsCanceled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    IsCompleted = table.Column<bool>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_orders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_orders_users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AllergenIngredient",
                 columns: table => new
                 {
@@ -212,6 +212,33 @@ namespace GroceryStore.Database.Migrations
                         name: "FK_AllergenIngredient_ingredients_IngredientsId",
                         column: x => x.IngredientsId,
                         principalTable: "ingredients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "order_items",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    IngredientId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_order_items", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_order_items_ingredients_IngredientId",
+                        column: x => x.IngredientId,
+                        principalTable: "ingredients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_order_items_orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -263,33 +290,6 @@ namespace GroceryStore.Database.Migrations
                         name: "FK_recipe_ingredients_recipes_RecipeId",
                         column: x => x.RecipeId,
                         principalTable: "recipes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "order_items",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    IngredientId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_order_items", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_order_items_ingredients_IngredientId",
-                        column: x => x.IngredientId,
-                        principalTable: "ingredients",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_order_items_orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -371,6 +371,23 @@ namespace GroceryStore.Database.Migrations
                 column: "SupplierId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_customers_Email",
+                table: "customers",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_customers_PhoneNumber",
+                table: "customers",
+                column: "PhoneNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_customers_ZipCode",
+                table: "customers",
+                column: "ZipCode");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ingredients_SupplierId",
                 table: "ingredients",
                 column: "SupplierId");
@@ -392,9 +409,9 @@ namespace GroceryStore.Database.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_orders_UserId",
+                name: "IX_orders_CustomerId",
                 table: "orders",
-                column: "UserId");
+                column: "CustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_recipe_ingredients_IngredientId",
@@ -426,23 +443,6 @@ namespace GroceryStore.Database.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_suppliers_ZipCode",
                 table: "suppliers",
-                column: "ZipCode");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_users_Email",
-                table: "users",
-                column: "Email",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_users_PhoneNumber",
-                table: "users",
-                column: "PhoneNumber",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_users_ZipCode",
-                table: "users",
                 column: "ZipCode");
         }
 
@@ -477,7 +477,7 @@ namespace GroceryStore.Database.Migrations
                 name: "recipes");
 
             migrationBuilder.DropTable(
-                name: "users");
+                name: "customers");
 
             migrationBuilder.DropTable(
                 name: "suppliers");

@@ -1,25 +1,25 @@
-using GroceryStore.Features.Users;
+using GroceryStore.Features.Customers;
 
 using GroceryStore.Tests.TestData;
 
-namespace GroceryStore.Tests.Features.Users;
+namespace GroceryStore.Tests.Features.Customers;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "GroceryStore")]
-[Trait("Feature", "Users")]
-public class UserMapperTest
+[Trait("Feature", "Customers")]
+public class CustomerMapperTest
 {
-    private readonly UserMapper _mapper = new();
+    private readonly CustomerMapper _mapper = new();
 
     #region ToUserDto Tests
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void ToUserDto_ShouldMapAllFields_WhenLocationNavigationIsPresent()
+    public void ToCustomerDto_ShouldMapAllFields_WhenLocationNavigationIsPresent()
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation("10115", "Berlin");
-        var user = UserTestData.CreateUser(
+        var user = CustomerTestData.CreateCustomer(
             id: Guid.NewGuid(),
             firstName: "Anna",
             lastName: "Meier",
@@ -29,12 +29,12 @@ public class UserMapperTest
             phoneNumber: "015198765432");
 
         // Act
-        var dto = _mapper.ToUserDto(user);
+        var dto = _mapper.ToCustomerDto(user);
 
         // Assert
         Assert.NotNull(dto);
-        Assert.Equal(user.Id, dto.UserId);
-        Assert.Equal("user", dto.Role);
+        Assert.Equal(user.Id, dto.CustomerId);
+        Assert.Equal("customer", dto.Role);
         Assert.Equal("Anna Meier", dto.Name);
         Assert.Equal(new DateOnly(1995, 5, 20), dto.BirthDate);
         Assert.Equal("anna.meier@example.com", dto.Email);
@@ -45,13 +45,13 @@ public class UserMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void ToUserDto_ShouldHandleNullLocationNavigation()
+    public void ToCustomerDto_ShouldHandleNullLocationNavigation()
     {
         // Arrange
-        var user = UserTestData.CreateUser(location: null);
+        var user = CustomerTestData.CreateCustomer(location: null);
 
         // Act
-        var dto = _mapper.ToUserDto(user);
+        var dto = _mapper.ToCustomerDto(user);
 
         // Assert
         Assert.NotNull(dto);
@@ -64,13 +64,13 @@ public class UserMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void ToUserEntity_ShouldMapRegistrationDtoAndHashPasswordWithBCrypt()
+    public void ToCustomerEntity_ShouldMapRegistrationDtoAndHashPasswordWithBCrypt()
     {
         // Arrange
-        var registrationDto = UserTestData.CreateUserRegistrationDto(password: "UserPassword123!");
+        var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(password: "UserPassword123!");
 
         // Act
-        var entity = _mapper.ToUserEntity(registrationDto);
+        var entity = _mapper.ToCustomerEntity(registrationDto);
 
         // Assert
         Assert.NotNull(entity);
@@ -91,13 +91,13 @@ public class UserMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void UpdateUserEntity_ShouldUpdateProvidedFieldsAndSetUpdatedAtDateTime()
+    public void UpdateCustomerEntity_ShouldUpdateProvidedFieldsAndSetUpdatedAtDateTime()
     {
         // Arrange
-        var user = UserTestData.CreateUser();
+        var user = CustomerTestData.CreateCustomer();
         var originalUpdatedAt = user.UpdatedAtDateTime;
 
-        var updateDto = new UserUpdateDto(
+        var updateDto = new CustomerUpdateDto(
             FirstName: "Erika",
             LastName: "Musterfrau",
             Email: "erika.m@example.com",
@@ -110,7 +110,7 @@ public class UserMapperTest
             ConfirmPassword: null);
 
         // Act
-        _mapper.UpdateUserEntity(user, updateDto);
+        _mapper.UpdateCustomerEntity(user, updateDto);
 
         // Assert
         Assert.Equal("Erika", user.FirstName);
@@ -126,11 +126,11 @@ public class UserMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void UpdateUserEntity_ShouldUpdatePassword_WhenPasswordsMatch()
+    public void UpdateCustomerEntity_ShouldUpdatePassword_WhenPasswordsMatch()
     {
         // Arrange
-        var user = UserTestData.CreateUser();
-        var updateDto = new UserUpdateDto(
+        var user = CustomerTestData.CreateCustomer();
+        var updateDto = new CustomerUpdateDto(
             FirstName: null,
             LastName: null,
             Email: null,
@@ -143,7 +143,7 @@ public class UserMapperTest
             ConfirmPassword: "NewSecretPassword1!");
 
         // Act
-        _mapper.UpdateUserEntity(user, updateDto);
+        _mapper.UpdateCustomerEntity(user, updateDto);
 
         // Assert
         Assert.True(BCrypt.Net.BCrypt.Verify("NewSecretPassword1!", user.PasswordHash));
@@ -151,11 +151,11 @@ public class UserMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void UpdateUserEntity_ShouldThrowArgumentException_WhenPasswordsDoNotMatch()
+    public void UpdateCustomerEntity_ShouldThrowArgumentException_WhenPasswordsDoNotMatch()
     {
         // Arrange
-        var user = UserTestData.CreateUser();
-        var updateDto = new UserUpdateDto(
+        var user = CustomerTestData.CreateCustomer();
+        var updateDto = new CustomerUpdateDto(
             FirstName: null,
             LastName: null,
             Email: null,
@@ -168,7 +168,7 @@ public class UserMapperTest
             ConfirmPassword: "DifferentPassword2!");
 
         // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() => _mapper.UpdateUserEntity(user, updateDto));
+        var ex = Assert.Throws<ArgumentException>(() => _mapper.UpdateCustomerEntity(user, updateDto));
         Assert.Equal("Password and Confirm Password do not match.", ex.Message);
     }
 
@@ -178,18 +178,18 @@ public class UserMapperTest
 
     [Fact]
     [Trait("Action", "Anonymize")]
-    public void AnonymizeUserEntity_ShouldOverwriteSensitiveData()
+    public void AnonymizeCustomerEntity_ShouldOverwriteSensitiveData()
     {
         // Arrange
-        var user = UserTestData.CreateUser();
+        var user = CustomerTestData.CreateCustomer();
         var originalId = user.Id;
 
         // Act
-        _mapper.AnonymizeUserEntity(user);
+        _mapper.AnonymizeCustomerEntity(user);
 
         // Assert
         Assert.NotEqual(originalId, user.Id);
-        Assert.Equal("anonymized_user", user.Role);
+        Assert.Equal("anonymized_customer", user.Role);
         Assert.Equal("null", user.FirstName);
         Assert.Equal("null", user.LastName);
         Assert.Equal("null", user.Street);

@@ -69,7 +69,7 @@ public class CategoryController : ControllerBase
     /// <response code="201">Returns the created category.</response>
     /// <response code="400">If the category data is invalid.</response>
     [HttpPost]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryCreateDto category)
@@ -95,7 +95,7 @@ public class CategoryController : ControllerBase
     /// <response code="404">If the category is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the category.</response>
     [HttpPatch("{categoryId}")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -124,7 +124,7 @@ public class CategoryController : ControllerBase
     /// <response code="204">If the deletion is successful.</response>
     /// <response code="404">If the category is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the category.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = Roles.Supplier)]
     [HttpDelete("{categoryId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

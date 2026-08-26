@@ -11,21 +11,21 @@ public static class OrderTestData
 
     public static Order CreateOrder(
         int id = 0,
-        Guid? userId = null,
+        Guid? customerId = null,
         decimal totalAmount = 25.80m,
         bool isCanceled = false,
         bool isCompleted = false,
         List<OrderItem>? items = null,
-        User? user = null) => new()
+        Customer? customer = null) => new()
     {
         Id = id,
-        UserId = userId ?? Guid.NewGuid(),
+        CustomerId = customerId ?? Guid.NewGuid(),
         OrderDate = DateTime.UtcNow,
         TotalAmount = totalAmount,
         IsCanceled = isCanceled,
         IsCompleted = isCompleted,
         OrderItems = items ?? [],
-        User = user!
+        Customer = customer!
     };
 
     public static OrderItem CreateOrderItem(
@@ -47,15 +47,15 @@ public static class OrderTestData
     #region DTO Fixtures
 
     public static OrderDto CreateOrderDto(
-        int userOrderNumber = 1,
-        Guid? userId = null,
+        int customerOrderNumber = 1,
+        Guid? customerId = null,
         decimal totalAmount = 15.50m,
         bool isCanceled = false,
         bool isCompleted = false,
         List<OrderItemDto>? items = null) => new(
             OrderId: 1,
-            UserOrderNumber: userOrderNumber,
-            UserId: userId ?? Guid.NewGuid(),
+            CustomerOrderNumber: customerOrderNumber,
+            CustomerId: customerId ?? Guid.NewGuid(),
             OrderDate: DateTime.UtcNow,
             TotalAmount: totalAmount,
             IsCanceled: isCanceled,
@@ -63,9 +63,9 @@ public static class OrderTestData
             Items: items ?? []);
 
     public static OrderCreateDto CreateOrderCreateDto(
-        Guid? userId = null,
+        Guid? customerId = null,
         List<OrderItemCreateDto>? items = null) => new(
-        UserId: userId ?? Guid.NewGuid(),
+        CustomerId: customerId ?? Guid.NewGuid(),
         Ingredients: items ?? [new OrderItemCreateDto(1, 2)]);
 
     public static OrderUpdateDto CreateOrderUpdateDto(

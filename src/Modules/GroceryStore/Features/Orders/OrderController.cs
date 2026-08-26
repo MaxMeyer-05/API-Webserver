@@ -28,11 +28,10 @@ public class OrderController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves all orders for a specific user.
+    /// Retrieves all orders for the current customer.
     /// </summary>
-    /// <param name="userId">The identifier of the user.</param>
-    /// <returns>Returns a collection of <see cref="OrderDto"/> representing the user's orders.</returns>
-    /// <response code="200">Returns a collection of <see cref="OrderDto"/> representing the user's orders.</response>
+    /// <returns>Returns a collection of <see cref="OrderDto"/> representing the customer's orders.</returns>
+    /// <response code="200">Returns a collection of <see cref="OrderDto"/> representing the customer's orders.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
@@ -41,13 +40,12 @@ public class OrderController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a specific order by its order number and user identifier.
+    /// Retrieves a specific order by its order number and customer identifier.
     /// </summary>
     /// <param name="orderNum">The order number of the order to retrieve.</param>
-    /// <param name="userId">The identifier of the user who placed the order.</param>
     /// <returns>Returns the <see cref="OrderDto"/> representing the requested order.</returns>
     /// <response code="200">Returns the <see cref="OrderDto"/> representing the requested order.</response>
-    /// <response code="404">If the order with the specified order number and user identifier does not exist.</response>
+    /// <response code="404">If the order with the specified order number and customer identifier does not exist.</response>
     [HttpGet("{orderNum}")]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -65,7 +63,7 @@ public class OrderController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new order for a user.
+    /// Creates a new order for a customer.
     /// </summary>
     /// <param name="order">The <see cref="OrderCreateDto"/> containing the details of the order to be created.</param>
     /// <returns>Returns the created <see cref="OrderDto"/> representing the newly created order.</returns>
@@ -88,16 +86,15 @@ public class OrderController : ControllerBase
     }
 
     /// <summary>
-    /// Updates an existing order for a user.
+    /// Updates an existing order for a customer.
     /// </summary>
     /// <param name="orderNum">The order number of the order to update.</param>
-    /// <param name="userId">The identifier of the user who placed the order.</param>
     /// <param name="order">The <see cref="OrderUpdateDto"/> containing the updated details of the order.</param>
     /// <returns>Returns a 204 No Content response if the update is successful.</returns>
     /// <response code="204">If the order is successfully updated.</response>
     /// <response code="400">If the request body is invalid or if the order cannot be updated due to business logic constraints.</response>
-    /// <response code="404">If the specified order or user does not exist.</response>
-    /// <response code="403">If the user is not authorized to update the specified order.</response>
+    /// <response code="404">If the specified order or customer does not exist.</response>
+    /// <response code="403">If the customer is not authorized to update the specified order.</response>
     [HttpPatch("{orderNum}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

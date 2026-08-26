@@ -87,6 +87,69 @@ namespace GroceryStore.Database.Migrations
                     b.ToTable("categories");
                 });
 
+            modelBuilder.Entity("GroceryStore.Database.Entities.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("BirthDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAtDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HouseNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAtDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
+                    b.HasIndex("ZipCode");
+
+                    b.ToTable("customers");
+                });
+
             modelBuilder.Entity("GroceryStore.Database.Entities.Ingredient", b =>
                 {
                     b.Property<int>("Id")
@@ -396,6 +459,9 @@ namespace GroceryStore.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("INTEGER");
 
@@ -408,12 +474,9 @@ namespace GroceryStore.Database.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("orders");
                 });
@@ -548,69 +611,6 @@ namespace GroceryStore.Database.Migrations
                     b.ToTable("suppliers");
                 });
 
-            modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly>("BirthDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAtDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HouseNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAtDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ZipCode")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
-                    b.HasIndex("ZipCode");
-
-                    b.ToTable("users");
-                });
-
             modelBuilder.Entity("AllergenIngredient", b =>
                 {
                     b.HasOne("GroceryStore.Database.Entities.Allergen", null)
@@ -663,6 +663,17 @@ namespace GroceryStore.Database.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("GroceryStore.Database.Entities.Customer", b =>
+                {
+                    b.HasOne("GroceryStore.Database.Entities.Location", "ZipCodeNavigation")
+                        .WithMany("Customers")
+                        .HasForeignKey("ZipCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ZipCodeNavigation");
+                });
+
             modelBuilder.Entity("GroceryStore.Database.Entities.Ingredient", b =>
                 {
                     b.HasOne("GroceryStore.Database.Entities.Supplier", "Supplier")
@@ -676,13 +687,13 @@ namespace GroceryStore.Database.Migrations
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Order", b =>
                 {
-                    b.HasOne("GroceryStore.Database.Entities.User", "User")
+                    b.HasOne("GroceryStore.Database.Entities.Customer", "Customer")
                         .WithMany("Orders")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.OrderItem", b =>
@@ -745,15 +756,9 @@ namespace GroceryStore.Database.Migrations
                     b.Navigation("ZipCodeNavigation");
                 });
 
-            modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>
+            modelBuilder.Entity("GroceryStore.Database.Entities.Customer", b =>
                 {
-                    b.HasOne("GroceryStore.Database.Entities.Location", "ZipCodeNavigation")
-                        .WithMany("Users")
-                        .HasForeignKey("ZipCode")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ZipCodeNavigation");
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Ingredient", b =>
@@ -765,9 +770,9 @@ namespace GroceryStore.Database.Migrations
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Location", b =>
                 {
-                    b.Navigation("Suppliers");
+                    b.Navigation("Customers");
 
-                    b.Navigation("Users");
+                    b.Navigation("Suppliers");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Order", b =>
@@ -785,11 +790,6 @@ namespace GroceryStore.Database.Migrations
                     b.Navigation("Ingredients");
 
                     b.Navigation("Recipes");
-                });
-
-            modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>
-                {
-                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

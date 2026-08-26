@@ -14,8 +14,8 @@ using GroceryStore.Features.Recipes;
 using GroceryStore.Features.Recipes.Interfaces;
 using GroceryStore.Features.Suppliers;
 using GroceryStore.Features.Suppliers.Interfaces;
-using GroceryStore.Features.Users;
-using GroceryStore.Features.Users.Interfaces;
+using GroceryStore.Features.Customers;
+using GroceryStore.Features.Customers.Interfaces;
 
 namespace GroceryStore;
 
@@ -42,7 +42,7 @@ public sealed class GroceryStoreModule : IModule
                 .AddApplicationPart(typeof(OrderController).Assembly)
                 .AddApplicationPart(typeof(RecipeController).Assembly)
                 .AddApplicationPart(typeof(SupplierController).Assembly)
-                .AddApplicationPart(typeof(UserController).Assembly);
+                .AddApplicationPart(typeof(CustomerController).Assembly);
 
             services.AddSingleton<IAllergenMapper, AllergenMapper>();
             services.AddSingleton<ICategoryMapper, CategoryMapper>();
@@ -51,7 +51,7 @@ public sealed class GroceryStoreModule : IModule
             services.AddSingleton<IOrderMapper, OrderMapper>();
             services.AddSingleton<IRecipeMapper, RecipeMapper>();
             services.AddSingleton<ISupplierMapper, SupplierMapper>();
-            services.AddSingleton<IUserMapper, UserMapper>();
+            services.AddSingleton<ICustomerMapper, CustomerMapper>();
 
             services.AddScoped<IAllergenService, AllergenService>();
             services.AddScoped<ICategoryService, CategoryService>();
@@ -60,6 +60,6 @@ public sealed class GroceryStoreModule : IModule
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IRecipeService, RecipeService>();
             services.AddScoped<ISupplierService, SupplierService>();
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICustomerService, CustomerService>();
     }
 }

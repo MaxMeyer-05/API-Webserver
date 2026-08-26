@@ -62,11 +62,11 @@ public class OrderControllerTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -95,11 +95,11 @@ public class OrderControllerTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -142,13 +142,13 @@ public class OrderControllerTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         var createDto = new OrderCreateDto(user.Id, []);
-        var entity = new Order { UserId = user.Id, OrderDate = DateTime.UtcNow };
+        var entity = new Order { CustomerId = user.Id, OrderDate = DateTime.UtcNow };
         var createdDto = OrderTestData.CreateOrderDto(1, user.Id);
 
         _mapperMock.Setup(m => m.ToOrderEntity(createDto)).Returns(entity);
@@ -174,11 +174,11 @@ public class OrderControllerTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id, isCanceled: false, isCompleted: false);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: false, isCompleted: false);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
@@ -201,11 +201,11 @@ public class OrderControllerTest : IDisposable
     {
         // Arrange
         var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateUser(zipCode: location.ZipCode);
-        var order = OrderTestData.CreateOrder(userId: user.Id, isCanceled: true);
+        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: true);
 
         _context.Locations.Add(location);
-        _context.Users.Add(user);
+        _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 

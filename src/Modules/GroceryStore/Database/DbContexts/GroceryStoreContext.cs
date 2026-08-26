@@ -13,7 +13,7 @@ public class GroceryStoreDbContext : DbContext
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
-    public DbSet<User> Users { get; set; }
+    public DbSet<Customer> Customers { get; set; }
 
     public GroceryStoreDbContext(DbContextOptions<GroceryStoreDbContext> options) 
         : base(options)

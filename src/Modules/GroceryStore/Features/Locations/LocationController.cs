@@ -66,7 +66,7 @@ public class LocationController : ControllerBase
     /// <response code="201">Returns the created location.</response>
     /// <response code="400">If the location data is invalid.</response>
     [HttpPost("create")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(LocationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LocationDto>> CreateLocation([FromBody] LocationCreateDto location)
@@ -91,7 +91,7 @@ public class LocationController : ControllerBase
     /// <response code="204">If the update is successful.</response>
     /// <response code="404">If the location is not found.</response>
     [HttpPatch("{zipCode}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLocation([FromRoute] string zipCode, [FromBody] LocationUpdateDto location)
@@ -115,7 +115,7 @@ public class LocationController : ControllerBase
     /// <response code="204">If the deletion is successful.</response>
     /// <response code="404">If the location is not found.</response>
     [HttpDelete("{zipCode}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLocation([FromRoute] string zipCode)
