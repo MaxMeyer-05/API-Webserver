@@ -21,6 +21,7 @@ public class OrderMapper : IOrderMapper
     public OrderDto ToOrderDto(Order orderEntity)
     {
         return new OrderDto(
+            OrderId: orderEntity.Id,
             UserOrderNumber: orderEntity.User.Orders?.Count ?? 0,
             UserId: orderEntity.UserId,
             OrderDate: orderEntity.OrderDate,

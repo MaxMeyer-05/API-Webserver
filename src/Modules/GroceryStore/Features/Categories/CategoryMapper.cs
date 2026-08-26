@@ -14,6 +14,7 @@ public class CategoryMapper : ICategoryMapper
     public CategoryDto ToCategoryDto(Category category)
     {
         return new CategoryDto(
+            CategoryId: category.Id,
             Name: category.Name,
             SupplierId: category.SupplierId,
             Recipes: category.Recipes?.Select(r => new RecipeRefDto(r.Name, r.SupplierId, r.Supplier.CompanyName)).ToList()

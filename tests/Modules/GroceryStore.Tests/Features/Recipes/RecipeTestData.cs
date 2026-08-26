@@ -57,14 +57,15 @@ public static class RecipeTestData
         string supplierName = "Biohof Nord",
         List<CategoryDto>? categories = null,
         List<RecipeIngredientDto>? ingredients = null) => new(
-        SupplierRecipeCount: supplierRecipeCount,
-        Name: name,
-        Instructions: instructions,
-        PreparationTime: preparationTime,
-        SupplierId: supplierId ?? Guid.NewGuid(),
-        SupplierName: supplierName,
-        Categories: categories ?? [],
-        Ingredients: ingredients ?? []);
+            RecipeId: 0,
+            SupplierRecipeCount: supplierRecipeCount,
+            Name: name,
+            Instructions: instructions,
+            PreparationTime: preparationTime,
+            SupplierId: supplierId ?? Guid.NewGuid(),
+            SupplierName: supplierName,
+            Categories: categories ?? [],
+            Ingredients: ingredients ?? []);
 
     public static RecipeCreateDto CreateRecipeCreateDto(
         string name = "Waffeln",

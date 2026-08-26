@@ -5,10 +5,12 @@ namespace GroceryStore.Features.Allergens;
 /// <summary>
 /// Represents a data transfer object (DTO) for an allergen.
 /// </summary>
+/// <param name="AllergenId">The unique identifier of the allergen.</param>
 /// <param name="Name">The name of the allergen.</param>
 /// <param name="SupplierId">The identifier of the associated supplier.</param>
 /// <param name="Ingredients">A list of ingredient references associated with the allergen.</param
 public record AllergenDto(
+    int AllergenId,
     string Name,
     Guid SupplierId,
     IReadOnlyList<IngredientRefDto>? Ingredients = null

@@ -25,6 +25,7 @@ public class RecipeMapper : IRecipeMapper
     public RecipeDto ToRecipeDto(Recipe recipeEntity)
     {
         return new RecipeDto(
+            RecipeId: recipeEntity.Id,
             SupplierRecipeCount: recipeEntity.Supplier.Recipes.Count,
             Name: recipeEntity.Name,
             Instructions: recipeEntity.Instructions,

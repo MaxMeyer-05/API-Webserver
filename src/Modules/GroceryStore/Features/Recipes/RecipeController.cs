@@ -79,7 +79,7 @@ public class RecipeController : ControllerBase
         try
         {
             var createdRecipe = await _recipeService.CreateRecipeAsync(recipe);
-            return CreatedAtAction(nameof(GetRecipeById), createdRecipe);
+            return CreatedAtAction(nameof(GetRecipeById), new { recipeId = createdRecipe.RecipeId }, createdRecipe);
         }
         catch (InvalidOperationException ex)
         {

@@ -25,7 +25,7 @@ public class IngredientMapper : IIngredientMapper
             Calories: ingredient.Calories,
             Carbohydrates: ingredient.Carbohydrates,
             Protein: ingredient.Protein,
-            Allergens: ingredient.Allergens?.Select(a => new AllergenDto(a.Name, a.SupplierId)).ToList()
+            Allergens: ingredient.Allergens?.Select(a => new AllergenDto(a.Id, a.Name, a.SupplierId)).ToList()
         );
     }
 

@@ -77,7 +77,7 @@ public class CategoryController : ControllerBase
         try
         {
             var createdCategory = await _categoryService.CreateCategoryAsync(category);
-            return CreatedAtAction(nameof(GetCategoryById), createdCategory);
+            return CreatedAtAction(nameof(GetCategoryById), new { categoryId = createdCategory.CategoryId }, createdCategory);
         }
         catch (InvalidOperationException ex)
         {

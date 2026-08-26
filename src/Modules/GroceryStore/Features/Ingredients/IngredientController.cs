@@ -69,7 +69,7 @@ public class IngredientController : ControllerBase
     /// <response code="201">Returns the created ingredient.</response>
     /// <response code="400">If the ingredient data is invalid.</response>
     [HttpPost("create")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = "supplier")]
     [ProducesResponseType(typeof(IngredientDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IngredientDto>> CreateIngredient([FromBody] IngredientCreateDto ingredient)
@@ -77,7 +77,7 @@ public class IngredientController : ControllerBase
         try
         {
             var createdIngredient = await _ingredientService.CreateIngredientAsync(ingredient);
-            return CreatedAtAction(nameof(GetIngredientById), createdIngredient);
+            return CreatedAtAction(nameof(GetIngredientById), new { ingredientId = createdIngredient.IngredientId }, createdIngredient);
         }
         catch (InvalidOperationException ae)
         {
@@ -94,7 +94,7 @@ public class IngredientController : ControllerBase
     /// <response code="204">If the allergen is successfully added to the ingredient.</response>
     /// <response code="404">If the ingredient or allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to add the allergen to the ingredient.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = "supplier")]
     [HttpPost("{ingredientId}/allergens/{allergenId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -127,7 +127,7 @@ public class IngredientController : ControllerBase
     /// <response code="404">If the ingredient is not found.</response>
     /// <response code="403">If the supplier is not authorized to update the ingredient.</response>
     [HttpPatch("{ingredientId}")]
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = "supplier")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -162,7 +162,7 @@ public class IngredientController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the ingredient is not found.</response>
     /// <response code="403">If the supplier is not authorized to delete the ingredient.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = "supplier")]
     [HttpDelete("{ingredientId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -199,7 +199,7 @@ public class IngredientController : ControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="404">If the ingredient or allergen is not found.</response>
     /// <response code="403">If the supplier is not authorized to remove the allergen from the ingredient.</response>
-    [Authorize(Roles = "Supplier")]
+    [Authorize(Roles = "supplier")]
     [HttpDelete("{ingredientId}/allergens/{allergenId}")] 
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

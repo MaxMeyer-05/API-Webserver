@@ -6,6 +6,7 @@ namespace GroceryStore.Features.Recipes;
 /// <summary>
 /// Represents a data transfer object (DTO) for a recipe.
 /// </summary>
+/// <param name="RecipeId">The unique identifier of the recipe.</param>
 /// <param name="Name">The name of the recipe.</param>
 /// <param name="Instructions">The instructions for preparing the recipe.</param>
 /// <param name="PreparationTime">The time required to prepare the recipe.</param>
@@ -14,6 +15,7 @@ namespace GroceryStore.Features.Recipes;
 /// <param name="Categories">A list of category DTOs associated with the recipe.</param>
 /// <param name="Ingredients">A list of recipe ingredient DTOs associated with the recipe.</param>
 public record RecipeDto(
+    int RecipeId,
     int SupplierRecipeCount,
     string Name,
     string? Instructions,

@@ -14,6 +14,7 @@ public class AllergenMapper : IAllergenMapper
     public AllergenDto ToAllergenDto(Allergen allergen)
     {
         return new AllergenDto(
+            AllergenId: allergen.Id,
             Name: allergen.Name,
             SupplierId: allergen.SupplierId,
             Ingredients: allergen.Ingredients?.Select(i => new IngredientRefDto(i.Name, i.SupplierId)).ToList()

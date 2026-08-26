@@ -54,7 +54,7 @@ public class RecipeMapperTest
         recipe.RecipeIngredients.Add(recipeIngredient);
         supplier.Recipes.Add(recipe);
 
-        var categoryDto = new CategoryDto("Frühstück", supplier.Id);
+        var categoryDto = new CategoryDto(0, "Frühstück", supplier.Id);
         var ingredientDto = new IngredientDto(
             IngredientId: ingredient.Id,
             SupplierIngredientCount: 0,

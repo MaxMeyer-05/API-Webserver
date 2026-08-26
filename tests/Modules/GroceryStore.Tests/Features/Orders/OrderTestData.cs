@@ -53,13 +53,14 @@ public static class OrderTestData
         bool isCanceled = false,
         bool isCompleted = false,
         List<OrderItemDto>? items = null) => new(
-        UserOrderNumber: userOrderNumber,
-        UserId: userId ?? Guid.NewGuid(),
-        OrderDate: DateTime.UtcNow,
-        TotalAmount: totalAmount,
-        IsCanceled: isCanceled,
-        IsCompleted: isCompleted,
-        Items: items ?? []);
+            OrderId: 1,
+            UserOrderNumber: userOrderNumber,
+            UserId: userId ?? Guid.NewGuid(),
+            OrderDate: DateTime.UtcNow,
+            TotalAmount: totalAmount,
+            IsCanceled: isCanceled,
+            IsCompleted: isCompleted,
+            Items: items ?? []);
 
     public static OrderCreateDto CreateOrderCreateDto(
         Guid? userId = null,

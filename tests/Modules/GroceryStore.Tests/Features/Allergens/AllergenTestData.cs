@@ -29,9 +29,10 @@ public static class AllergenTestData
         string name = "Gluten",
         Guid? supplierId = null,
         IReadOnlyList<IngredientRefDto>? ingredients = null) => new(
-        Name: name,
-        SupplierId: supplierId ?? Guid.NewGuid(),
-        Ingredients: ingredients ?? [new IngredientRefDto("Weizenmehl", Guid.NewGuid())]);
+            AllergenId: 0,
+            Name: name,
+            SupplierId: supplierId ?? Guid.NewGuid(),
+            Ingredients: ingredients ?? [new IngredientRefDto("Weizenmehl", Guid.NewGuid())]);
 
     public static AllergenCreateDto CreateAllergenCreateDto(
         string name = "Erdnüsse",

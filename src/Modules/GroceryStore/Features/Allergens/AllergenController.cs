@@ -77,7 +77,7 @@ public class AllergenController : ControllerBase
         try
         {
             var createdAllergen = await _allergenService.CreateAllergenAsync(allergen);
-            return CreatedAtAction(nameof(GetAllergenById), createdAllergen);
+            return CreatedAtAction(nameof(GetAllergenById), new { allergenId = createdAllergen.AllergenId }, createdAllergen);
         }
         catch (InvalidOperationException ex)
         {

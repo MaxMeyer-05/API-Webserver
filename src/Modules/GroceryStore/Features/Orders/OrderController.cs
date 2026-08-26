@@ -79,7 +79,7 @@ public class OrderController : ControllerBase
         try
         {
             var createdOrder = await _orderService.CreateOrderAsync(order);
-            return CreatedAtAction(nameof(GetOrderById),createdOrder);
+            return CreatedAtAction(nameof(GetOrderById), new { orderNum = createdOrder.OrderId }, createdOrder);
         }
         catch (InvalidOperationException ex)
         {

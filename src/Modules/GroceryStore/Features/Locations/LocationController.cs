@@ -74,7 +74,7 @@ public class LocationController : ControllerBase
         try
         {
             var createdLocation = await _locationService.CreateLocationAsync(location);
-            return CreatedAtAction(nameof(GetLocationByZipCode), createdLocation);
+            return CreatedAtAction(nameof(GetLocationByZipCode), new { zipCode = createdLocation.ZipCode }, createdLocation);
         }
         catch (InvalidOperationException ex)
         {

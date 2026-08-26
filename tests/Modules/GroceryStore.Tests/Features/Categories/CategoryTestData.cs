@@ -29,9 +29,10 @@ public static class CategoryTestData
         string name = "Frühstück",
         Guid? supplierId = null,
         IReadOnlyList<RecipeRefDto>? recipes = null) => new(
-        Name: name,
-        SupplierId: supplierId ?? Guid.NewGuid(),
-        Recipes: recipes ?? [new RecipeRefDto("Porridge", Guid.NewGuid(), "Biohof Nord")]);
+            CategoryId: 0,
+            Name: name,
+            SupplierId: supplierId ?? Guid.NewGuid(),
+            Recipes: recipes ?? [new RecipeRefDto("Porridge", Guid.NewGuid(), "Biohof Nord")]);
 
     public static CategoryCreateDto CreateCategoryCreateDto(
         string name = "Desserts",
