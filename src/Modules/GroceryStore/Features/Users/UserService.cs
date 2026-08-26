@@ -38,6 +38,9 @@ public class UserService : IUserService
 
         await _dbContext.Users.AddAsync(userEntity);
         await _dbContext.SaveChangesAsync();
+        await _dbContext.Entry(userEntity)
+            .Reference(u => u.ZipCodeNavigation)
+            .LoadAsync();
         _logger.LogInformation("Created new user with Id {UserId}", userEntity.Id);
         return _userMapper.ToUserDto(userEntity);
     }
@@ -61,7 +64,9 @@ public class UserService : IUserService
     /// <inheritdoc />
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        var users = await _dbContext.Users.ToListAsync();
+        var users = await _dbContext.Users
+            .Include(u => u.ZipCodeNavigation)
+            .ToListAsync();
         return users.Select(u => _userMapper.ToUserDto(u));
     }
 
@@ -69,6 +74,7 @@ public class UserService : IUserService
     public async Task<UserDto?> GetUserByIdAsync(Guid userId)
     {
         var user = await _dbContext.Users
+            .Include(u => u.ZipCodeNavigation)
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException($"User with Id {userId} not found");
@@ -94,6 +100,7 @@ public class UserService : IUserService
     public async Task<UserDto?> LoginUserAsync(UserLoginDto user)
     {
         var userEntity = await _dbContext.Users
+            .Include(u => u.ZipCodeNavigation)
             .Where(u => u.Email == user.Email)
             .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException("Invalid email or password.");

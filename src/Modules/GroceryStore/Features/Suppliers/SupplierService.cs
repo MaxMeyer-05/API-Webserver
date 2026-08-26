@@ -39,6 +39,9 @@ public class SupplierService : ISupplierService
 
         await _dbContext.Suppliers.AddAsync(supplierEntity);
         await _dbContext.SaveChangesAsync();
+        await _dbContext.Entry(supplierEntity)
+            .Reference(s => s.ZipCodeNavigation)
+            .LoadAsync();
         _logger.LogInformation("Created new supplier with Id {SupplierId}", supplierEntity.Id);
         return _supplierMapper.ToSupplierDto(supplierEntity);
     }
@@ -64,7 +67,9 @@ public class SupplierService : ISupplierService
     /// <inheritdoc />
     public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
     {
-        var suppliers = await _dbContext.Suppliers.ToListAsync();
+        var suppliers = await _dbContext.Suppliers
+            .Include(s => s.ZipCodeNavigation)
+            .ToListAsync();
         return suppliers.Select(s => _supplierMapper.ToSupplierDto(s));
     }
 
@@ -73,6 +78,7 @@ public class SupplierService : ISupplierService
     public async Task<SupplierDto?> GetSupplierByIdAsync(Guid supplierId)
     {
         var supplier = await _dbContext.Suppliers
+            .Include(s => s.ZipCodeNavigation)
             .Where(s => s.Id == supplierId)
             .FirstOrDefaultAsync()
             ?? throw new KeyNotFoundException($"Supplier with Id {supplierId} not found");
@@ -99,6 +105,7 @@ public class SupplierService : ISupplierService
     public async Task<SupplierDto?> LoginSupplierAsync(SupplierLoginDto supplier)
     {
         var existingSupplier = await _dbContext.Suppliers
+            .Include(s => s.ZipCodeNavigation)
             .Where(s => s.Email == supplier.Email)
             .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException("Invalid email or password.");

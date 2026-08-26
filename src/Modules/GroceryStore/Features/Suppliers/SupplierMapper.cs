@@ -30,7 +30,9 @@ public class SupplierMapper : ISupplierMapper
             Role: supplierEntity.Role,
             CompanyName: supplierEntity.CompanyName,
             Address: supplierEntity.Street + " " + supplierEntity.HouseNumber,
-            Location: supplierEntity.ZipCodeNavigation?.City + ", " + supplierEntity.ZipCodeNavigation?.ZipCode,
+            Location: supplierEntity.ZipCodeNavigation is null
+                ? supplierEntity.ZipCode
+                : $"{supplierEntity.ZipCodeNavigation.City}, {supplierEntity.ZipCodeNavigation.ZipCode}",
             PhoneNumber: supplierEntity.PhoneNumber,
             Email: supplierEntity.Email,
             CreatedAtDateTime: supplierEntity.CreatedAtDateTime,

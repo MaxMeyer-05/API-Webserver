@@ -34,7 +34,9 @@ public class UserMapper : IUserMapper
             Email: userEntity.Email,
             PhoneNumber: userEntity.PhoneNumber,
             Address: userEntity.Street + " " + userEntity.HouseNumber,
-            Location: userEntity.ZipCodeNavigation?.City + ", " + userEntity.ZipCodeNavigation?.ZipCode,
+            Location: userEntity.ZipCodeNavigation is null
+                ? userEntity.ZipCode
+                : $"{userEntity.ZipCodeNavigation.City}, {userEntity.ZipCodeNavigation.ZipCode}",
             CreatedAtDateTime: userEntity.CreatedAtDateTime,
             UpdatedAtDateTime: userEntity.UpdatedAtDateTime
         );
