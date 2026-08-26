@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace GroceryStore.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class SeedLocations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -290,6 +292,62 @@ namespace GroceryStore.Database.Migrations
                         principalTable: "orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "locations",
+                columns: new[] { "ZipCode", "City" },
+                values: new object[,]
+                {
+                    { "04109", "Leipzig - Mitte" },
+                    { "04275", "Leipzig - Südvorstadt" },
+                    { "10115", "Berlin - Mitte" },
+                    { "10117", "Berlin - Mitte" },
+                    { "10243", "Berlin - Friedrichshain" },
+                    { "10435", "Berlin - Prenzlauer Berg" },
+                    { "10585", "Berlin - Charlottenburg" },
+                    { "10785", "Berlin - Tiergarten" },
+                    { "10829", "Berlin - Schöneberg" },
+                    { "10969", "Berlin - Kreuzberg" },
+                    { "12043", "Berlin - Neukölln" },
+                    { "13353", "Berlin - Wedding" },
+                    { "20095", "Hamburg - Altstadt" },
+                    { "20099", "Hamburg - St. Georg" },
+                    { "20144", "Hamburg - Eimsbüttel" },
+                    { "20251", "Hamburg - Eppendorf" },
+                    { "20253", "Hamburg - Hoheluft-Ost" },
+                    { "20354", "Hamburg - Neustadt" },
+                    { "20357", "Hamburg - Sternschanze" },
+                    { "20359", "Hamburg - St. Pauli" },
+                    { "20457", "Hamburg - HafenCity" },
+                    { "21029", "Hamburg - Bergedorf" },
+                    { "21073", "Hamburg - Harburg" },
+                    { "21107", "Hamburg - Wilhelmsburg" },
+                    { "22081", "Hamburg - Barmbek-Süd" },
+                    { "22303", "Hamburg - Winterhude" },
+                    { "22335", "Hamburg - Fuhlsbüttel" },
+                    { "22529", "Hamburg - Lokstedt" },
+                    { "22765", "Hamburg - Ottensen" },
+                    { "22767", "Hamburg - Altona-Altstadt" },
+                    { "22769", "Hamburg - Altona-Nord" },
+                    { "50667", "Köln - Altstadt-Nord" },
+                    { "50674", "Köln - Neustadt-Süd" },
+                    { "50678", "Köln - Altstadt-Süd" },
+                    { "50823", "Köln - Ehrenfeld" },
+                    { "50931", "Köln - Lindenthal" },
+                    { "60311", "Frankfurt am Main - Altstadt" },
+                    { "60313", "Frankfurt am Main - Innenstadt" },
+                    { "60316", "Frankfurt am Main - Ostend" },
+                    { "60325", "Frankfurt am Main - Westend" },
+                    { "60594", "Frankfurt am Main - Sachsenhausen" },
+                    { "70173", "Stuttgart - Mitte" },
+                    { "70178", "Stuttgart - Süd" },
+                    { "80331", "München - Altstadt" },
+                    { "80336", "München - Ludwigsvorstadt" },
+                    { "80538", "München - Lehel" },
+                    { "80799", "München - Maxvorstadt" },
+                    { "80802", "München - Schwabing" },
+                    { "81667", "München - Haidhausen" }
                 });
 
             migrationBuilder.CreateIndex(

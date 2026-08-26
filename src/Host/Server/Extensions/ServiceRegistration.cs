@@ -154,10 +154,7 @@ public static class ServiceRegistration
             });
         });
 
-        services.AddControllers(options =>
-            {
-                options.ReturnHttpNotAcceptable = true;
-            })
+        services.AddControllers()
                 .AddApplicationPart(typeof(HealthDiagnosticsController).Assembly)
                 .AddApplicationPart(typeof(ModuleCatalogController).Assembly)
                 .AddApplicationPart(typeof(SystemSettingsController).Assembly);

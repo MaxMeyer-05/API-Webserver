@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroceryStore.Database.Migrations
 {
     [DbContext(typeof(GroceryStoreDbContext))]
-    [Migration("20260825125055_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260826065908_SeedLocations")]
+    partial class SeedLocations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -144,6 +144,253 @@ namespace GroceryStore.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("locations");
+
+                    b.HasData(
+                        new
+                        {
+                            ZipCode = "20095",
+                            City = "Hamburg - Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "20099",
+                            City = "Hamburg - St. Georg"
+                        },
+                        new
+                        {
+                            ZipCode = "20144",
+                            City = "Hamburg - Eimsbüttel"
+                        },
+                        new
+                        {
+                            ZipCode = "20251",
+                            City = "Hamburg - Eppendorf"
+                        },
+                        new
+                        {
+                            ZipCode = "20253",
+                            City = "Hamburg - Hoheluft-Ost"
+                        },
+                        new
+                        {
+                            ZipCode = "20354",
+                            City = "Hamburg - Neustadt"
+                        },
+                        new
+                        {
+                            ZipCode = "20357",
+                            City = "Hamburg - Sternschanze"
+                        },
+                        new
+                        {
+                            ZipCode = "20359",
+                            City = "Hamburg - St. Pauli"
+                        },
+                        new
+                        {
+                            ZipCode = "20457",
+                            City = "Hamburg - HafenCity"
+                        },
+                        new
+                        {
+                            ZipCode = "21029",
+                            City = "Hamburg - Bergedorf"
+                        },
+                        new
+                        {
+                            ZipCode = "21073",
+                            City = "Hamburg - Harburg"
+                        },
+                        new
+                        {
+                            ZipCode = "21107",
+                            City = "Hamburg - Wilhelmsburg"
+                        },
+                        new
+                        {
+                            ZipCode = "22081",
+                            City = "Hamburg - Barmbek-Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "22303",
+                            City = "Hamburg - Winterhude"
+                        },
+                        new
+                        {
+                            ZipCode = "22335",
+                            City = "Hamburg - Fuhlsbüttel"
+                        },
+                        new
+                        {
+                            ZipCode = "22529",
+                            City = "Hamburg - Lokstedt"
+                        },
+                        new
+                        {
+                            ZipCode = "22765",
+                            City = "Hamburg - Ottensen"
+                        },
+                        new
+                        {
+                            ZipCode = "22767",
+                            City = "Hamburg - Altona-Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "22769",
+                            City = "Hamburg - Altona-Nord"
+                        },
+                        new
+                        {
+                            ZipCode = "10115",
+                            City = "Berlin - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "10117",
+                            City = "Berlin - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "10243",
+                            City = "Berlin - Friedrichshain"
+                        },
+                        new
+                        {
+                            ZipCode = "10435",
+                            City = "Berlin - Prenzlauer Berg"
+                        },
+                        new
+                        {
+                            ZipCode = "10585",
+                            City = "Berlin - Charlottenburg"
+                        },
+                        new
+                        {
+                            ZipCode = "10785",
+                            City = "Berlin - Tiergarten"
+                        },
+                        new
+                        {
+                            ZipCode = "10829",
+                            City = "Berlin - Schöneberg"
+                        },
+                        new
+                        {
+                            ZipCode = "10969",
+                            City = "Berlin - Kreuzberg"
+                        },
+                        new
+                        {
+                            ZipCode = "12043",
+                            City = "Berlin - Neukölln"
+                        },
+                        new
+                        {
+                            ZipCode = "13353",
+                            City = "Berlin - Wedding"
+                        },
+                        new
+                        {
+                            ZipCode = "80331",
+                            City = "München - Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "80336",
+                            City = "München - Ludwigsvorstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "80538",
+                            City = "München - Lehel"
+                        },
+                        new
+                        {
+                            ZipCode = "80799",
+                            City = "München - Maxvorstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "80802",
+                            City = "München - Schwabing"
+                        },
+                        new
+                        {
+                            ZipCode = "81667",
+                            City = "München - Haidhausen"
+                        },
+                        new
+                        {
+                            ZipCode = "50667",
+                            City = "Köln - Altstadt-Nord"
+                        },
+                        new
+                        {
+                            ZipCode = "50674",
+                            City = "Köln - Neustadt-Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "50678",
+                            City = "Köln - Altstadt-Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "50823",
+                            City = "Köln - Ehrenfeld"
+                        },
+                        new
+                        {
+                            ZipCode = "50931",
+                            City = "Köln - Lindenthal"
+                        },
+                        new
+                        {
+                            ZipCode = "60311",
+                            City = "Frankfurt am Main - Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "60313",
+                            City = "Frankfurt am Main - Innenstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "60316",
+                            City = "Frankfurt am Main - Ostend"
+                        },
+                        new
+                        {
+                            ZipCode = "60325",
+                            City = "Frankfurt am Main - Westend"
+                        },
+                        new
+                        {
+                            ZipCode = "60594",
+                            City = "Frankfurt am Main - Sachsenhausen"
+                        },
+                        new
+                        {
+                            ZipCode = "70173",
+                            City = "Stuttgart - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "70178",
+                            City = "Stuttgart - Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "04109",
+                            City = "Leipzig - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "04275",
+                            City = "Leipzig - Südvorstadt"
+                        });
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Order", b =>

@@ -120,6 +120,7 @@ public class RecipeService : IRecipeService
     {
 		var recipes = await _dbContext.Recipes
 			.AsNoTracking()
+			.AsSplitQuery()
 			.Include(item => item.Supplier)
 			.Include(item => item.RecipeIngredients)
 				.ThenInclude(item => item.Ingredient)
