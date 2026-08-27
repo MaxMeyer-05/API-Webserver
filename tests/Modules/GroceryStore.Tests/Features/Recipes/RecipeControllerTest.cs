@@ -57,11 +57,9 @@ public class RecipeControllerTest : IDisposable
     public async Task GetAllRecipes_ShouldReturnOkWithRecipeCollection()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
@@ -81,14 +79,26 @@ public class RecipeControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Get")]
+    public async Task GetAllRecipes_ShouldReturnOkWithEmptyCollection_WhenNoRecipesExist()
+    {
+        // Act
+        var result = await _controller.GetAllRecipes();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var recipes = Assert.IsAssignableFrom<IEnumerable<RecipeDto>>(okResult.Value);
+        Assert.Empty(recipes);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
     public async Task GetRecipeById_ShouldReturnOk_WhenRecipeExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id, name: "Curry");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
@@ -126,13 +136,15 @@ public class RecipeControllerTest : IDisposable
     public async Task CreateRecipe_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
-        var createDto = RecipeTestData.CreateRecipeCreateDto("Suppe", supplier.Id);
+        var createDto = RecipeTestData.CreateRecipeCreateDto(
+            "Suppe",
+            supplier.Id,
+            categoryIds: [],
+            ingredients: []);
         var entity = new Recipe { Name = "Suppe", SupplierId = supplier.Id };
         var createdDto = RecipeTestData.CreateRecipeDto(name: "Suppe", supplierId: supplier.Id);
 
@@ -146,6 +158,7 @@ public class RecipeControllerTest : IDisposable
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
         Assert.Equal(nameof(RecipeController.GetRecipeById), createdAtResult.ActionName);
+        Assert.Equal(createdDto.RecipeId, createdAtResult.RouteValues!["recipeId"]);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
@@ -158,13 +171,11 @@ public class RecipeControllerTest : IDisposable
     public async Task RemoveCategoryFromRecipe_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = new Category { Name = "Salate", SupplierId = supplier.Id };
         var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
         recipe.Categories.Add(category);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Recipes.Add(recipe);
         _context.Categories.Add(category);
@@ -178,6 +189,7 @@ public class RecipeControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Empty(recipe.Categories);
     }
 
     #endregion
@@ -189,11 +201,9 @@ public class RecipeControllerTest : IDisposable
     public async Task UpdateRecipe_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id, name: "Baguette");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
@@ -209,6 +219,7 @@ public class RecipeControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("Knoblauchbaguette", (await _context.Recipes.FindAsync(recipe.Id))!.Name);
     }
 
     [Fact]
@@ -216,11 +227,9 @@ public class RecipeControllerTest : IDisposable
     public async Task DeleteRecipe_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
@@ -233,6 +242,7 @@ public class RecipeControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Null(await _context.Recipes.FindAsync(recipe.Id));
     }
 
     #endregion

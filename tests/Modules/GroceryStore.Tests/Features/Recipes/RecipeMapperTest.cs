@@ -92,6 +92,8 @@ public class RecipeMapperTest
         Assert.Equal(100m, ing.Amount);
         Assert.Equal(supplier.CompanyName, ing.Ingredient.SupplierName);
         Assert.Equal("Haferflocken", ing.Ingredient.Name);
+        _categoryMapperMock.Verify(m => m.ToCategoryDto(category), Times.Once);
+        _ingredientMapperMock.Verify(m => m.ToIngredientDto(ingredient), Times.Once);
     }
 
     [Fact]
@@ -149,6 +151,27 @@ public class RecipeMapperTest
         Assert.Equal(250m, ingredient.Amount);
     }
 
+    [Fact]
+    [Trait("Action", "Mapping")]
+    public void ToRecipeEntity_ShouldInitializeEmptyRelations_WhenCreateDtoCollectionsAreNull()
+    {
+        // Arrange
+        var createDto = new RecipeCreateDto(
+            Name: "Brot",
+            Instructions: "Backen",
+            PreparationTime: 45,
+            SupplierId: Guid.NewGuid(),
+            CategoryIds: null,
+            Ingredients: null!);
+
+        // Act
+        var entity = _mapper.ToRecipeEntity(createDto);
+
+        // Assert
+        Assert.Empty(entity.Categories);
+        Assert.Empty(entity.RecipeIngredients);
+    }
+
     #endregion
 
     #region ToRecipeIngredientDto & ToRecipeIngredientEntity Tests
@@ -187,6 +210,7 @@ public class RecipeMapperTest
         Assert.Equal(supplier.Id, dto.Ingredient.SupplierId);
         Assert.Equal(supplier.CompanyName, dto.Ingredient.SupplierName);
         Assert.Equal("Zucker", dto.Ingredient.Name);
+        _ingredientMapperMock.Verify(m => m.ToIngredientDto(ingredient), Times.Once);
     }
 
     [Fact]
