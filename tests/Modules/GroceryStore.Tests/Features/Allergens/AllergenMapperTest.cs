@@ -27,6 +27,7 @@ public class AllergenMapperTest
 
         // Assert
         Assert.NotNull(dto);
+        Assert.Equal(1, dto.AllergenId);
         Assert.Equal("Gluten", dto.Name);
         Assert.Equal(supplierId, dto.SupplierId);
         Assert.NotNull(dto.Ingredients);
@@ -129,6 +130,28 @@ public class AllergenMapperTest
         Assert.Equal("Gluten", allergen.Name);
         Assert.Single(allergen.Ingredients);
         Assert.Same(initialIngredient, allergen.Ingredients.First());
+    }
+
+    [Fact]
+    [Trait("Action", "Mapping")]
+    public void UpdateAllergenEntity_ShouldClearIngredients_WhenEmptyListIsProvided()
+    {
+        // Arrange
+        var allergen = AllergenTestData.CreateAllergen(
+            1,
+            "Gluten",
+            ingredients: [
+                GroceryStoreTestData.CreateIngredient(Guid.NewGuid(), "Weizenmehl"),
+                GroceryStoreTestData.CreateIngredient(Guid.NewGuid(), "Roggenmehl")
+            ]);
+        var updateDto = new AllergenUpdateDto(null, []);
+
+        // Act
+        _mapper.UpdateAllergenEntity(allergen, updateDto);
+
+        // Assert
+        Assert.Equal("Gluten", allergen.Name);
+        Assert.Empty(allergen.Ingredients);
     }
 
     #endregion

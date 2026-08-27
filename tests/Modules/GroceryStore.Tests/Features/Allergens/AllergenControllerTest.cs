@@ -57,11 +57,9 @@ public class AllergenControllerTest : IDisposable
     public async Task GetAllAllergens_ShouldReturnOkWithAllergens()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = AllergenTestData.CreateAllergen(0, "Gluten", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Allergens.Add(allergen);
         await _context.SaveChangesAsync();
@@ -79,6 +77,20 @@ public class AllergenControllerTest : IDisposable
         Assert.Single(returnedItems);
     }
 
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllAllergens_ShouldReturnOkWithEmptyCollection_WhenNoAllergensExist()
+    {
+        // Act
+        var result = await _controller.GetAllAllergens();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var returnedItems = Assert.IsAssignableFrom<IEnumerable<AllergenDto>>(okResult.Value);
+        Assert.Empty(returnedItems);
+    }
+
     #endregion
 
     #region GetAllergenById Tests
@@ -88,11 +100,9 @@ public class AllergenControllerTest : IDisposable
     public async Task GetAllergenById_ShouldReturnOk_WhenAllergenExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = AllergenTestData.CreateAllergen(0, "Laktose", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Allergens.Add(allergen);
         await _context.SaveChangesAsync();
@@ -130,9 +140,7 @@ public class AllergenControllerTest : IDisposable
     public async Task CreateAllergen_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -150,6 +158,7 @@ public class AllergenControllerTest : IDisposable
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
         Assert.Equal(nameof(AllergenController.GetAllergenById), createdAtResult.ActionName);
+        Assert.Equal(createdDto.AllergenId, createdAtResult.RouteValues!["allergenId"]);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
@@ -158,9 +167,7 @@ public class AllergenControllerTest : IDisposable
     public async Task CreateAllergen_ShouldReturnBadRequest_WhenMappingFails()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -187,11 +194,9 @@ public class AllergenControllerTest : IDisposable
     public async Task UpdateAllergen_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = AllergenTestData.CreateAllergen(0, "Alt", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Allergens.Add(allergen);
         await _context.SaveChangesAsync();
@@ -207,6 +212,7 @@ public class AllergenControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("Neu", (await _context.Allergens.FindAsync(allergen.Id))!.Name);
     }
 
     [Fact]
@@ -230,12 +236,10 @@ public class AllergenControllerTest : IDisposable
     public async Task UpdateAllergen_ShouldReturnForbid_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var strangerId = Guid.NewGuid();
         var allergen = AllergenTestData.CreateAllergen(0, "Gluten", owner.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Allergens.Add(allergen);
         await _context.SaveChangesAsync();
@@ -249,6 +253,7 @@ public class AllergenControllerTest : IDisposable
         // Assert
         var forbidResult = Assert.IsType<ForbidResult>(result);
         Assert.NotNull(forbidResult);
+        Assert.Equal("Gluten", (await _context.Allergens.FindAsync(allergen.Id))!.Name);
     }
 
     #endregion
@@ -260,11 +265,9 @@ public class AllergenControllerTest : IDisposable
     public async Task DeleteAllergen_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = AllergenTestData.CreateAllergen(0, "Senf", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Allergens.Add(allergen);
         await _context.SaveChangesAsync();
@@ -277,6 +280,7 @@ public class AllergenControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Null(await _context.Allergens.FindAsync(allergen.Id));
     }
 
     [Fact]
@@ -299,12 +303,10 @@ public class AllergenControllerTest : IDisposable
     public async Task DeleteAllergen_ShouldReturnForbid_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var strangerId = Guid.NewGuid();
         var allergen = AllergenTestData.CreateAllergen(0, "Lupine", owner.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Allergens.Add(allergen);
         await _context.SaveChangesAsync();
@@ -317,6 +319,7 @@ public class AllergenControllerTest : IDisposable
         // Assert
         var forbidResult = Assert.IsType<ForbidResult>(result);
         Assert.NotNull(forbidResult);
+        Assert.NotNull(await _context.Allergens.FindAsync(allergen.Id));
     }
 
     #endregion
