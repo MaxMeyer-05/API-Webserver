@@ -49,9 +49,7 @@ public class IngredientServiceTest : IDisposable
     public async Task CreateIngredientAsync_ShouldPersistEntityAndReturnDto()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -89,9 +87,7 @@ public class IngredientServiceTest : IDisposable
     public async Task CreateIngredientAsync_ShouldThrowInvalidOperationException_WhenDtoMappingFails()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -106,6 +102,19 @@ public class IngredientServiceTest : IDisposable
         Assert.Equal("Failed to map the created ingredient entity to DTO", ex.Message);
     }
 
+    [Fact]
+    [Trait("Action", "Create")]
+    public async Task CreateIngredientAsync_ShouldThrowInvalidOperationException_WhenSupplierDoesNotExist()
+    {
+        // Arrange
+        var createDto = IngredientTestData.CreateIngredientCreateDto(supplierId: Guid.NewGuid());
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateIngredientAsync(createDto));
+        Assert.Contains(createDto.SupplierId.ToString(), ex.Message);
+        _mapperMock.Verify(m => m.ToIngredientEntity(It.IsAny<IngredientCreateDto>()), Times.Never);
+    }
+
     #endregion
 
     #region GetAllIngredientsAsync & GetIngredientByIdAsync Tests
@@ -115,12 +124,10 @@ public class IngredientServiceTest : IDisposable
     public async Task GetAllIngredientsAsync_ShouldReturnAllMappedIngredients()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient1 = GroceryStoreTestData.CreateIngredient(supplier.Id, "Apfel");
         var ingredient2 = GroceryStoreTestData.CreateIngredient(supplier.Id, "Birne");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.AddRange(ingredient1, ingredient2);
         await _context.SaveChangesAsync();
@@ -139,6 +146,20 @@ public class IngredientServiceTest : IDisposable
         Assert.Equal(2, list.Count);
         Assert.Contains(list, i => i.Name == "Apfel");
         Assert.Contains(list, i => i.Name == "Birne");
+        _mapperMock.Verify(m => m.ToIngredientDto(ingredient1), Times.Once);
+        _mapperMock.Verify(m => m.ToIngredientDto(ingredient2), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllIngredientsAsync_ShouldReturnEmptyCollection_WhenNoIngredientsExist()
+    {
+        // Act
+        var result = await _service.GetAllIngredientsAsync();
+
+        // Assert
+        Assert.Empty(result);
+        _mapperMock.Verify(m => m.ToIngredientDto(It.IsAny<Ingredient>()), Times.Never);
     }
 
     [Fact]
@@ -146,11 +167,9 @@ public class IngredientServiceTest : IDisposable
     public async Task GetIngredientByIdAsync_ShouldReturnMappedDto_WhenIngredientExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Zucker");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -164,6 +183,7 @@ public class IngredientServiceTest : IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal("Zucker", result.Name);
+        _mapperMock.Verify(m => m.ToIngredientDto(ingredient), Times.Once);
     }
 
     [Fact]
@@ -184,11 +204,9 @@ public class IngredientServiceTest : IDisposable
     public async Task UpdateIngredientAsync_ShouldUpdate_WhenSupplierIsOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Mehl");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -251,12 +269,10 @@ public class IngredientServiceTest : IDisposable
     public async Task UpdateIngredientAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var strangerId = Guid.NewGuid();
         var ingredient = GroceryStoreTestData.CreateIngredient(owner.Id, "Salz");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -266,6 +282,8 @@ public class IngredientServiceTest : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _service.UpdateIngredientAsync(ingredient.Id, strangerId, updateDto));
+        Assert.Equal("Salz", (await _context.Ingredients.FindAsync(ingredient.Id))!.Name);
+        _mapperMock.Verify(m => m.UpdateIngredientEntity(It.IsAny<Ingredient>(), It.IsAny<IngredientUpdateDto>()), Times.Never);
     }
 
     [Fact]
@@ -280,6 +298,26 @@ public class IngredientServiceTest : IDisposable
             _service.UpdateIngredientAsync(404, Guid.NewGuid(), updateDto));
     }
 
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateIngredientAsync_ShouldThrowInvalidOperationException_WhenAnAllergenDoesNotExist()
+    {
+        // Arrange
+        var supplier = GroceryStoreTestData.CreateSupplier();
+        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Mehl");
+        _context.Suppliers.Add(supplier);
+        _context.Ingredients.Add(ingredient);
+        await _context.SaveChangesAsync();
+
+        var updateDto = new IngredientUpdateDto(null, null, null, null, null, null, null, [404]);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _service.UpdateIngredientAsync(ingredient.Id, supplier.Id, updateDto));
+        Assert.Equal("One or more ingredient allergens do not exist", ex.Message);
+        _mapperMock.Verify(m => m.UpdateIngredientEntity(It.IsAny<Ingredient>(), It.IsAny<IngredientUpdateDto>()), Times.Never);
+    }
+
     #endregion
 
     #region DeleteIngredientAsync Tests
@@ -289,11 +327,9 @@ public class IngredientServiceTest : IDisposable
     public async Task DeleteIngredientAsync_ShouldRemoveEntity_WhenSupplierIsOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Pfeffer");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -311,11 +347,9 @@ public class IngredientServiceTest : IDisposable
     public async Task DeleteIngredientAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(owner.Id, "Oregano");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -323,6 +357,7 @@ public class IngredientServiceTest : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _service.DeleteIngredientAsync(ingredient.Id, Guid.NewGuid()));
+        Assert.NotNull(await _context.Ingredients.FindAsync(ingredient.Id));
     }
 
     [Fact]
@@ -343,13 +378,11 @@ public class IngredientServiceTest : IDisposable
     public async Task RemoveAllergenFromIngredientAsync_ShouldRemoveRelation_WhenPresentAndOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = IngredientTestData.CreateAllergen(1, "Laktose", supplier.Id);
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Käse");
         ingredient.Allergens.Add(allergen);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         _context.Allergens.Add(allergen);
@@ -368,13 +401,11 @@ public class IngredientServiceTest : IDisposable
     public async Task RemoveAllergenFromIngredientAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var allergen = IngredientTestData.CreateAllergen(1, "Sellerie", owner.Id);
         var ingredient = GroceryStoreTestData.CreateIngredient(owner.Id, "Brühe");
         ingredient.Allergens.Add(allergen);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Ingredients.Add(ingredient);
         _context.Allergens.Add(allergen);
@@ -390,12 +421,10 @@ public class IngredientServiceTest : IDisposable
     public async Task RemoveAllergenFromIngredientAsync_ShouldThrowInvalidOperationException_WhenRelationDoesNotExist()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = IngredientTestData.CreateAllergen(1, "Lupine", supplier.Id);
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Haferflocken");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         _context.Allergens.Add(allergen);
