@@ -48,12 +48,8 @@ public class CustomerServiceTest : IDisposable
     public async Task CreateCustomerAsync_ShouldPersistCustomerAndReturnDto_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        _context.Locations.Add(location);
-        await _context.SaveChangesAsync();
-
         var registrationDto = CustomerTestData.CreateCustomerRegistrationDto("Max", "Mustermann", "max@example.com");
-        var entityToInsert = CustomerTestData.CreateCustomer(firstName: "Max", lastName: "Mustermann", email: "max@example.com", zipCode: location.ZipCode);
+        var entityToInsert = CustomerTestData.CreateCustomer(firstName: "Max", lastName: "Mustermann", email: "max@example.com", zipCode: registrationDto.ZipCode);
         var expectedDto = CustomerTestData.CreateCustomerDto(entityToInsert.Id, "Max", "Mustermann", "max@example.com");
 
         _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entityToInsert);
@@ -79,15 +75,13 @@ public class CustomerServiceTest : IDisposable
     public async Task CreateCustomerAsync_ShouldThrowInvalidOperationException_WhenEmailIsAlreadyInUse()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var existingUser = GroceryStoreTestData.CreateCustomer(email: "duplicate@example.com", zipCode: location.ZipCode);
+        var existingUser = GroceryStoreTestData.CreateCustomer(email: "duplicate@example.com");
 
-        _context.Locations.Add(location);
         _context.Customers.Add(existingUser);
         await _context.SaveChangesAsync();
 
         var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(email: "duplicate@example.com");
-        var entityToInsert = CustomerTestData.CreateCustomer(email: "duplicate@example.com", zipCode: location.ZipCode);
+        var entityToInsert = CustomerTestData.CreateCustomer(email: "duplicate@example.com");
 
         _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entityToInsert);
 
@@ -101,16 +95,14 @@ public class CustomerServiceTest : IDisposable
     public async Task CreateCustomerAsync_ShouldThrowInvalidOperationException_WhenPhoneNumberIsAlreadyInUse()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var existingUser = CustomerTestData.CreateCustomer(email: "user1@example.com", zipCode: location.ZipCode);
+        var existingUser = CustomerTestData.CreateCustomer(email: "user1@example.com");
         existingUser.PhoneNumber = "0151888888";
 
-        _context.Locations.Add(location);
         _context.Customers.Add(existingUser);
         await _context.SaveChangesAsync();
 
         var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(email: "user2@example.com");
-        var entityToInsert = CustomerTestData.CreateCustomer(email: "user2@example.com", zipCode: location.ZipCode);
+        var entityToInsert = CustomerTestData.CreateCustomer(email: "user2@example.com");
         entityToInsert.PhoneNumber = "0151888888";
 
         _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entityToInsert);
@@ -118,6 +110,21 @@ public class CustomerServiceTest : IDisposable
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateCustomerAsync(registrationDto));
         Assert.Equal("Phone number is already in use.", ex.Message);
+    }
+
+    [Fact]
+    [Trait("Action", "Create")]
+    public async Task CreateCustomerAsync_ShouldThrowInvalidOperationException_WhenPasswordsDoNotMatch()
+    {
+        // Arrange
+        var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(
+            password: "SecurePassword123!",
+            confirmPassword: "DifferentPassword123!");
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateCustomerAsync(registrationDto));
+        Assert.Equal("Passwords do not match.", ex.Message);
+        _mapperMock.Verify(m => m.ToCustomerEntity(It.IsAny<CustomerRegistrationDto>()), Times.Never);
     }
 
     #endregion
@@ -129,11 +136,9 @@ public class CustomerServiceTest : IDisposable
     public async Task GetAllCustomersAsync_ShouldReturnAllCustomers()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user1 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user1@domain.de", zipCode: location.ZipCode);
-        var user2 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user2@domain.de", zipCode: location.ZipCode);
+        var user1 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user1@domain.de");
+        var user2 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user2@domain.de");
 
-        _context.Locations.Add(location);
         _context.Customers.AddRange(user1, user2);
         await _context.SaveChangesAsync();
 
@@ -151,6 +156,20 @@ public class CustomerServiceTest : IDisposable
         Assert.Equal(2, list.Count);
         Assert.Contains(list, u => u.Email == "user1@domain.de");
         Assert.Contains(list, u => u.Email == "user2@domain.de");
+        _mapperMock.Verify(m => m.ToCustomerDto(user1), Times.Once);
+        _mapperMock.Verify(m => m.ToCustomerDto(user2), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllCustomersAsync_ShouldReturnEmptyCollection_WhenNoCustomersExist()
+    {
+        // Act
+        var result = await _service.GetAllCustomersAsync();
+
+        // Assert
+        Assert.Empty(result);
+        _mapperMock.Verify(m => m.ToCustomerDto(It.IsAny<Customer>()), Times.Never);
     }
 
     [Fact]
@@ -158,10 +177,8 @@ public class CustomerServiceTest : IDisposable
     public async Task GetCustomerByIdAsync_ShouldReturnMappedDto_WhenCustomerExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer();
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -174,6 +191,7 @@ public class CustomerServiceTest : IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal(user.Id, result.CustomerId);
+        _mapperMock.Verify(m => m.ToCustomerDto(user), Times.Once);
     }
 
     [Fact]
@@ -195,10 +213,8 @@ public class CustomerServiceTest : IDisposable
     public async Task UpdateCustomerAsync_ShouldCallMapperAndPersist_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer();
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -221,11 +237,9 @@ public class CustomerServiceTest : IDisposable
     public async Task UpdateCustomerAsync_ShouldThrowInvalidOperationException_WhenNewEmailIsTakenByAnotherCustomer()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user1 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user1@domain.de", zipCode: location.ZipCode);
-        var user2 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user2@domain.de", zipCode: location.ZipCode);
+        var user1 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user1@domain.de");
+        var user2 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user2@domain.de");
 
-        _context.Locations.Add(location);
         _context.Customers.AddRange(user1, user2);
         await _context.SaveChangesAsync();
 
@@ -234,6 +248,27 @@ public class CustomerServiceTest : IDisposable
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateCustomerAsync(user1.Id, updateDto));
         Assert.Equal("Email is already in use.", ex.Message);
+        Assert.Equal("user1@domain.de", (await _context.Customers.FindAsync(user1.Id))!.Email);
+        _mapperMock.Verify(m => m.UpdateCustomerEntity(It.IsAny<Customer>(), It.IsAny<CustomerUpdateDto>()), Times.Never);
+    }
+
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateCustomerAsync_ShouldThrowInvalidOperationException_WhenNewPhoneNumberIsTakenByAnotherCustomer()
+    {
+        // Arrange
+        var user1 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user1@domain.de");
+        var user2 = CustomerTestData.CreateCustomer(id: Guid.NewGuid(), email: "user2@domain.de", phoneNumber: "017012345678");
+        _context.Customers.AddRange(user1, user2);
+        await _context.SaveChangesAsync();
+
+        var updateDto = CustomerTestData.CreateCustomerUpdateDto(email: null, phoneNumber: user2.PhoneNumber);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateCustomerAsync(user1.Id, updateDto));
+        Assert.Equal("Phone number is already in use.", ex.Message);
+        Assert.Null((await _context.Customers.FindAsync(user1.Id))!.PhoneNumber);
+        _mapperMock.Verify(m => m.UpdateCustomerEntity(It.IsAny<Customer>(), It.IsAny<CustomerUpdateDto>()), Times.Never);
     }
 
     #endregion
@@ -245,13 +280,11 @@ public class CustomerServiceTest : IDisposable
     public async Task DeleteCustomerAsync_ShouldAnonymizeCustomer_WhenPasswordMatches()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         const string rawPassword = "CorrectPassword123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
-        var user = CustomerTestData.CreateCustomer(passwordHash: passwordHash, zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(passwordHash: passwordHash);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -268,6 +301,7 @@ public class CustomerServiceTest : IDisposable
 
         // Assert
         _mapperMock.Verify(m => m.AnonymizeCustomerEntity(user), Times.Once);
+        Assert.Equal("anonymized_customer", (await _context.Customers.FindAsync(user.Id))!.Role);
     }
 
     [Fact]
@@ -275,12 +309,9 @@ public class CustomerServiceTest : IDisposable
     public async Task DeleteCustomerAsync_ShouldThrowInvalidOperationException_WhenPasswordIsIncorrect()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var user = CustomerTestData.CreateCustomer(
-            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"),
-            zipCode: location.ZipCode);
+            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"));
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -301,6 +332,51 @@ public class CustomerServiceTest : IDisposable
 
     #endregion
 
+    #region LoginCustomerAsync Tests
+
+    [Fact]
+    [Trait("Action", "Login")]
+    public async Task LoginCustomerAsync_ShouldReturnMappedDto_WhenCredentialsAreValid()
+    {
+        // Arrange
+        const string password = "CorrectPassword123!";
+        var user = CustomerTestData.CreateCustomer(
+            email: "login@domain.de",
+            passwordHash: BCrypt.Net.BCrypt.HashPassword(password));
+        _context.Customers.Add(user);
+        await _context.SaveChangesAsync();
+
+        var expectedDto = CustomerTestData.CreateCustomerDto(user.Id, email: user.Email);
+        _mapperMock.Setup(m => m.ToCustomerDto(user)).Returns(expectedDto);
+
+        // Act
+        var result = await _service.LoginCustomerAsync(new CustomerLoginDto(user.Email, password));
+
+        // Assert
+        Assert.Same(expectedDto, result);
+        _mapperMock.Verify(m => m.ToCustomerDto(user), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Login")]
+    public async Task LoginCustomerAsync_ShouldThrowUnauthorizedAccessException_WhenPasswordIsInvalid()
+    {
+        // Arrange
+        var user = CustomerTestData.CreateCustomer(
+            email: "login@domain.de",
+            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!"));
+        _context.Customers.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _service.LoginCustomerAsync(new CustomerLoginDto(user.Email, "WrongPassword")));
+        Assert.Equal("Invalid email or password.", ex.Message);
+        _mapperMock.Verify(m => m.ToCustomerDto(It.IsAny<Customer>()), Times.Never);
+    }
+
+    #endregion
+
     #region IsEmailInUseAsync & IsPhoneNumberInUseAsync Tests
 
     [Fact]
@@ -308,10 +384,8 @@ public class CustomerServiceTest : IDisposable
     public async Task IsEmailInUseAsync_ShouldReturnTrue_WhenEmailExistsAndNotExcluded()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(email: "exist@domain.de", zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(email: "exist@domain.de");
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -329,11 +403,9 @@ public class CustomerServiceTest : IDisposable
     public async Task IsPhoneNumberInUseAsync_ShouldReturnTrue_WhenPhoneExistsAndNotExcluded()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer();
         user.PhoneNumber = "0123456789";
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 

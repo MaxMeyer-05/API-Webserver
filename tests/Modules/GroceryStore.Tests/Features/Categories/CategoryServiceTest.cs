@@ -49,9 +49,7 @@ public class CategoryServiceTest : IDisposable
     public async Task CreateCategoryAsync_ShouldPersistCategoryAndReturnDto()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -83,9 +81,7 @@ public class CategoryServiceTest : IDisposable
     public async Task CreateCategoryAsync_ShouldThrowInvalidOperationException_WhenDtoMappingFails()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -109,12 +105,10 @@ public class CategoryServiceTest : IDisposable
     public async Task GetAllCategoriesAsync_ShouldReturnAllMappedCategories()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category1 = CategoryTestData.CreateCategory(0, "Frühstück", supplier.Id);
         var category2 = CategoryTestData.CreateCategory(0, "Mittagessen", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.AddRange(category1, category2);
         await _context.SaveChangesAsync();
@@ -133,6 +127,20 @@ public class CategoryServiceTest : IDisposable
         Assert.Equal(2, list.Count);
         Assert.Contains(list, c => c.Name == "Frühstück");
         Assert.Contains(list, c => c.Name == "Mittagessen");
+        _mapperMock.Verify(m => m.ToCategoryDto(category1), Times.Once);
+        _mapperMock.Verify(m => m.ToCategoryDto(category2), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllCategoriesAsync_ShouldReturnEmptyCollection_WhenNoCategoriesExist()
+    {
+        // Act
+        var result = await _service.GetAllCategoriesAsync();
+
+        // Assert
+        Assert.Empty(result);
+        _mapperMock.Verify(m => m.ToCategoryDto(It.IsAny<Category>()), Times.Never);
     }
 
     [Fact]
@@ -140,11 +148,9 @@ public class CategoryServiceTest : IDisposable
     public async Task GetCategoryByIdAsync_ShouldReturnMappedDto_WhenCategoryExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Desserts", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -158,6 +164,7 @@ public class CategoryServiceTest : IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal("Desserts", result.Name);
+        _mapperMock.Verify(m => m.ToCategoryDto(category), Times.Once);
     }
 
     [Fact]
@@ -178,11 +185,9 @@ public class CategoryServiceTest : IDisposable
     public async Task UpdateCategoryAsync_ShouldApplyUpdates_WhenSupplierIsOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Alt", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -206,12 +211,10 @@ public class CategoryServiceTest : IDisposable
     public async Task UpdateCategoryAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var strangerId = Guid.NewGuid();
         var category = CategoryTestData.CreateCategory(0, "Frühstück", owner.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -221,6 +224,8 @@ public class CategoryServiceTest : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _service.UpdateCategoryAsync(category.Id, strangerId, updateDto));
+        Assert.Equal("Frühstück", (await _context.Categories.FindAsync(category.Id))!.Name);
+        _mapperMock.Verify(m => m.UpdateCategoryEntity(It.IsAny<Category>(), It.IsAny<CategoryUpdateDto>()), Times.Never);
     }
 
     [Fact]
@@ -244,11 +249,9 @@ public class CategoryServiceTest : IDisposable
     public async Task DeleteCategoryAsync_ShouldRemoveCategory_WhenSupplierIsOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Suppen", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -266,11 +269,9 @@ public class CategoryServiceTest : IDisposable
     public async Task DeleteCategoryAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Snacks", owner.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -278,6 +279,7 @@ public class CategoryServiceTest : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _service.DeleteCategoryAsync(category.Id, Guid.NewGuid()));
+        Assert.NotNull(await _context.Categories.FindAsync(category.Id));
     }
 
     [Fact]

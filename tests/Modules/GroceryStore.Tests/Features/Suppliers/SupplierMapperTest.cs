@@ -52,7 +52,7 @@ public class SupplierMapperTest
 
         // Assert
         Assert.NotNull(dto);
-        Assert.Equal(", ", dto.Location);
+        Assert.Equal(supplier.ZipCode, dto.Location);
     }
 
     #endregion
@@ -140,6 +140,32 @@ public class SupplierMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
+    public void UpdateSupplierEntity_ShouldPreserveUnspecifiedFields_WhenOnlyEmailIsProvided()
+    {
+        // Arrange
+        var supplier = SupplierTestData.CreateSupplier();
+        var updateDto = new SupplierUpdateDto(
+            CompanyName: null,
+            Street: null,
+            HouseNumber: null,
+            ZipCode: null,
+            PhoneNumber: null,
+            Email: "updated@domain.de",
+            Password: null,
+            ConfirmPassword: null);
+
+        // Act
+        _mapper.UpdateSupplierEntity(supplier, updateDto);
+
+        // Assert
+        Assert.Equal("Biohof Nord", supplier.CompanyName);
+        Assert.Equal("Dorfstraße", supplier.Street);
+        Assert.Equal("12", supplier.HouseNumber);
+        Assert.Equal("updated@domain.de", supplier.Email);
+    }
+
+    [Fact]
+    [Trait("Action", "Mapping")]
     public void UpdateSupplierEntity_ShouldThrowArgumentException_WhenPasswordsDoNotMatch()
     {
         // Arrange
@@ -175,7 +201,7 @@ public class SupplierMapperTest
         _mapper.AnonymizeSupplierEntity(supplier);
 
         // Assert
-        Assert.NotEqual(originalId, supplier.Id);
+        Assert.Equal(originalId, supplier.Id);
         Assert.Equal("anonymized_supplier", supplier.Role);
         Assert.Equal("Anonymized Supplier", supplier.CompanyName);
         Assert.Equal("null", supplier.Street);

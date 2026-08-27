@@ -83,9 +83,9 @@ public class RecipeService : IRecipeService
     public async Task<IEnumerable<RecipeDto>> GetAllRecipesAsync()
     {
 		var recipes = await _dbContext.Recipes
-			.AsNoTracking()
 			.AsSplitQuery()
 			.Include(item => item.Supplier)
+				.ThenInclude(supplier => supplier.Recipes)
 			.Include(item => item.RecipeIngredients)
 				.ThenInclude(item => item.Ingredient)
 					.ThenInclude(item => item.Supplier)
@@ -102,9 +102,9 @@ public class RecipeService : IRecipeService
     public async Task<RecipeDto?> GetRecipeByIdAsync(int recipeId)
     {
 		var recipe = await _dbContext.Recipes
-			.AsNoTracking()
 			.AsSplitQuery()
 			.Include(item => item.Supplier)
+				.ThenInclude(supplier => supplier.Recipes)
 			.Include(item => item.RecipeIngredients)
 				.ThenInclude(item => item.Ingredient)
 					.ThenInclude(item => item.Supplier)

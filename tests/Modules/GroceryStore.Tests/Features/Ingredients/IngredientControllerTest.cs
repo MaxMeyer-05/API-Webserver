@@ -57,11 +57,9 @@ public class IngredientControllerTest : IDisposable
     public async Task GetAllIngredients_ShouldReturnOkWithIngredients()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Bio-Milch");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -79,6 +77,20 @@ public class IngredientControllerTest : IDisposable
         Assert.Single(list);
     }
 
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllIngredients_ShouldReturnOkWithEmptyCollection_WhenNoIngredientsExist()
+    {
+        // Act
+        var result = await _controller.GetAllIngredients();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var ingredients = Assert.IsAssignableFrom<IEnumerable<IngredientDto>>(okResult.Value);
+        Assert.Empty(ingredients);
+    }
+
     #endregion
 
     #region GetIngredientById Tests
@@ -88,11 +100,9 @@ public class IngredientControllerTest : IDisposable
     public async Task GetIngredientById_ShouldReturnOk_WhenIngredientExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Dinkelmehl");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -130,9 +140,7 @@ public class IngredientControllerTest : IDisposable
     public async Task CreateIngredient_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -150,6 +158,7 @@ public class IngredientControllerTest : IDisposable
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
         Assert.Equal(nameof(IngredientController.GetIngredientById), createdAtResult.ActionName);
+        Assert.Equal(createdDto.IngredientId, createdAtResult.RouteValues!["ingredientId"]);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
@@ -158,9 +167,7 @@ public class IngredientControllerTest : IDisposable
     public async Task CreateIngredient_ShouldReturnBadRequest_WhenMappingFails()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -187,11 +194,9 @@ public class IngredientControllerTest : IDisposable
     public async Task UpdateIngredient_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Roggenmehl");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -207,6 +212,22 @@ public class IngredientControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("Roggen-Vollkorn", (await _context.Ingredients.FindAsync(ingredient.Id))!.Name);
+    }
+
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateIngredient_ShouldReturnNotFound_WhenIngredientDoesNotExist()
+    {
+        // Arrange
+        _currentUserMock.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
+
+        // Act
+        var result = await _controller.UpdateIngredient(404, IngredientTestData.CreateIngredientUpdateDto());
+
+        // Assert
+        var notFoundResult = Assert.IsType<NotFoundResult>(result);
+        Assert.Equal(StatusCodes.Status404NotFound, notFoundResult.StatusCode);
     }
 
     [Fact]
@@ -214,11 +235,9 @@ public class IngredientControllerTest : IDisposable
     public async Task UpdateIngredient_ShouldReturnForbid_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(owner.Id, "Vanille");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -232,6 +251,7 @@ public class IngredientControllerTest : IDisposable
         // Assert
         var forbidResult = Assert.IsType<ForbidResult>(result);
         Assert.NotNull(forbidResult);
+        Assert.Equal("Vanille", (await _context.Ingredients.FindAsync(ingredient.Id))!.Name);
     }
 
     #endregion
@@ -243,11 +263,9 @@ public class IngredientControllerTest : IDisposable
     public async Task DeleteIngredient_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Hefe");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -260,6 +278,7 @@ public class IngredientControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Null(await _context.Ingredients.FindAsync(ingredient.Id));
     }
 
     [Fact]
@@ -286,13 +305,11 @@ public class IngredientControllerTest : IDisposable
     public async Task RemoveAllergenFromIngredient_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = IngredientTestData.CreateAllergen(1, "Laktose", supplier.Id);
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Quark");
         ingredient.Allergens.Add(allergen);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         _context.Allergens.Add(allergen);
@@ -306,6 +323,7 @@ public class IngredientControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Empty(ingredient.Allergens);
     }
 
     [Fact]
@@ -313,12 +331,10 @@ public class IngredientControllerTest : IDisposable
     public async Task RemoveAllergenFromIngredient_ShouldReturnBadRequest_WhenRelationDoesNotExist()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var allergen = IngredientTestData.CreateAllergen(1, "Sesam", supplier.Id);
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Dinkelreis");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         _context.Allergens.Add(allergen);

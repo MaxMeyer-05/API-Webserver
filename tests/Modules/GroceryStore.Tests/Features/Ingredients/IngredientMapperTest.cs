@@ -188,5 +188,37 @@ public class IngredientMapperTest
         Assert.Same(initialAllergen, ingredient.Allergens.First());
     }
 
+    [Fact]
+    [Trait("Action", "Mapping")]
+    public void UpdateIngredientEntity_ShouldApplyZeroValues_WhenProvided()
+    {
+        // Arrange
+        var ingredient = IngredientTestData.CreateIngredient(
+            netPrice: 3.50m,
+            stock: 20,
+            calories: 100m,
+            carbs: 25m,
+            protein: 10m);
+        var updateDto = new IngredientUpdateDto(
+            Name: null,
+            Unit: null,
+            NetPrice: 0m,
+            Stock: 0,
+            Calories: 0m,
+            Carbohydrates: 0m,
+            Protein: 0m,
+            AllergenIds: null);
+
+        // Act
+        _mapper.UpdateIngredientEntity(ingredient, updateDto);
+
+        // Assert
+        Assert.Equal(0m, ingredient.NetPrice);
+        Assert.Equal(0, ingredient.Stock);
+        Assert.Equal(0m, ingredient.Calories);
+        Assert.Equal(0m, ingredient.Carbohydrates);
+        Assert.Equal(0m, ingredient.Protein);
+    }
+
     #endregion
 }

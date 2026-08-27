@@ -59,10 +59,8 @@ public class CustomerControllerTest : IDisposable
     public async Task GetCustomers_ShouldReturnOkWithCustomersList()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer();
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -81,13 +79,25 @@ public class CustomerControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Get")]
+    public async Task GetCustomers_ShouldReturnOkWithEmptyCollection_WhenNoCustomersExist()
+    {
+        // Act
+        var result = await _controller.GetCustomers();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var customers = Assert.IsAssignableFrom<IEnumerable<CustomerDto>>(okResult.Value);
+        Assert.Empty(customers);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
     public async Task GetCurrentCustomer_ShouldReturnOk_WhenCustomerExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer();
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -129,12 +139,8 @@ public class CustomerControllerTest : IDisposable
     public async Task CreateCustomer_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        _context.Locations.Add(location);
-        await _context.SaveChangesAsync();
-
         var registrationDto = CustomerTestData.CreateCustomerRegistrationDto();
-        var entity = CustomerTestData.CreateCustomer(email: registrationDto.Email, zipCode: location.ZipCode);
+        var entity = CustomerTestData.CreateCustomer(email: registrationDto.Email, zipCode: registrationDto.ZipCode);
         var createdDto = CustomerTestData.CreateCustomerDto(entity.Id, email: registrationDto.Email);
 
         _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entity);
@@ -155,15 +161,13 @@ public class CustomerControllerTest : IDisposable
     public async Task CreateCustomer_ShouldReturnBadRequest_WhenEmailOrPhoneInUse()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var existing = CustomerTestData.CreateCustomer(email: "used@domain.de", zipCode: location.ZipCode);
+        var existing = CustomerTestData.CreateCustomer(email: "used@domain.de");
 
-        _context.Locations.Add(location);
         _context.Customers.Add(existing);
         await _context.SaveChangesAsync();
 
         var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(email: "used@domain.de");
-        var entity = CustomerTestData.CreateCustomer(email: "used@domain.de", zipCode: location.ZipCode);
+        var entity = CustomerTestData.CreateCustomer(email: "used@domain.de");
 
         _mapperMock.Setup(m => m.ToCustomerEntity(registrationDto)).Returns(entity);
 
@@ -176,6 +180,24 @@ public class CustomerControllerTest : IDisposable
         Assert.Equal("Email is already in use.", badRequestResult.Value);
     }
 
+    [Fact]
+    [Trait("Action", "Create")]
+    public async Task CreateCustomer_ShouldReturnBadRequest_WhenPasswordsDoNotMatch()
+    {
+        // Arrange
+        var registrationDto = CustomerTestData.CreateCustomerRegistrationDto(
+            password: "SecurePassword123!",
+            confirmPassword: "DifferentPassword123!");
+
+        // Act
+        var result = await _controller.CreateCustomer(registrationDto);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal("Passwords do not match.", badRequestResult.Value);
+    }
+
     #endregion
 
     #region LoginUser Tests
@@ -185,16 +207,13 @@ public class CustomerControllerTest : IDisposable
     public async Task LoginCustomer_ShouldReturnOkWithToken_WhenCredentialsAreValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         const string rawPassword = "CorrectPass123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
         var user = CustomerTestData.CreateCustomer(
             email: "login@domain.de",
-            passwordHash: passwordHash,
-            zipCode: location.ZipCode);
+            passwordHash: passwordHash);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -243,16 +262,15 @@ public class CustomerControllerTest : IDisposable
     public async Task UpdateCustomer_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = CustomerTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer();
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
         var updateDto = CustomerTestData.CreateCustomerUpdateDto(email: "newemail@domain.de");
-        _mapperMock.Setup(m => m.UpdateCustomerEntity(user, updateDto));
+        _mapperMock.Setup(m => m.UpdateCustomerEntity(user, updateDto))
+            .Callback<Customer, CustomerUpdateDto>((customer, dto) => customer.Email = dto.Email!);
 
         // Act
         var result = await _controller.UpdateCustomer(updateDto);
@@ -260,6 +278,7 @@ public class CustomerControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("newemail@domain.de", (await _context.Customers.FindAsync(user.Id))!.Email);
     }
 
     [Fact]
@@ -278,6 +297,28 @@ public class CustomerControllerTest : IDisposable
         Assert.Equal(StatusCodes.Status404NotFound, notFoundResult.StatusCode);
     }
 
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateCustomer_ShouldReturnBadRequest_WhenEmailIsAlreadyInUse()
+    {
+        // Arrange
+        var currentCustomer = CustomerTestData.CreateCustomer(email: "current@domain.de");
+        var existingCustomer = CustomerTestData.CreateCustomer(email: "used@domain.de");
+        _context.Customers.AddRange(currentCustomer, existingCustomer);
+        await _context.SaveChangesAsync();
+
+        _currentUserMock.SetupGet(u => u.UserId).Returns(currentCustomer.Id);
+        var updateDto = CustomerTestData.CreateCustomerUpdateDto(email: existingCustomer.Email);
+
+        // Act
+        var result = await _controller.UpdateCustomer(updateDto);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal("Email is already in use.", badRequestResult.Value);
+    }
+
     #endregion
 
     #region DeleteUser Tests
@@ -287,18 +328,17 @@ public class CustomerControllerTest : IDisposable
     public async Task DeleteCustomer_ShouldReturnNoContent_WhenPasswordIsCorrect()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         const string rawPassword = "CorrectPass123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
-        var user = CustomerTestData.CreateCustomer(passwordHash: passwordHash, zipCode: location.ZipCode);
+        var user = CustomerTestData.CreateCustomer(passwordHash: passwordHash);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
-        _mapperMock.Setup(m => m.AnonymizeCustomerEntity(user));
+        _mapperMock.Setup(m => m.AnonymizeCustomerEntity(user))
+            .Callback<Customer>(customer => customer.Role = "anonymized_customer");
 
         // Act
         var result = await _controller.DeleteCustomer(new CustomerActionRequest(rawPassword));
@@ -306,6 +346,7 @@ public class CustomerControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("anonymized_customer", (await _context.Customers.FindAsync(user.Id))!.Role);
     }
 
     [Fact]
@@ -313,12 +354,9 @@ public class CustomerControllerTest : IDisposable
     public async Task DeleteCustomer_ShouldReturnBadRequest_WhenPasswordIsIncorrect()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var user = CustomerTestData.CreateCustomer(
-            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"),
-            zipCode: location.ZipCode);
+            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"));
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 

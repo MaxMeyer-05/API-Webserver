@@ -83,5 +83,20 @@ public class LocationMapperTest
         Assert.Equal("Köln", location.City);
     }
 
+    [Fact]
+    [Trait("Action", "Mapping")]
+    public void UpdateLocationEntity_ShouldApplyEmptyCity_WhenProvided()
+    {
+        // Arrange
+        var location = GroceryStoreTestData.CreateLocation("50667", "Köln");
+        var updateDto = new LocationUpdateDto(string.Empty);
+
+        // Act
+        _mapper.UpdateLocationEntity(location, updateDto);
+
+        // Assert
+        Assert.Equal(string.Empty, location.City);
+    }
+
     #endregion
 }

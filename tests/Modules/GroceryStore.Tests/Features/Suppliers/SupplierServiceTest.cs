@@ -48,12 +48,8 @@ public class SupplierServiceTest : IDisposable
     public async Task CreateSupplierAsync_ShouldPersistSupplierAndReturnDto_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        _context.Locations.Add(location);
-        await _context.SaveChangesAsync();
-
         var registrationDto = SupplierTestData.CreateSupplierRegistrationDto("Neu GmbH", "neu@domain.de");
-        var entityToInsert = SupplierTestData.CreateSupplier(companyName: "Neu GmbH", email: "neu@domain.de", zipCode: location.ZipCode);
+        var entityToInsert = SupplierTestData.CreateSupplier(companyName: "Neu GmbH", email: "neu@domain.de", zipCode: registrationDto.ZipCode);
         var expectedDto = SupplierTestData.CreateSupplierDto(entityToInsert.Id, "Neu GmbH", "neu@domain.de");
 
         _mapperMock.Setup(m => m.ToSupplierEntity(registrationDto)).Returns(entityToInsert);
@@ -79,15 +75,13 @@ public class SupplierServiceTest : IDisposable
     public async Task CreateSupplierAsync_ShouldThrowInvalidOperationException_WhenEmailIsAlreadyInUse()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var existingSupplier = GroceryStoreTestData.CreateSupplier(email: "duplicate@domain.de", zipCode: location.ZipCode);
+        var existingSupplier = GroceryStoreTestData.CreateSupplier(email: "duplicate@domain.de");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(existingSupplier);
         await _context.SaveChangesAsync();
 
         var registrationDto = SupplierTestData.CreateSupplierRegistrationDto(email: "duplicate@domain.de");
-        var entityToInsert = SupplierTestData.CreateSupplier(email: "duplicate@domain.de", zipCode: location.ZipCode);
+        var entityToInsert = SupplierTestData.CreateSupplier(email: "duplicate@domain.de");
 
         _mapperMock.Setup(m => m.ToSupplierEntity(registrationDto)).Returns(entityToInsert);
 
@@ -101,16 +95,14 @@ public class SupplierServiceTest : IDisposable
     public async Task CreateSupplierAsync_ShouldThrowInvalidOperationException_WhenPhoneNumberIsAlreadyInUse()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var existingSupplier = SupplierTestData.CreateSupplier(email: "first@domain.de", zipCode: location.ZipCode);
+        var existingSupplier = SupplierTestData.CreateSupplier(email: "first@domain.de");
         existingSupplier.PhoneNumber = "0151999999";
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(existingSupplier);
         await _context.SaveChangesAsync();
 
         var registrationDto = SupplierTestData.CreateSupplierRegistrationDto(email: "second@domain.de");
-        var entityToInsert = SupplierTestData.CreateSupplier(email: "second@domain.de", zipCode: location.ZipCode);
+        var entityToInsert = SupplierTestData.CreateSupplier(email: "second@domain.de");
         entityToInsert.PhoneNumber = "0151999999";
 
         _mapperMock.Setup(m => m.ToSupplierEntity(registrationDto)).Returns(entityToInsert);
@@ -118,6 +110,21 @@ public class SupplierServiceTest : IDisposable
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateSupplierAsync(registrationDto));
         Assert.Equal("Phone number is already in use.", ex.Message);
+    }
+
+    [Fact]
+    [Trait("Action", "Create")]
+    public async Task CreateSupplierAsync_ShouldThrowInvalidOperationException_WhenPasswordsDoNotMatch()
+    {
+        // Arrange
+        var registrationDto = SupplierTestData.CreateSupplierRegistrationDto(
+            password: "SecurePassword123!",
+            confirmPassword: "DifferentPassword123!");
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateSupplierAsync(registrationDto));
+        Assert.Equal("Passwords do not match.", ex.Message);
+        _mapperMock.Verify(m => m.ToSupplierEntity(It.IsAny<SupplierRegistrationDto>()), Times.Never);
     }
 
     #endregion
@@ -129,11 +136,9 @@ public class SupplierServiceTest : IDisposable
     public async Task GetAllSuppliersAsync_ShouldReturnAllSuppliers()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier1 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup1@domain.de", zipCode: location.ZipCode);
-        var supplier2 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup2@domain.de", zipCode: location.ZipCode);
+        var supplier1 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup1@domain.de");
+        var supplier2 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup2@domain.de");
 
-        _context.Locations.Add(location);
         _context.Suppliers.AddRange(supplier1, supplier2);
         await _context.SaveChangesAsync();
 
@@ -151,6 +156,20 @@ public class SupplierServiceTest : IDisposable
         Assert.Equal(2, list.Count);
         Assert.Contains(list, s => s.Email == "sup1@domain.de");
         Assert.Contains(list, s => s.Email == "sup2@domain.de");
+        _mapperMock.Verify(m => m.ToSupplierDto(supplier1), Times.Once);
+        _mapperMock.Verify(m => m.ToSupplierDto(supplier2), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllSuppliersAsync_ShouldReturnEmptyCollection_WhenNoSuppliersExist()
+    {
+        // Act
+        var result = await _service.GetAllSuppliersAsync();
+
+        // Assert
+        Assert.Empty(result);
+        _mapperMock.Verify(m => m.ToSupplierDto(It.IsAny<Supplier>()), Times.Never);
     }
 
     [Fact]
@@ -158,10 +177,8 @@ public class SupplierServiceTest : IDisposable
     public async Task GetSupplierByIdAsync_ShouldReturnMappedDto_WhenSupplierExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier();
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -174,6 +191,7 @@ public class SupplierServiceTest : IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal(supplier.Id, result.SupplierId);
+        _mapperMock.Verify(m => m.ToSupplierDto(supplier), Times.Once);
     }
 
     [Fact]
@@ -195,10 +213,8 @@ public class SupplierServiceTest : IDisposable
     public async Task UpdateSupplierAsync_ShouldCallMapperAndPersist_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier();
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -221,11 +237,9 @@ public class SupplierServiceTest : IDisposable
     public async Task UpdateSupplierAsync_ShouldThrowInvalidOperationException_WhenNewEmailIsTakenByAnotherSupplier()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier1 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup1@domain.de", zipCode: location.ZipCode);
-        var supplier2 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup2@domain.de", zipCode: location.ZipCode);
+        var supplier1 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup1@domain.de");
+        var supplier2 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup2@domain.de");
 
-        _context.Locations.Add(location);
         _context.Suppliers.AddRange(supplier1, supplier2);
         await _context.SaveChangesAsync();
 
@@ -234,6 +248,27 @@ public class SupplierServiceTest : IDisposable
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateSupplierAsync(supplier1.Id, updateDto));
         Assert.Equal("Email is already in use.", ex.Message);
+        Assert.Equal("sup1@domain.de", (await _context.Suppliers.FindAsync(supplier1.Id))!.Email);
+        _mapperMock.Verify(m => m.UpdateSupplierEntity(It.IsAny<Supplier>(), It.IsAny<SupplierUpdateDto>()), Times.Never);
+    }
+
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateSupplierAsync_ShouldThrowInvalidOperationException_WhenNewPhoneNumberIsTakenByAnotherSupplier()
+    {
+        // Arrange
+        var supplier1 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup1@domain.de");
+        var supplier2 = SupplierTestData.CreateSupplier(id: Guid.NewGuid(), email: "sup2@domain.de", phoneNumber: "017012345678");
+        _context.Suppliers.AddRange(supplier1, supplier2);
+        await _context.SaveChangesAsync();
+
+        var updateDto = SupplierTestData.CreateSupplierUpdateDto(email: null, phoneNumber: supplier2.PhoneNumber);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateSupplierAsync(supplier1.Id, updateDto));
+        Assert.Equal("Phone number is already in use.", ex.Message);
+        Assert.Null((await _context.Suppliers.FindAsync(supplier1.Id))!.PhoneNumber);
+        _mapperMock.Verify(m => m.UpdateSupplierEntity(It.IsAny<Supplier>(), It.IsAny<SupplierUpdateDto>()), Times.Never);
     }
 
     #endregion
@@ -245,12 +280,10 @@ public class SupplierServiceTest : IDisposable
     public async Task DeleteSupplierAsync_ShouldAnonymizeSupplier_WhenPasswordMatches()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var rawPassword = "CorrectPassword123!";
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(rawPassword);
-        var supplier = SupplierTestData.CreateSupplier(passwordHash: hashedPassword, zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier(passwordHash: hashedPassword);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -266,6 +299,7 @@ public class SupplierServiceTest : IDisposable
 
         // Assert
         _mapperMock.Verify(m => m.AnonymizeSupplierEntity(supplier), Times.Once);
+        Assert.Equal("anonymized_supplier", (await _context.Suppliers.FindAsync(supplier.Id))!.Role);
     }
 
     [Fact]
@@ -273,12 +307,9 @@ public class SupplierServiceTest : IDisposable
     public async Task DeleteSupplierAsync_ShouldThrowInvalidOperationException_WhenPasswordIsIncorrect()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var supplier = SupplierTestData.CreateSupplier(
-            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"),
-            zipCode: location.ZipCode);
+            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"));
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -299,6 +330,51 @@ public class SupplierServiceTest : IDisposable
 
     #endregion
 
+    #region LoginSupplierAsync Tests
+
+    [Fact]
+    [Trait("Action", "Login")]
+    public async Task LoginSupplierAsync_ShouldReturnMappedDto_WhenCredentialsAreValid()
+    {
+        // Arrange
+        const string password = "CorrectPassword123!";
+        var supplier = SupplierTestData.CreateSupplier(
+            email: "login@domain.de",
+            passwordHash: BCrypt.Net.BCrypt.HashPassword(password));
+        _context.Suppliers.Add(supplier);
+        await _context.SaveChangesAsync();
+
+        var expectedDto = SupplierTestData.CreateSupplierDto(supplier.Id, email: supplier.Email);
+        _mapperMock.Setup(m => m.ToSupplierDto(supplier)).Returns(expectedDto);
+
+        // Act
+        var result = await _service.LoginSupplierAsync(new SupplierLoginDto(supplier.Email, password));
+
+        // Assert
+        Assert.Same(expectedDto, result);
+        _mapperMock.Verify(m => m.ToSupplierDto(supplier), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Login")]
+    public async Task LoginSupplierAsync_ShouldThrowUnauthorizedAccessException_WhenPasswordIsInvalid()
+    {
+        // Arrange
+        var supplier = SupplierTestData.CreateSupplier(
+            email: "login@domain.de",
+            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!"));
+        _context.Suppliers.Add(supplier);
+        await _context.SaveChangesAsync();
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _service.LoginSupplierAsync(new SupplierLoginDto(supplier.Email, "WrongPassword")));
+        Assert.Equal("Invalid email or password.", ex.Message);
+        _mapperMock.Verify(m => m.ToSupplierDto(It.IsAny<Supplier>()), Times.Never);
+    }
+
+    #endregion
+
     #region IsEmailInUseAsync & IsPhoneNumberInUseAsync Tests
 
     [Fact]
@@ -306,10 +382,8 @@ public class SupplierServiceTest : IDisposable
     public async Task IsEmailInUseAsync_ShouldReturnTrue_WhenEmailExistsAndNotExcluded()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(email: "exist@domain.de", zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier(email: "exist@domain.de");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -327,11 +401,9 @@ public class SupplierServiceTest : IDisposable
     public async Task IsPhoneNumberInUseAsync_ShouldReturnTrue_WhenPhoneExistsAndNotExcluded()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier();
         supplier.PhoneNumber = "0123456789";
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 

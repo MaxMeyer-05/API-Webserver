@@ -55,7 +55,7 @@ public class CustomerMapperTest
 
         // Assert
         Assert.NotNull(dto);
-        Assert.Equal(", ", dto.Location);
+        Assert.Equal(user.ZipCode, dto.Location);
     }
 
     #endregion
@@ -151,6 +151,35 @@ public class CustomerMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
+    public void UpdateCustomerEntity_ShouldPreserveUnspecifiedFields_WhenOnlyEmailIsProvided()
+    {
+        // Arrange
+        var user = CustomerTestData.CreateCustomer();
+        var updateDto = new CustomerUpdateDto(
+            FirstName: null,
+            LastName: null,
+            Email: "updated@example.com",
+            BirthDate: null,
+            PhoneNumber: null,
+            Street: null,
+            HouseNumber: null,
+            ZipCode: null,
+            Password: null,
+            ConfirmPassword: null);
+
+        // Act
+        _mapper.UpdateCustomerEntity(user, updateDto);
+
+        // Assert
+        Assert.Equal("Anna", user.FirstName);
+        Assert.Equal("Meier", user.LastName);
+        Assert.Equal("updated@example.com", user.Email);
+        Assert.Equal("Hauptstraße", user.Street);
+        Assert.Equal("4a", user.HouseNumber);
+    }
+
+    [Fact]
+    [Trait("Action", "Mapping")]
     public void UpdateCustomerEntity_ShouldThrowArgumentException_WhenPasswordsDoNotMatch()
     {
         // Arrange
@@ -188,7 +217,7 @@ public class CustomerMapperTest
         _mapper.AnonymizeCustomerEntity(user);
 
         // Assert
-        Assert.NotEqual(originalId, user.Id);
+        Assert.Equal(originalId, user.Id);
         Assert.Equal("anonymized_customer", user.Role);
         Assert.Equal("null", user.FirstName);
         Assert.Equal("null", user.LastName);

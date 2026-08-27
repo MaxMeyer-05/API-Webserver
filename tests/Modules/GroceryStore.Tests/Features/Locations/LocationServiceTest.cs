@@ -49,24 +49,24 @@ public class LocationServiceTest : IDisposable
     public async Task CreateLocationAsync_ShouldPersistLocationAndReturnDto()
     {
         // Arrange
-        var createDto = LocationTestData.CreateLocationCreateDto("70173", "Stuttgart");
-        var entity = new Location { ZipCode = "70173", City = "Stuttgart" };
-        var expectedDto = LocationTestData.CreateLocationDto("70173", "Stuttgart");
+        var createDto = LocationTestData.CreateLocationCreateDto("28195", "Bremen");
+        var entity = new Location { ZipCode = "28195", City = "Bremen" };
+        var expectedDto = LocationTestData.CreateLocationDto("28195", "Bremen");
 
         _mapperMock.Setup(m => m.ToLocationEntity(createDto)).Returns(entity);
-        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "70173"))).Returns(expectedDto);
+        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "28195"))).Returns(expectedDto);
 
         // Act
         var result = await _service.CreateLocationAsync(createDto);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("70173", result.ZipCode);
-        Assert.Equal("Stuttgart", result.City);
+        Assert.Equal("28195", result.ZipCode);
+        Assert.Equal("Bremen", result.City);
 
-        var persisted = await _context.Locations.FindAsync("70173");
+        var persisted = await _context.Locations.FindAsync("28195");
         Assert.NotNull(persisted);
-        Assert.Equal("Stuttgart", persisted.City);
+        Assert.Equal("Bremen", persisted.City);
 
         _mapperMock.Verify(m => m.ToLocationEntity(createDto), Times.Once);
         _mapperMock.Verify(m => m.ToLocationDto(entity), Times.Once);
@@ -77,7 +77,7 @@ public class LocationServiceTest : IDisposable
     public async Task CreateLocationAsync_ShouldThrowInvalidOperationException_WhenDtoMappingFails()
     {
         // Arrange
-        var createDto = LocationTestData.CreateLocationCreateDto();
+        var createDto = LocationTestData.CreateLocationCreateDto("28195", "Bremen");
         var entity = new Location { ZipCode = createDto.ZipCode, City = createDto.City };
 
         _mapperMock.Setup(m => m.ToLocationEntity(createDto)).Returns(entity);
@@ -97,16 +97,17 @@ public class LocationServiceTest : IDisposable
     public async Task GetAllLocationsAsync_ShouldReturnAllMappedLocations()
     {
         // Arrange
-        var loc1 = GroceryStoreTestData.CreateLocation("10115", "Berlin");
-        var loc2 = GroceryStoreTestData.CreateLocation("20095", "Hamburg");
+        await _context.Locations.ExecuteDeleteAsync();
+        var loc1 = GroceryStoreTestData.CreateLocation("28195", "Bremen");
+        var loc2 = GroceryStoreTestData.CreateLocation("01067", "Dresden");
 
         _context.Locations.AddRange(loc1, loc2);
         await _context.SaveChangesAsync();
 
-        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "10115")))
-            .Returns(LocationTestData.CreateLocationDto("10115", "Berlin"));
-        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "20095")))
-            .Returns(LocationTestData.CreateLocationDto("20095", "Hamburg"));
+        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "28195")))
+            .Returns(LocationTestData.CreateLocationDto("28195", "Bremen"));
+        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "01067")))
+            .Returns(LocationTestData.CreateLocationDto("01067", "Dresden"));
 
         // Act
         var result = await _service.GetAllLocationsAsync();
@@ -115,8 +116,25 @@ public class LocationServiceTest : IDisposable
         Assert.NotNull(result);
         var list = result.ToList();
         Assert.Equal(2, list.Count);
-        Assert.Contains(list, l => l.ZipCode == "10115");
-        Assert.Contains(list, l => l.ZipCode == "20095");
+        Assert.Contains(list, l => l.ZipCode == "28195");
+        Assert.Contains(list, l => l.ZipCode == "01067");
+        _mapperMock.Verify(m => m.ToLocationDto(loc1), Times.Once);
+        _mapperMock.Verify(m => m.ToLocationDto(loc2), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllLocationsAsync_ShouldReturnEmptyCollection_WhenNoLocationsExist()
+    {
+        // Arrange
+        await _context.Locations.ExecuteDeleteAsync();
+
+        // Act
+        var result = await _service.GetAllLocationsAsync();
+
+        // Assert
+        Assert.Empty(result);
+        _mapperMock.Verify(m => m.ToLocationDto(It.IsAny<Location>()), Times.Never);
     }
 
     [Fact]
@@ -138,6 +156,7 @@ public class LocationServiceTest : IDisposable
         Assert.NotNull(result);
         Assert.Equal("01067", result.ZipCode);
         Assert.Equal("Dresden", result.City);
+        _mapperMock.Verify(m => m.ToLocationDto(location), Times.Once);
     }
 
     [Fact]
@@ -158,7 +177,7 @@ public class LocationServiceTest : IDisposable
     public async Task UpdateLocationAsync_ShouldApplyUpdatesAndPersistChanges()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation("60311", "Alt-Frankfurt");
+        var location = GroceryStoreTestData.CreateLocation("28195", "Bremen");
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
 
@@ -167,10 +186,10 @@ public class LocationServiceTest : IDisposable
             .Callback<Location, LocationUpdateDto>((entity, dto) => entity.City = dto.City!);
 
         // Act
-        await _service.UpdateLocationAsync("60311", updateDto);
+        await _service.UpdateLocationAsync("28195", updateDto);
 
         // Assert
-        var updated = await _context.Locations.FindAsync("60311");
+        var updated = await _context.Locations.FindAsync("28195");
         Assert.NotNull(updated);
         Assert.Equal("Frankfurt am Main", updated.City);
         _mapperMock.Verify(m => m.UpdateLocationEntity(location, updateDto), Times.Once);

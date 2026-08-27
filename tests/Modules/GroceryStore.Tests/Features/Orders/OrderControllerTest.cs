@@ -61,11 +61,9 @@ public class OrderControllerTest : IDisposable
     public async Task GetAllOrders_ShouldReturnOkWithUserOrders()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -85,6 +83,23 @@ public class OrderControllerTest : IDisposable
         Assert.Single(returnedItems);
     }
 
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllOrders_ShouldReturnOkWithEmptyCollection_WhenCustomerHasNoOrders()
+    {
+        // Arrange
+        _currentUserMock.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
+
+        // Act
+        var result = await _controller.GetAllOrders();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var orders = Assert.IsAssignableFrom<IEnumerable<OrderDto>>(okResult.Value);
+        Assert.Empty(orders);
+    }
+
     #endregion
 
     #region GetOrderById Tests
@@ -94,11 +109,9 @@ public class OrderControllerTest : IDisposable
     public async Task GetOrderById_ShouldReturnOk_WhenOrderExistsForUser()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -141,9 +154,7 @@ public class OrderControllerTest : IDisposable
     public async Task CreateOrder_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var user = GroceryStoreTestData.CreateCustomer();
         _context.Customers.Add(user);
         await _context.SaveChangesAsync();
 
@@ -161,6 +172,7 @@ public class OrderControllerTest : IDisposable
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
         Assert.Equal(nameof(OrderController.GetOrderById), createdAtResult.ActionName);
+        Assert.Equal(createdDto.OrderId, createdAtResult.RouteValues!["orderNum"]);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
@@ -173,11 +185,9 @@ public class OrderControllerTest : IDisposable
     public async Task UpdateOrder_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: false, isCompleted: false);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -193,6 +203,7 @@ public class OrderControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.True((await _context.Orders.FindAsync(order.Id))!.IsCanceled);
     }
 
     [Fact]
@@ -200,11 +211,9 @@ public class OrderControllerTest : IDisposable
     public async Task UpdateOrder_ShouldReturnBadRequest_WhenOrderAlreadyClosed()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: true);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();

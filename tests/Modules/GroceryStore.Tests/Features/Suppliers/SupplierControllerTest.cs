@@ -59,10 +59,8 @@ public class SupplierControllerTest : IDisposable
     public async Task GetSuppliers_ShouldReturnOkWithSuppliersList()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier();
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -81,13 +79,25 @@ public class SupplierControllerTest : IDisposable
 
     [Fact]
     [Trait("Action", "Get")]
+    public async Task GetSuppliers_ShouldReturnOkWithEmptyCollection_WhenNoSuppliersExist()
+    {
+        // Act
+        var result = await _controller.GetSuppliers();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var suppliers = Assert.IsAssignableFrom<IEnumerable<SupplierDto>>(okResult.Value);
+        Assert.Empty(suppliers);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
     public async Task GetSupplierById_ShouldReturnOk_WhenCurrentSupplierExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier();
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -129,12 +139,8 @@ public class SupplierControllerTest : IDisposable
     public async Task CreateSupplier_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        _context.Locations.Add(location);
-        await _context.SaveChangesAsync();
-
         var registrationDto = SupplierTestData.CreateSupplierRegistrationDto();
-        var entity = SupplierTestData.CreateSupplier(email: registrationDto.Email, zipCode: location.ZipCode);
+        var entity = SupplierTestData.CreateSupplier(email: registrationDto.Email, zipCode: registrationDto.ZipCode);
         var createdDto = SupplierTestData.CreateSupplierDto(entity.Id, email: registrationDto.Email);
 
         _mapperMock.Setup(m => m.ToSupplierEntity(registrationDto)).Returns(entity);
@@ -155,15 +161,13 @@ public class SupplierControllerTest : IDisposable
     public async Task CreateSupplier_ShouldReturnBadRequest_WhenEmailOrPhoneInUse()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var existing = SupplierTestData.CreateSupplier(email: "used@domain.de", zipCode: location.ZipCode);
+        var existing = SupplierTestData.CreateSupplier(email: "used@domain.de");
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(existing);
         await _context.SaveChangesAsync();
 
         var registrationDto = SupplierTestData.CreateSupplierRegistrationDto(email: "used@domain.de");
-        var entity = SupplierTestData.CreateSupplier(email: "used@domain.de", zipCode: location.ZipCode);
+        var entity = SupplierTestData.CreateSupplier(email: "used@domain.de");
 
         _mapperMock.Setup(m => m.ToSupplierEntity(registrationDto)).Returns(entity);
 
@@ -176,6 +180,24 @@ public class SupplierControllerTest : IDisposable
         Assert.Equal("Email is already in use.", badRequestResult.Value);
     }
 
+    [Fact]
+    [Trait("Action", "Create")]
+    public async Task CreateSupplier_ShouldReturnBadRequest_WhenPasswordsDoNotMatch()
+    {
+        // Arrange
+        var registrationDto = SupplierTestData.CreateSupplierRegistrationDto(
+            password: "SecurePassword123!",
+            confirmPassword: "DifferentPassword123!");
+
+        // Act
+        var result = await _controller.CreateSupplier(registrationDto);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal("Passwords do not match.", badRequestResult.Value);
+    }
+
     #endregion
 
     #region LoginSupplier Tests
@@ -185,16 +207,13 @@ public class SupplierControllerTest : IDisposable
     public async Task LoginSupplier_ShouldReturnOkWithToken_WhenCredentialsAreValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var rawPassword = "CorrectPass123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
         var supplier = SupplierTestData.CreateSupplier(
             email: "login@domain.de",
-            passwordHash: passwordHash,
-            zipCode: location.ZipCode);
+            passwordHash: passwordHash);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -243,16 +262,15 @@ public class SupplierControllerTest : IDisposable
     public async Task UpdateSupplier_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = SupplierTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier();
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(supplier.Id);
         var updateDto = SupplierTestData.CreateSupplierUpdateDto(email: "newemail@domain.de");
-        _mapperMock.Setup(m => m.UpdateSupplierEntity(supplier, updateDto));
+        _mapperMock.Setup(m => m.UpdateSupplierEntity(supplier, updateDto))
+            .Callback<Supplier, SupplierUpdateDto>((entity, dto) => entity.Email = dto.Email!);
 
         // Act
         var result = await _controller.UpdateSupplier(updateDto);
@@ -260,6 +278,7 @@ public class SupplierControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("newemail@domain.de", (await _context.Suppliers.FindAsync(supplier.Id))!.Email);
     }
 
     [Fact]
@@ -278,6 +297,28 @@ public class SupplierControllerTest : IDisposable
         Assert.Equal(StatusCodes.Status404NotFound, notFoundResult.StatusCode);
     }
 
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateSupplier_ShouldReturnBadRequest_WhenEmailIsAlreadyInUse()
+    {
+        // Arrange
+        var currentSupplier = SupplierTestData.CreateSupplier(email: "current@domain.de");
+        var existingSupplier = SupplierTestData.CreateSupplier(email: "used@domain.de");
+        _context.Suppliers.AddRange(currentSupplier, existingSupplier);
+        await _context.SaveChangesAsync();
+
+        _currentUserMock.SetupGet(u => u.UserId).Returns(currentSupplier.Id);
+        var updateDto = SupplierTestData.CreateSupplierUpdateDto(email: existingSupplier.Email);
+
+        // Act
+        var result = await _controller.UpdateSupplier(updateDto);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        Assert.Equal("Email is already in use.", badRequestResult.Value);
+    }
+
     #endregion
 
     #region DeleteSupplier Tests
@@ -287,18 +328,17 @@ public class SupplierControllerTest : IDisposable
     public async Task DeleteSupplier_ShouldReturnNoContent_WhenPasswordIsCorrect()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var rawPassword = "CorrectPass123!";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
-        var supplier = SupplierTestData.CreateSupplier(passwordHash: passwordHash, zipCode: location.ZipCode);
+        var supplier = SupplierTestData.CreateSupplier(passwordHash: passwordHash);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
         _currentUserMock.SetupGet(u => u.UserId).Returns(supplier.Id);
-        _mapperMock.Setup(m => m.AnonymizeSupplierEntity(supplier));
+        _mapperMock.Setup(m => m.AnonymizeSupplierEntity(supplier))
+            .Callback<Supplier>(entity => entity.Role = "anonymized_supplier");
 
         // Act
         var result = await _controller.DeleteSupplier(new SupplierActionRequest(rawPassword));
@@ -306,6 +346,7 @@ public class SupplierControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("anonymized_supplier", (await _context.Suppliers.FindAsync(supplier.Id))!.Role);
     }
 
     [Fact]
@@ -313,12 +354,9 @@ public class SupplierControllerTest : IDisposable
     public async Task DeleteSupplier_ShouldReturnBadRequest_WhenPasswordIsIncorrect()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
         var supplier = SupplierTestData.CreateSupplier(
-            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"),
-            zipCode: location.ZipCode);
+            passwordHash: BCrypt.Net.BCrypt.HashPassword("CorrectPassword"));
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
