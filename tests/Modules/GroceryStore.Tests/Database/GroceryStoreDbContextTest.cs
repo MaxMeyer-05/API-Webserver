@@ -33,11 +33,9 @@ public class GroceryStoreDbContextTest : IDisposable
     public async Task CanInsertLocationAndSupplierWithNavigationAsync()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation("20095", "Hamburg");
         var supplier = GroceryStoreTestData.CreateSupplier("Nord Frische GmbH", "20095", "info@nordfrische.de");
 
         // Act
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -49,7 +47,33 @@ public class GroceryStoreDbContextTest : IDisposable
         Assert.NotNull(retrievedSupplier);
         Assert.Equal("Nord Frische GmbH", retrievedSupplier.CompanyName);
         Assert.NotNull(retrievedSupplier.ZipCodeNavigation);
-        Assert.Equal("Hamburg", retrievedSupplier.ZipCodeNavigation.City);
+        Assert.Equal("Hamburg - Altstadt", retrievedSupplier.ZipCodeNavigation.City);
+    }
+
+    [Fact]
+    [Trait("Feature", "Locations")]
+    public async Task SeededLocations_ShouldBeAvailableForSupplierAndCustomerReferencesAsync()
+    {
+        // Arrange
+        var supplier = GroceryStoreTestData.CreateSupplier(email: "seeded-supplier@domain.de");
+        var customer = GroceryStoreTestData.CreateCustomer(email: "seeded-customer@domain.de");
+
+        // Act
+        _context.AddRange(supplier, customer);
+        await _context.SaveChangesAsync();
+
+        var storedUsers = await _context.Suppliers
+            .Where(item => item.Id == supplier.Id)
+            .Select(item => new { item.ZipCode, City = item.ZipCodeNavigation!.City })
+            .SingleAsync();
+        var storedCustomer = await _context.Customers
+            .Include(item => item.ZipCodeNavigation)
+            .SingleAsync(item => item.Id == customer.Id);
+
+        // Assert
+        Assert.Equal("10115", storedUsers.ZipCode);
+        Assert.Equal("Berlin - Mitte", storedUsers.City);
+        Assert.Equal("Berlin - Mitte", storedCustomer.ZipCodeNavigation!.City);
     }
 
     #endregion
@@ -61,8 +85,7 @@ public class GroceryStoreDbContextTest : IDisposable
     public async Task CanAssignAllergensToIngredientAsync()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Weizenmehl");
         var allergen = new Allergen
         {
@@ -72,7 +95,6 @@ public class GroceryStoreDbContextTest : IDisposable
 
         ingredient.Allergens.Add(allergen);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Ingredients.Add(ingredient);
         await _context.SaveChangesAsync();
@@ -97,8 +119,7 @@ public class GroceryStoreDbContextTest : IDisposable
     public async Task CanCreateRecipeWithCategoryAndIngredientsAsync()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Haferflocken");
         var category = new Category { Name = "Frühstück", SupplierId = supplier.Id };
         var recipe = GroceryStoreTestData.CreateRecipe(supplier.Id, "Porridge");
@@ -110,7 +131,6 @@ public class GroceryStoreDbContextTest : IDisposable
             Amount = 100m
         });
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
@@ -141,9 +161,8 @@ public class GroceryStoreDbContextTest : IDisposable
     public async Task CanPlaceOrderWithMultipleItemsAsync()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
+        var user = GroceryStoreTestData.CreateCustomer();
         var ingredient1 = GroceryStoreTestData.CreateIngredient(supplier.Id, "Apfel", 0.89m);
         var ingredient2 = GroceryStoreTestData.CreateIngredient(supplier.Id, "Banane", 1.19m);
 
@@ -151,7 +170,6 @@ public class GroceryStoreDbContextTest : IDisposable
         order.OrderItems.Add(new OrderItem { Ingredient = ingredient1, Quantity = 2 });
         order.OrderItems.Add(new OrderItem { Ingredient = ingredient2, Quantity = 3 });
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
@@ -177,11 +195,9 @@ public class GroceryStoreDbContextTest : IDisposable
     public async Task UpdateOrderStatus_ShouldPersistFlagsCorrectlyAsync()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = GroceryStoreTestData.CreateOrder(user.Id);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -196,6 +212,20 @@ public class GroceryStoreDbContextTest : IDisposable
         Assert.NotNull(updatedOrder);
         Assert.True(updatedOrder.IsCompleted);
         Assert.False(updatedOrder.IsCanceled);
+    }
+
+    [Fact]
+    [Trait("Feature", "Locations")]
+    public async Task Locations_ShouldRejectDuplicateZipCodeAsync()
+    {
+        // Arrange
+        _context.Locations.Add(GroceryStoreTestData.CreateLocation());
+
+        // Act
+        var exception = await Assert.ThrowsAsync<DbUpdateException>(() => _context.SaveChangesAsync());
+
+        // Assert
+        Assert.Contains("UNIQUE constraint failed: locations.ZipCode", exception.InnerException?.Message);
     }
 
     #endregion
