@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace GroceryStore.Database.Entities;
 
 /// <summary>
-/// Represents an order placed by a user.
+/// Represents an order placed by a customer.
 /// </summary>
 [Table("orders")]
 public partial class Order
@@ -17,16 +17,16 @@ public partial class Order
     public int Id { get; set; }
 
     /// <summary>
-    /// Defines the identifier of the user who placed the order.
+    /// Defines the identifier of the customer who placed the order.
     /// </summary>
     [Required]
-    public Guid UserId { get; set; }
+    public Guid CustomerId { get; set; }
 
     /// <summary>
     /// Defines the date and time at which the order was placed.
     /// </summary>
     [Required]
-    public DateTime OrderDate { get; set; }
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Defines the total monetary amount of the order.
@@ -52,8 +52,8 @@ public partial class Order
     public virtual ICollection<OrderItem> OrderItems { get; set; } = [];
 
     /// <summary>
-    /// Defines the user who placed this order.
+    /// Defines the customer who placed this order.
     /// </summary>
-    [ForeignKey(nameof(UserId))]
-    public virtual User User { get; set; } = null!;
+    [ForeignKey(nameof(CustomerId))]
+    public virtual Customer Customer { get; set; } = null!;
 }

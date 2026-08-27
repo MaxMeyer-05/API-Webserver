@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroceryStore.Database.Entities;
@@ -8,6 +10,8 @@ namespace GroceryStore.Database.Entities;
 /// which contains information about suppliers providing ingredients to the store.
 /// </summary>
 [Table("suppliers")]
+[Index(nameof(Email), IsUnique = true)]
+[Index(nameof(PhoneNumber), IsUnique = true)]
 public partial class Supplier
 {
     /// <summary>
@@ -43,15 +47,15 @@ public partial class Supplier
     /// <remarks>
     /// This field is optional and can be null if the supplier does not provide a phone number.
     /// </remarks>
-    [Phone]
+    [Phone(ErrorMessage = "The phone number is not valid.")]
     public string? PhoneNumber { get; set; }
 
     /// <summary>
     /// Defines the email address of the supplier, 
     /// which can be used for communication and login purposes.
     /// </summary>
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "The email address is required.")]
+    [EmailAddress(ErrorMessage = "The email address is not valid.")]
     public string Email { get; set; } = null!;
 
     /// <summary>
@@ -82,6 +86,12 @@ public partial class Supplier
     public virtual ICollection<Ingredient> Ingredients { get; set; } = [];
 
     /// <summary>
+    /// Defines the collection of recipes associated with the supplier,
+    /// which can be used to track the supplier's recipe offerings.
+    /// </summary>
+    public virtual ICollection<Recipe> Recipes { get; set; } = [];
+
+    /// <summary>
     /// Defines the navigation property for the zip code, 
     /// which can be used to access additional information about the supplier's location.
     /// </summary>
@@ -93,12 +103,12 @@ public partial class Supplier
     /// which can be used for auditing and tracking purposes.
     /// </summary>
     [Required]
-    public DateTime CreatedAtDateTime { get; set; }
+    public DateTime CreatedAtDateTime { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Defines the date and time when the supplier was last updated, 
     /// which can be used for auditing and tracking purposes.
     /// </summary>
     [Required]
-    public DateTime UpdatedAtDateTime { get; set; }
+    public DateTime UpdatedAtDateTime { get; set; } = DateTime.UtcNow;
 }

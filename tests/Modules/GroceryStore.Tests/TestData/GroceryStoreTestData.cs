@@ -52,14 +52,14 @@ public static class GroceryStoreTestData
         UpdatedAtDateTime = DateTime.UtcNow
     };
 
-    public static User CreateUser(
+    public static Customer CreateCustomer(
         string email = "anna.meier@example.com",
         string zipCode = "10115",
         string firstName = "Anna",
         string lastName = "Meier") => new()
     {
         Id = Guid.NewGuid(),
-        Role = "user",
+        Role = "customer",
         FirstName = firstName,
         LastName = lastName,
         Email = email,
@@ -101,10 +101,10 @@ public static class GroceryStoreTestData
     };
 
     public static Order CreateOrder(
-        Guid userId,
+        Guid customerId,
         decimal totalAmount = 25.80m) => new()
     {
-        UserId = userId,
+        CustomerId = customerId,
         OrderDate = DateTime.UtcNow,
         TotalAmount = totalAmount,
         IsCanceled = false,

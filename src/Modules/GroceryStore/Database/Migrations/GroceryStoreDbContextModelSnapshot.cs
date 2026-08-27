@@ -87,6 +87,69 @@ namespace GroceryStore.Database.Migrations
                     b.ToTable("categories");
                 });
 
+            modelBuilder.Entity("GroceryStore.Database.Entities.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("BirthDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAtDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HouseNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAtDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
+                    b.HasIndex("ZipCode");
+
+                    b.ToTable("customers");
+                });
+
             modelBuilder.Entity("GroceryStore.Database.Entities.Ingredient", b =>
                 {
                     b.Property<int>("Id")
@@ -137,7 +200,257 @@ namespace GroceryStore.Database.Migrations
 
                     b.HasKey("ZipCode");
 
+                    b.HasIndex("ZipCode")
+                        .IsUnique();
+
                     b.ToTable("locations");
+
+                    b.HasData(
+                        new
+                        {
+                            ZipCode = "20095",
+                            City = "Hamburg - Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "20099",
+                            City = "Hamburg - St. Georg"
+                        },
+                        new
+                        {
+                            ZipCode = "20144",
+                            City = "Hamburg - Eimsbüttel"
+                        },
+                        new
+                        {
+                            ZipCode = "20251",
+                            City = "Hamburg - Eppendorf"
+                        },
+                        new
+                        {
+                            ZipCode = "20253",
+                            City = "Hamburg - Hoheluft-Ost"
+                        },
+                        new
+                        {
+                            ZipCode = "20354",
+                            City = "Hamburg - Neustadt"
+                        },
+                        new
+                        {
+                            ZipCode = "20357",
+                            City = "Hamburg - Sternschanze"
+                        },
+                        new
+                        {
+                            ZipCode = "20359",
+                            City = "Hamburg - St. Pauli"
+                        },
+                        new
+                        {
+                            ZipCode = "20457",
+                            City = "Hamburg - HafenCity"
+                        },
+                        new
+                        {
+                            ZipCode = "21029",
+                            City = "Hamburg - Bergedorf"
+                        },
+                        new
+                        {
+                            ZipCode = "21073",
+                            City = "Hamburg - Harburg"
+                        },
+                        new
+                        {
+                            ZipCode = "21107",
+                            City = "Hamburg - Wilhelmsburg"
+                        },
+                        new
+                        {
+                            ZipCode = "22081",
+                            City = "Hamburg - Barmbek-Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "22303",
+                            City = "Hamburg - Winterhude"
+                        },
+                        new
+                        {
+                            ZipCode = "22335",
+                            City = "Hamburg - Fuhlsbüttel"
+                        },
+                        new
+                        {
+                            ZipCode = "22529",
+                            City = "Hamburg - Lokstedt"
+                        },
+                        new
+                        {
+                            ZipCode = "22765",
+                            City = "Hamburg - Ottensen"
+                        },
+                        new
+                        {
+                            ZipCode = "22767",
+                            City = "Hamburg - Altona-Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "22769",
+                            City = "Hamburg - Altona-Nord"
+                        },
+                        new
+                        {
+                            ZipCode = "10115",
+                            City = "Berlin - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "10117",
+                            City = "Berlin - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "10243",
+                            City = "Berlin - Friedrichshain"
+                        },
+                        new
+                        {
+                            ZipCode = "10435",
+                            City = "Berlin - Prenzlauer Berg"
+                        },
+                        new
+                        {
+                            ZipCode = "10585",
+                            City = "Berlin - Charlottenburg"
+                        },
+                        new
+                        {
+                            ZipCode = "10785",
+                            City = "Berlin - Tiergarten"
+                        },
+                        new
+                        {
+                            ZipCode = "10829",
+                            City = "Berlin - Schöneberg"
+                        },
+                        new
+                        {
+                            ZipCode = "10969",
+                            City = "Berlin - Kreuzberg"
+                        },
+                        new
+                        {
+                            ZipCode = "12043",
+                            City = "Berlin - Neukölln"
+                        },
+                        new
+                        {
+                            ZipCode = "13353",
+                            City = "Berlin - Wedding"
+                        },
+                        new
+                        {
+                            ZipCode = "80331",
+                            City = "München - Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "80336",
+                            City = "München - Ludwigsvorstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "80538",
+                            City = "München - Lehel"
+                        },
+                        new
+                        {
+                            ZipCode = "80799",
+                            City = "München - Maxvorstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "80802",
+                            City = "München - Schwabing"
+                        },
+                        new
+                        {
+                            ZipCode = "81667",
+                            City = "München - Haidhausen"
+                        },
+                        new
+                        {
+                            ZipCode = "50667",
+                            City = "Köln - Altstadt-Nord"
+                        },
+                        new
+                        {
+                            ZipCode = "50674",
+                            City = "Köln - Neustadt-Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "50678",
+                            City = "Köln - Altstadt-Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "50823",
+                            City = "Köln - Ehrenfeld"
+                        },
+                        new
+                        {
+                            ZipCode = "50931",
+                            City = "Köln - Lindenthal"
+                        },
+                        new
+                        {
+                            ZipCode = "60311",
+                            City = "Frankfurt am Main - Altstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "60313",
+                            City = "Frankfurt am Main - Innenstadt"
+                        },
+                        new
+                        {
+                            ZipCode = "60316",
+                            City = "Frankfurt am Main - Ostend"
+                        },
+                        new
+                        {
+                            ZipCode = "60325",
+                            City = "Frankfurt am Main - Westend"
+                        },
+                        new
+                        {
+                            ZipCode = "60594",
+                            City = "Frankfurt am Main - Sachsenhausen"
+                        },
+                        new
+                        {
+                            ZipCode = "70173",
+                            City = "Stuttgart - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "70178",
+                            City = "Stuttgart - Süd"
+                        },
+                        new
+                        {
+                            ZipCode = "04109",
+                            City = "Leipzig - Mitte"
+                        },
+                        new
+                        {
+                            ZipCode = "04275",
+                            City = "Leipzig - Südvorstadt"
+                        });
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Order", b =>
@@ -145,6 +458,9 @@ namespace GroceryStore.Database.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("IsCanceled")
                         .HasColumnType("INTEGER");
@@ -158,12 +474,9 @@ namespace GroceryStore.Database.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("orders");
                 });
@@ -180,8 +493,8 @@ namespace GroceryStore.Database.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -287,66 +600,15 @@ namespace GroceryStore.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
                     b.HasIndex("ZipCode");
 
                     b.ToTable("suppliers");
-                });
-
-            modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly>("BirthDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAtDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HouseNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAtDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ZipCode")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ZipCode");
-
-                    b.ToTable("users");
                 });
 
             modelBuilder.Entity("AllergenIngredient", b =>
@@ -401,6 +663,17 @@ namespace GroceryStore.Database.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("GroceryStore.Database.Entities.Customer", b =>
+                {
+                    b.HasOne("GroceryStore.Database.Entities.Location", "ZipCodeNavigation")
+                        .WithMany("Customers")
+                        .HasForeignKey("ZipCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ZipCodeNavigation");
+                });
+
             modelBuilder.Entity("GroceryStore.Database.Entities.Ingredient", b =>
                 {
                     b.HasOne("GroceryStore.Database.Entities.Supplier", "Supplier")
@@ -414,13 +687,13 @@ namespace GroceryStore.Database.Migrations
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Order", b =>
                 {
-                    b.HasOne("GroceryStore.Database.Entities.User", "User")
+                    b.HasOne("GroceryStore.Database.Entities.Customer", "Customer")
                         .WithMany("Orders")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.OrderItem", b =>
@@ -445,7 +718,7 @@ namespace GroceryStore.Database.Migrations
             modelBuilder.Entity("GroceryStore.Database.Entities.Recipe", b =>
                 {
                     b.HasOne("GroceryStore.Database.Entities.Supplier", "Supplier")
-                        .WithMany()
+                        .WithMany("Recipes")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -483,15 +756,9 @@ namespace GroceryStore.Database.Migrations
                     b.Navigation("ZipCodeNavigation");
                 });
 
-            modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>
+            modelBuilder.Entity("GroceryStore.Database.Entities.Customer", b =>
                 {
-                    b.HasOne("GroceryStore.Database.Entities.Location", "ZipCodeNavigation")
-                        .WithMany("Users")
-                        .HasForeignKey("ZipCode")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ZipCodeNavigation");
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Ingredient", b =>
@@ -503,9 +770,9 @@ namespace GroceryStore.Database.Migrations
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Location", b =>
                 {
-                    b.Navigation("Suppliers");
+                    b.Navigation("Customers");
 
-                    b.Navigation("Users");
+                    b.Navigation("Suppliers");
                 });
 
             modelBuilder.Entity("GroceryStore.Database.Entities.Order", b =>
@@ -521,11 +788,8 @@ namespace GroceryStore.Database.Migrations
             modelBuilder.Entity("GroceryStore.Database.Entities.Supplier", b =>
                 {
                     b.Navigation("Ingredients");
-                });
 
-            modelBuilder.Entity("GroceryStore.Database.Entities.User", b =>
-                {
-                    b.Navigation("Orders");
+                    b.Navigation("Recipes");
                 });
 #pragma warning restore 612, 618
         }

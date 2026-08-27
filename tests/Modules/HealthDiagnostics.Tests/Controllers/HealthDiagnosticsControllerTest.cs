@@ -2,6 +2,7 @@ using Moq;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 
 using HealthDiagnostics.Controllers;
 using HealthDiagnostics.Models;
@@ -27,7 +28,9 @@ public class HealthDiagnosticsControllerTest
             .Setup(s => s.GetHealthReportAsync(null, false, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        var controller = new HealthDiagnosticsController(serviceMock.Object);
+        var controller = new HealthDiagnosticsController(
+            serviceMock.Object,
+            NullLogger<HealthDiagnosticsController>.Instance);
 
         // Act
         var result = await controller.GetFullStatus(probeEndpoints: false, CancellationToken.None);
@@ -49,7 +52,9 @@ public class HealthDiagnosticsControllerTest
             .Setup(s => s.GetHealthReportAsync(null, true, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        var controller = new HealthDiagnosticsController(serviceMock.Object);
+        var controller = new HealthDiagnosticsController(
+            serviceMock.Object,
+            NullLogger<HealthDiagnosticsController>.Instance);
 
         // Act
         var result = await controller.GetFullStatus(probeEndpoints: true, CancellationToken.None);
@@ -79,7 +84,9 @@ public class HealthDiagnosticsControllerTest
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        var controller = new HealthDiagnosticsController(serviceMock.Object);
+        var controller = new HealthDiagnosticsController(
+            serviceMock.Object,
+            NullLogger<HealthDiagnosticsController>.Instance);
 
         // Act
         var result = await controller.GetDatabaseStatus(CancellationToken.None);
@@ -105,7 +112,9 @@ public class HealthDiagnosticsControllerTest
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        var controller = new HealthDiagnosticsController(serviceMock.Object);
+        var controller = new HealthDiagnosticsController(
+            serviceMock.Object,
+            NullLogger<HealthDiagnosticsController>.Instance);
 
         // Act
         var result = await controller.GetDatabaseStatus(CancellationToken.None);
@@ -135,7 +144,9 @@ public class HealthDiagnosticsControllerTest
             .Setup(s => s.ProbeAllEndpointsAsync(null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedProbes);
 
-        var controller = new HealthDiagnosticsController(serviceMock.Object);
+        var controller = new HealthDiagnosticsController(
+            serviceMock.Object,
+            NullLogger<HealthDiagnosticsController>.Instance);
 
         // Act
         var result = await controller.ProbeAllEndpoints(CancellationToken.None);
@@ -156,7 +167,9 @@ public class HealthDiagnosticsControllerTest
     {
         // Arrange
         var serviceMock = new Mock<IHealthDiagnosticsServices>(MockBehavior.Strict);
-        var controller = new HealthDiagnosticsController(serviceMock.Object);
+        var controller = new HealthDiagnosticsController(
+            serviceMock.Object,
+            NullLogger<HealthDiagnosticsController>.Instance);
         var beforeCall = DateTime.UtcNow;
 
         // Act
