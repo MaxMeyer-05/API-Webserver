@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace GroceryStore.Features.Suppliers;
 
 /// <summary>
@@ -55,6 +57,7 @@ public record SupplierRegistrationDto(
 /// <param name="ZipCode">The zip code of the supplier.</param>
 /// <param name="PhoneNumber">The phone number of the supplier.</param>
 /// <param name="Email">The email address of the supplier.</param>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public record SupplierUpdateDto(
     string? CompanyName, 
     string? Street, 
