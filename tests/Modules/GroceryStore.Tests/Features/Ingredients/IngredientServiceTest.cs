@@ -209,6 +209,45 @@ public class IngredientServiceTest : IDisposable
 
     [Fact]
     [Trait("Action", "Update")]
+    public async Task UpdateIngredientAsync_ShouldAddAllergensWithoutRemovingExistingOnes()
+    {
+        // Arrange
+        var supplier = GroceryStoreTestData.CreateSupplier();
+        var existingAllergen = IngredientTestData.CreateAllergen(1, "Gluten", supplier.Id);
+        var additionalAllergen = IngredientTestData.CreateAllergen(2, "Soja", supplier.Id);
+        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Brot");
+        ingredient.Allergens.Add(existingAllergen);
+
+        _context.Suppliers.Add(supplier);
+        _context.Allergens.AddRange(existingAllergen, additionalAllergen);
+        _context.Ingredients.Add(ingredient);
+        await _context.SaveChangesAsync();
+
+        var updateDto = new IngredientUpdateDto(
+            Name: null,
+            Unit: null,
+            NetPrice: null,
+            Stock: null,
+            Calories: null,
+            Carbohydrates: null,
+            Protein: null,
+            AllergenIds: [additionalAllergen.Id]);
+        _mapperMock.Setup(m => m.UpdateIngredientEntity(ingredient, updateDto));
+
+        // Act
+        await _service.UpdateIngredientAsync(ingredient.Id, supplier.Id, updateDto);
+
+        // Assert
+        var updated = await _context.Ingredients
+            .Include(item => item.Allergens)
+            .SingleAsync(item => item.Id == ingredient.Id);
+
+        Assert.Contains(updated.Allergens, item => item.Id == existingAllergen.Id);
+        Assert.Contains(updated.Allergens, item => item.Id == additionalAllergen.Id);
+    }
+
+    [Fact]
+    [Trait("Action", "Update")]
     public async Task UpdateIngredientAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
     {
         // Arrange
@@ -293,107 +332,6 @@ public class IngredientServiceTest : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             _service.DeleteIngredientAsync(999, Guid.NewGuid()));
-    }
-
-    #endregion
-
-    #region AddAllergenToIngredientAsync Tests
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredientAsync_ShouldAddRelation_WhenValidAndOwner()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Weizenbrot");
-        var allergen = IngredientTestData.CreateAllergen(1, "Gluten", supplier.Id);
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Ingredients.Add(ingredient);
-        _context.Allergens.Add(allergen);
-        await _context.SaveChangesAsync();
-
-        // Act
-        await _service.AddAllergenToIngredientAsync(ingredient.Id, allergen.Id, supplier.Id);
-
-        // Assert
-        var updated = await _context.Ingredients.Include(i => i.Allergens).FirstAsync(i => i.Id == ingredient.Id);
-        Assert.Single(updated.Allergens);
-        Assert.Equal("Gluten", updated.Allergens.First().Name);
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredientAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var ingredient = GroceryStoreTestData.CreateIngredient(owner.Id, "Nusskuchen");
-        var allergen = IngredientTestData.CreateAllergen(1, "Nüsse", owner.Id);
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(owner);
-        _context.Ingredients.Add(ingredient);
-        _context.Allergens.Add(allergen);
-        await _context.SaveChangesAsync();
-
-        // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _service.AddAllergenToIngredientAsync(ingredient.Id, allergen.Id, Guid.NewGuid()));
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredientAsync_ShouldThrowKeyNotFoundException_WhenIngredientNotFound()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _service.AddAllergenToIngredientAsync(999, 1, Guid.NewGuid()));
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredientAsync_ShouldThrowKeyNotFoundException_WhenAllergenNotFound()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Reis");
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Ingredients.Add(ingredient);
-        await _context.SaveChangesAsync();
-
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _service.AddAllergenToIngredientAsync(ingredient.Id, 888, supplier.Id));
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredientAsync_ShouldThrowInvalidOperationException_WhenAlreadyAssigned()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var allergen = IngredientTestData.CreateAllergen(1, "Soja", supplier.Id);
-        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Tofu");
-        ingredient.Allergens.Add(allergen);
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Ingredients.Add(ingredient);
-        _context.Allergens.Add(allergen);
-        await _context.SaveChangesAsync();
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _service.AddAllergenToIngredientAsync(ingredient.Id, allergen.Id, supplier.Id));
-        Assert.Contains("already has allergen", ex.Message);
     }
 
     #endregion

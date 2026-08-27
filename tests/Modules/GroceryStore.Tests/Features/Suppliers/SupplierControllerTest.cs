@@ -301,7 +301,7 @@ public class SupplierControllerTest : IDisposable
         _mapperMock.Setup(m => m.AnonymizeSupplierEntity(supplier));
 
         // Act
-        var result = await _controller.DeleteSupplier(rawPassword);
+        var result = await _controller.DeleteSupplier(new SupplierActionRequest(rawPassword));
 
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
@@ -325,7 +325,7 @@ public class SupplierControllerTest : IDisposable
         _currentUserMock.SetupGet(u => u.UserId).Returns(supplier.Id);
 
         // Act
-        var result = await _controller.DeleteSupplier("WrongPassword");
+        var result = await _controller.DeleteSupplier(new SupplierActionRequest("WrongPassword"));
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);

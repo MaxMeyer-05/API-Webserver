@@ -79,7 +79,7 @@ public static class RecipeTestData
         PreparationTime: preparationTime,
         SupplierId: supplierId ?? Guid.NewGuid(),
         CategoryIds: categoryIds ?? [1],
-        Ingredients: ingredients ?? [new RecipeIngredientItemCreateDto(0, 1, 150m)]);
+        Ingredients: ingredients ?? [new RecipeIngredientItemCreateDto(1, 150m)]);
 
     public static RecipeUpdateDto CreateRecipeUpdateDto(
         string? name = "Kaiserschmarrn",
@@ -111,9 +111,7 @@ public static class RecipeTestData
             Calories: 360m,
             Carbohydrates: 72m,
             Protein: 10m),
-        Amount: amount,
-        SupplierId: supplierId ?? Guid.NewGuid(),
-        SupplierName: supplierName);
+        Amount: amount);
 
     #endregion
 }

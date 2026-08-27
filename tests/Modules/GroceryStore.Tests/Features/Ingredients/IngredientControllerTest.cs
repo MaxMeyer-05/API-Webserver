@@ -180,62 +180,6 @@ public class IngredientControllerTest : IDisposable
 
     #endregion
 
-    #region AddAllergenToIngredient Tests
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredient_ShouldReturnNoContent_WhenSuccessful()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Weizenbrot");
-        var allergen = IngredientTestData.CreateAllergen(1, "Gluten", supplier.Id);
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Ingredients.Add(ingredient);
-        _context.Allergens.Add(allergen);
-        await _context.SaveChangesAsync();
-
-        _currentUserMock.SetupGet(u => u.UserId).Returns(supplier.Id);
-
-        // Act
-        var result = await _controller.AddAllergenToIngredient(ingredient.Id, allergen.Id);
-
-        // Assert
-        var noContentResult = Assert.IsType<NoContentResult>(result);
-        Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddAllergenToIngredient_ShouldReturnForbid_WhenSupplierIsNotOwner()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var ingredient = GroceryStoreTestData.CreateIngredient(owner.Id, "Nussriegel");
-        var allergen = IngredientTestData.CreateAllergen(1, "Nüsse", owner.Id);
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(owner);
-        _context.Ingredients.Add(ingredient);
-        _context.Allergens.Add(allergen);
-        await _context.SaveChangesAsync();
-
-        _currentUserMock.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
-
-        // Act
-        var result = await _controller.AddAllergenToIngredient(ingredient.Id, allergen.Id);
-
-        // Assert
-        var forbidResult = Assert.IsType<ForbidResult>(result);
-        Assert.NotNull(forbidResult);
-    }
-
-    #endregion
-
     #region UpdateIngredient Tests
 
     [Fact]

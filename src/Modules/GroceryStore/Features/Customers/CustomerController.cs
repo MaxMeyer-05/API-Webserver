@@ -159,11 +159,11 @@ public class CustomerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteCustomer([FromBody] string password)
+    public async Task<IActionResult> DeleteCustomer([FromBody] CustomerActionRequest customerActionRequest)
     {
         try
         {
-            await _customerService.DeleteCustomerAsync(_currentUser.UserId, password);
+            await _customerService.DeleteCustomerAsync(_currentUser.UserId, customerActionRequest.Password);
             return NoContent();
         }
         catch (KeyNotFoundException ex)

@@ -53,7 +53,7 @@ public record RecipeCreateDto(
     int? PreparationTime,
     Guid SupplierId,
     List<int>? CategoryIds,
-    List<RecipeIngredientItemCreateDto>? Ingredients
+    List<RecipeIngredientItemCreateDto> Ingredients
 );
 
 /// <summary>
@@ -62,8 +62,8 @@ public record RecipeCreateDto(
 /// <param name="Name">The name of the recipe.</param>
 /// <param name="Instructions">The instructions for preparing the recipe.</param>
 /// <param name="PreparationTime">The time required to prepare the recipe.</param>
-/// <param name="CategoryIds">A list of category identifiers associated with the recipe.</param>
-/// <param name="Ingredients">A list of recipe ingredient DTOs associated with the recipe.</param>
+/// <param name="CategoryIds">Category identifiers to add. A null value leaves existing categories unchanged.</param>
+/// <param name="Ingredients">Ingredients to add or update by ingredient ID. A null value leaves existing ingredients unchanged.</param>
 public record RecipeUpdateDto(
     string? Name,
     string? Instructions,
@@ -77,23 +77,17 @@ public record RecipeUpdateDto(
 /// </summary>
 /// <param name="Ingredient">The ingredient associated with the recipe ingredient.</param>
 /// <param name="Amount">The amount of the ingredient used in the recipe.</param>
-/// <param name="SupplierId">The identifier of the associated supplier.</param>
-/// <param name="SupplierName">The name of the supplier associated with the ingredient.</param>
 public record RecipeIngredientDto(
     IngredientDto Ingredient,
-    decimal Amount,
-    Guid SupplierId,
-    string SupplierName
+    decimal Amount
 );
 
 /// <summary>
 /// Data transfer object (DTO) for creating a new RecipeIngredient entity
 /// </summary>
-/// <param name="RecipeId">The identifier of the recipe to which the ingredient belongs.</param>
 /// <param name="IngredientId">The identifier of the ingredient used in the recipe.</param>
 /// <param name="Amount">The amount of the ingredient used in the recipe.</param>
 public record RecipeIngredientItemCreateDto(
-    int RecipeId,
     int IngredientId,
     decimal Amount
 );

@@ -125,7 +125,7 @@ public class IngredientMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void UpdateIngredientEntity_ShouldUpdateAllFields_WhenDtoHasFullValues()
+    public void UpdateIngredientEntity_ShouldUpdateScalarFields_WhenDtoHasFullValues()
     {
         // Arrange
         var initialAllergen = IngredientTestData.CreateAllergen(1, "Gluten");
@@ -144,7 +144,7 @@ public class IngredientMapperTest
             Calories: 350m,
             Carbohydrates: 70m,
             Protein: 12m,
-            AllergenIds: [2, 3]);
+            AllergenIds: null);
 
         // Act
         _mapper.UpdateIngredientEntity(ingredient, updateDto);
@@ -157,9 +157,8 @@ public class IngredientMapperTest
         Assert.Equal(350m, ingredient.Calories);
         Assert.Equal(70m, ingredient.Carbohydrates);
         Assert.Equal(12m, ingredient.Protein);
-        Assert.Equal(2, ingredient.Allergens.Count);
-        Assert.Contains(ingredient.Allergens, a => a.Id == 2);
-        Assert.Contains(ingredient.Allergens, a => a.Id == 3);
+        var allergen = Assert.Single(ingredient.Allergens);
+        Assert.Same(initialAllergen, allergen);
     }
 
     [Fact]

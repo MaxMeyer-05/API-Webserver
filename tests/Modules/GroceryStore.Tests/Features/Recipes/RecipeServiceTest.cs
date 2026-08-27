@@ -49,18 +49,21 @@ public class RecipeServiceTest : IDisposable
     public async Task CreateRecipeAsync_ShouldPersistEntityAndReturnDto()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
-        var createDto = RecipeTestData.CreateRecipeCreateDto(name: "Pizzateig", supplierId: supplier.Id);
+        var createDto = RecipeTestData.CreateRecipeCreateDto(
+            name: "Pizzateig",
+            supplierId: supplier.Id,
+            categoryIds: [],
+            ingredients: []);
         var entity = new Recipe { Name = "Pizzateig", SupplierId = supplier.Id };
         var expectedDto = RecipeTestData.CreateRecipeDto(name: "Pizzateig", supplierId: supplier.Id);
 
         _mapperMock.Setup(m => m.ToRecipeEntity(createDto)).Returns(entity);
-        _mapperMock.Setup(m => m.ToRecipeDto(It.Is<Recipe>(r => r.Name == "Pizzateig"))).Returns(expectedDto);
+        _mapperMock.Setup(m => m.ToRecipeDto(It.Is<Recipe>(r =>
+            r.Name == "Pizzateig" && r.Supplier != null))).Returns(expectedDto);
 
         // Act
         var result = await _service.CreateRecipeAsync(createDto);
@@ -82,21 +85,42 @@ public class RecipeServiceTest : IDisposable
     public async Task CreateRecipeAsync_ShouldThrowInvalidOperationException_WhenMappingFails()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
-        var createDto = RecipeTestData.CreateRecipeCreateDto(supplierId: supplier.Id);
+        var createDto = RecipeTestData.CreateRecipeCreateDto(
+            supplierId: supplier.Id,
+            categoryIds: [],
+            ingredients: []);
         var entity = new Recipe { Name = createDto.Name, SupplierId = supplier.Id };
 
         _mapperMock.Setup(m => m.ToRecipeEntity(createDto)).Returns(entity);
-        _mapperMock.Setup(m => m.ToRecipeDto(entity)).Returns((RecipeDto)null!);
+    _mapperMock.Setup(m => m.ToRecipeDto(It.Is<Recipe>(r => r.Id == entity.Id))).Returns((RecipeDto)null!);
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateRecipeAsync(createDto));
         Assert.Contains("could not be loaded", ex.Message);
+    }
+
+    [Fact]
+    [Trait("Action", "Create")]
+    public async Task CreateRecipeAsync_ShouldThrowInvalidOperationException_WhenIngredientDoesNotExist()
+    {
+        // Arrange
+        var supplier = GroceryStoreTestData.CreateSupplier();
+        _context.Suppliers.Add(supplier);
+        await _context.SaveChangesAsync();
+
+        var createDto = RecipeTestData.CreateRecipeCreateDto(
+            supplierId: supplier.Id,
+            categoryIds: [],
+            ingredients: [new RecipeIngredientItemCreateDto(999, 150m)]);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateRecipeAsync(createDto));
+        Assert.Contains("do not exist", ex.Message);
+        _mapperMock.Verify(m => m.ToRecipeEntity(It.IsAny<RecipeCreateDto>()), Times.Never);
     }
 
     #endregion
@@ -174,52 +198,6 @@ public class RecipeServiceTest : IDisposable
 
     [Fact]
     [Trait("Action", "Update")]
-    public async Task AddCategoryToRecipeAsync_ShouldAttachCategory_WhenValidAndOwner()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
-        var category = new Category { Name = "Suppen", SupplierId = supplier.Id };
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Recipes.Add(recipe);
-        _context.Categories.Add(category);
-        await _context.SaveChangesAsync();
-
-        // Act
-        await _service.AddCategoryToRecipeAsync(recipe.Id, category.Id, supplier.Id);
-
-        // Assert
-        var updated = await _context.Recipes.Include(r => r.Categories).FirstAsync(r => r.Id == recipe.Id);
-        Assert.Single(updated.Categories);
-        Assert.Equal("Suppen", updated.Categories.First().Name);
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddCategoryToRecipeAsync_ShouldThrowUnauthorizedAccessException_WhenSupplierIsNotOwner()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var recipe = RecipeTestData.CreateRecipe(supplierId: owner.Id);
-        var category = new Category { Name = "Vorspeisen", SupplierId = owner.Id };
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(owner);
-        _context.Recipes.Add(recipe);
-        _context.Categories.Add(category);
-        await _context.SaveChangesAsync();
-
-        // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _service.AddCategoryToRecipeAsync(recipe.Id, category.Id, Guid.NewGuid()));
-    }
-
-    [Fact]
-    [Trait("Action", "Update")]
     public async Task RemoveCategoryFromRecipeAsync_ShouldRemoveCategory_WhenAssignedAndOwner()
     {
         // Arrange
@@ -245,32 +223,7 @@ public class RecipeServiceTest : IDisposable
 
     #endregion
 
-    #region AddIngredientToRecipeAsync & RemoveIngredientFromRecipeAsync Tests
-
-    [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddIngredientToRecipeAsync_ShouldAddRecipeIngredient_WhenValid()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var ingredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Salz");
-        var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Ingredients.Add(ingredient);
-        _context.Recipes.Add(recipe);
-        await _context.SaveChangesAsync();
-
-        // Act
-        await _service.AddIngredientToRecipeAsync(recipe.Id, ingredient.Id, supplier.Id);
-
-        // Assert
-        var updated = await _context.Recipes.Include(r => r.RecipeIngredients).FirstAsync(r => r.Id == recipe.Id);
-        Assert.Single(updated.RecipeIngredients);
-        Assert.Equal(ingredient.Id, updated.RecipeIngredients.First().IngredientId);
-    }
+    #region RemoveIngredientFromRecipeAsync Tests
 
     [Fact]
     [Trait("Action", "Update")]
@@ -329,6 +282,59 @@ public class RecipeServiceTest : IDisposable
         Assert.NotNull(updated);
         Assert.Equal("Aktualisiert", updated.Name);
         _mapperMock.Verify(m => m.UpdateRecipeEntity(recipe, updateDto), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Update")]
+    public async Task UpdateRecipeAsync_ShouldAddCategoriesAndIngredientsAndUpdateExistingIngredientAmount()
+    {
+        // Arrange
+        var supplier = GroceryStoreTestData.CreateSupplier();
+        var existingCategory = new Category { Name = "Hauptgericht", SupplierId = supplier.Id };
+        var additionalCategory = new Category { Name = "Schnell", SupplierId = supplier.Id };
+        var existingIngredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Mehl");
+        var additionalIngredient = GroceryStoreTestData.CreateIngredient(supplier.Id, "Wasser");
+        var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
+
+        recipe.Categories.Add(existingCategory);
+        recipe.RecipeIngredients.Add(new RecipeIngredient
+        {
+            Ingredient = existingIngredient,
+            Amount = 100m
+        });
+
+        _context.Suppliers.Add(supplier);
+        _context.Categories.AddRange(existingCategory, additionalCategory);
+        _context.Ingredients.AddRange(existingIngredient, additionalIngredient);
+        _context.Recipes.Add(recipe);
+        await _context.SaveChangesAsync();
+
+        var updateDto = new RecipeUpdateDto(
+            Name: null,
+            Instructions: null,
+            PreparationTime: null,
+            CategoryIds: [additionalCategory.Id],
+            Ingredients:
+            [
+                new RecipeIngredientItemCreateDto(existingIngredient.Id, 250m),
+                new RecipeIngredientItemCreateDto(additionalIngredient.Id, 50m)
+            ]);
+        _mapperMock.Setup(m => m.UpdateRecipeEntity(recipe, updateDto));
+
+        // Act
+        await _service.UpdateRecipeAsync(recipe.Id, supplier.Id, updateDto);
+
+        // Assert
+        var updated = await _context.Recipes
+            .Include(item => item.Categories)
+            .Include(item => item.RecipeIngredients)
+            .SingleAsync(item => item.Id == recipe.Id);
+
+        Assert.Contains(updated.Categories, item => item.Id == existingCategory.Id);
+        Assert.Contains(updated.Categories, item => item.Id == additionalCategory.Id);
+        Assert.Equal(2, updated.RecipeIngredients.Count);
+        Assert.Equal(250m, updated.RecipeIngredients.Single(item => item.IngredientId == existingIngredient.Id).Amount);
+        Assert.Equal(50m, updated.RecipeIngredients.Single(item => item.IngredientId == additionalIngredient.Id).Amount);
     }
 
     [Fact]

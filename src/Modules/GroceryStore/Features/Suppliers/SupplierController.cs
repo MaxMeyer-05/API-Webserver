@@ -161,11 +161,11 @@ public class SupplierController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteSupplier([FromBody] string password)
+    public async Task<IActionResult> DeleteSupplier([FromBody] SupplierActionRequest supplierActionRequest)
     {
         try
         {
-            await _supplierService.DeleteSupplierAsync(_currentUser.UserId, password);
+            await _supplierService.DeleteSupplierAsync(_currentUser.UserId, supplierActionRequest.Password);
             return NoContent();
         }
         catch (KeyNotFoundException ex)

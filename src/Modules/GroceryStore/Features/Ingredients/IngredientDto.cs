@@ -74,7 +74,7 @@ public record IngredientCreateDto(
 /// <param name="Calories">The calorie content of the ingredient.</param>
 /// <param name="Carbohydrates">The carbohydrate content of the ingredient.</param>
 /// <param name="Protein">The protein content of the ingredient.</param>
-/// <param name="AllergenIds">A list of allergen identifiers associated with the ingredient.</param>
+/// <param name="AllergenIds">Allergen identifiers to add. A null value leaves existing allergens unchanged.</param>
 public record IngredientUpdateDto(
     string? Name, 
     string? Unit, 

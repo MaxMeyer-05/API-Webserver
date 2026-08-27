@@ -96,7 +96,7 @@ public record CustomerLoginDto(
 /// </summary>
 /// <param name="Password">The password of the customer.</param>
 public record CustomerActionRequest (
-    string? Password
+    string Password
 );
 
 /// <summary>

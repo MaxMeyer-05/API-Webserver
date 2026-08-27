@@ -26,22 +26,6 @@ public interface IRecipeService
 	Task<RecipeDto> CreateRecipeAsync(RecipeCreateDto recipe);
 
 	/// <summary>
-	/// Adds a category to a specific recipe in the database.
-	/// </summary>
-	/// <param name="recipeId">The unique identifier of the recipe.</param>
-	/// <param name="categoryId">The unique identifier of the category.</param>
-	/// <param name="supplierId">The unique identifier of the supplier attempting to add the category to the recipe.</param>
-	Task AddCategoryToRecipeAsync(int recipeId, int categoryId, Guid supplierId);
-
-	/// <summary>
-	/// Adds an ingredient to a specific recipe in the database.
-	/// </summary>
-	/// <param name="recipeId">The unique identifier of the recipe.</param>
-	/// <param name="ingredientId">The unique identifier of the ingredient.</param>
-	/// <param name="supplierId">The unique identifier of the supplier attempting to add the ingredient to the recipe.</param>
-	Task AddIngredientToRecipeAsync(int recipeId, int ingredientId, Guid supplierId);
-
-	/// <summary>
 	/// Updates an existing recipe in the database.
 	/// </summary>
 	/// <param name="recipeId">The unique identifier of the recipe.</param>

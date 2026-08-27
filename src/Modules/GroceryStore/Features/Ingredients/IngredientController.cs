@@ -86,37 +86,6 @@ public class IngredientController : ControllerBase
     }
 
     /// <summary>
-    /// Adds an allergen to a specific ingredient.
-    /// </summary>
-    /// <param name="ingredientId">The ID of the ingredient.</param>
-    /// <param name="allergenId">The ID of the allergen to add.</param>
-    /// <returns>No content if the operation is successful.</returns>
-    /// <response code="204">If the allergen is successfully added to the ingredient.</response>
-    /// <response code="404">If the ingredient or allergen is not found.</response>
-    /// <response code="403">If the supplier is not authorized to add the allergen to the ingredient.</response>
-    [Authorize(Roles = Roles.Supplier)]
-    [HttpPost("{ingredientId}/allergens/{allergenId}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddAllergenToIngredient([FromRoute] int ingredientId, [FromRoute] int allergenId)
-    {
-        try
-        {
-            await _ingredientService.AddAllergenToIngredientAsync(ingredientId, allergenId, _currentUser.UserId);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
-
-    /// <summary>
     /// Updates an existing ingredient in the repository.
     /// </summary>
     /// <param name="ingredientId">The ID of the ingredient to update.</param>
@@ -147,9 +116,9 @@ public class IngredientController : ControllerBase
         {
             return NotFound();
         }
-        catch (ArgumentException ae)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(ae.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -183,9 +152,9 @@ public class IngredientController : ControllerBase
         {
             return NotFound();
         }
-        catch (ArgumentException ae)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(ae.Message);
+            return BadRequest(ex.Message);
         }
     }
 

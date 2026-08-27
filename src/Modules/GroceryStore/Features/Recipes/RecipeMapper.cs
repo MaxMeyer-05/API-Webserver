@@ -56,9 +56,7 @@ public class RecipeMapper : IRecipeMapper
     {
         return new RecipeIngredientDto(
             Ingredient: _ingredientMapper.ToIngredientDto(recipeIngredientEntity.Ingredient),
-            Amount: recipeIngredientEntity.Amount,
-            SupplierId: recipeIngredientEntity.Ingredient.SupplierId,
-            SupplierName: recipeIngredientEntity.Ingredient.Supplier.CompanyName
+            Amount: recipeIngredientEntity.Amount
         );
     }
 
@@ -67,7 +65,6 @@ public class RecipeMapper : IRecipeMapper
     {
         return new RecipeIngredient
         {
-            RecipeId = recipeIngredientItemCreateDto.RecipeId,
             IngredientId = recipeIngredientItemCreateDto.IngredientId,
             Amount = recipeIngredientItemCreateDto.Amount
         };
@@ -91,14 +88,5 @@ public class RecipeMapper : IRecipeMapper
             recipeEntity.PreparationTime = recipeUpdateDto.PreparationTime.Value;
         }
 
-        if (recipeUpdateDto.CategoryIds is not null)
-        {
-            recipeEntity.Categories = recipeUpdateDto.CategoryIds.Select(id => new Category { Id = id }).ToList();
-        }
-
-        if (recipeUpdateDto.Ingredients is not null)
-        {
-            recipeEntity.RecipeIngredients = recipeUpdateDto.Ingredients.Select(ToRecipeIngredientEntity).ToList();
-        }
     }
 }

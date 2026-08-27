@@ -40,15 +40,6 @@ public interface IIngredientService
     /// <param name="supplierId">The ID of the supplier attempting to delete the ingredient.</param>
     Task DeleteIngredientAsync(int ingredientId, Guid supplierId);
 
-
-    /// <summary>
-    /// Adds an allergen to a specific ingredient in the database.
-    /// </summary>
-    /// <param name="ingredientId">The ID of the ingredient to which the allergen will be added.</param>
-    /// <param name="allergenId">The ID of the allergen to be added to the ingredient.</param>
-    /// <param name="supplierId">The ID of the supplier attempting to add the allergen.</param>
-    Task AddAllergenToIngredientAsync(int ingredientId, int allergenId, Guid supplierId);
-
     /// <summary>
     /// Removes an allergen from a specific ingredient in the database.
     /// </summary>

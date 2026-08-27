@@ -301,7 +301,7 @@ public class CustomerControllerTest : IDisposable
         _mapperMock.Setup(m => m.AnonymizeCustomerEntity(user));
 
         // Act
-        var result = await _controller.DeleteCustomer(rawPassword);
+        var result = await _controller.DeleteCustomer(new CustomerActionRequest(rawPassword));
 
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
@@ -325,7 +325,7 @@ public class CustomerControllerTest : IDisposable
         _currentUserMock.SetupGet(u => u.UserId).Returns(user.Id);
 
         // Act
-        var result = await _controller.DeleteCustomer("WrongPassword");
+        var result = await _controller.DeleteCustomer(new CustomerActionRequest("WrongPassword"));
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);

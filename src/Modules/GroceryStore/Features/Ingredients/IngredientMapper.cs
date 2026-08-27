@@ -83,10 +83,5 @@ public class IngredientMapper : IIngredientMapper
         {
             ingredient.Protein = ingredientUpdateDto.Protein;
         }
-
-        if (ingredientUpdateDto.AllergenIds is not null)
-        {
-            ingredient.Allergens = ingredientUpdateDto.AllergenIds.Select(id => new Allergen { Id = id }).ToList();
-        }
     }
 }

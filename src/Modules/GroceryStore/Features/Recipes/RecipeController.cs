@@ -88,91 +88,19 @@ public class RecipeController : ControllerBase
     }
 
     /// <summary>
-    /// Adds a category to an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to which the category will be added.</param>
-    /// <param name="categoryId">The ID of the category to add to the recipe.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <response code="204">If the category was successfully added to the recipe.</response>
-    /// <response code="400">If the category cannot be added due to business logic constraints.</response>
-    /// <response code="404">If the recipe or category does not exist.</response>
-    /// <response code="403">If the supplier is not authorized to add the category to the recipe.</response>
-    [Authorize(Roles = Roles.Supplier)]
-    [HttpPost("{recipeId}/categories/{categoryId}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddCategoryToRecipe([FromRoute] int recipeId, [FromRoute] int categoryId)
-    {
-        try
-        {
-            await _recipeService.AddCategoryToRecipeAsync(recipeId, categoryId, _currentUser.UserId);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Adds an ingredient to an existing recipe in the repository.
-    /// </summary>
-    /// <param name="recipeId">The ID of the recipe to which the ingredient will be added.</param>
-    /// <param name="ingredientId">The ID of the ingredient to add to the recipe.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <response code="204">If the ingredient was successfully added to the recipe.</response>
-    /// <response code="400">If the ingredient cannot be added due to business logic constraints.</response>
-    /// <response code="404">If the recipe or ingredient does not exist.</response>
-    /// <response code="403">If the supplier is not authorized to add the ingredient to the recipe.</response>
-    [Authorize(Roles = Roles.Supplier)]
-    [HttpPost("{recipeId}/ingredients/{ingredientId}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddIngredientToRecipe([FromRoute] int recipeId, [FromRoute] int ingredientId)
-    {
-        try
-        {
-            await _recipeService.AddIngredientToRecipeAsync(recipeId, ingredientId, _currentUser.UserId);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    /// <summary>
     /// Updates an existing recipe in the repository.
     /// </summary>
     /// <param name="recipeId">The ID of the recipe to update.</param>
     /// <param name="recipe">The <see cref="RecipeUpdateDto"/> containing the updated details of the recipe.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <response code="204">If the recipe was successfully updated.</response>
+    /// <response code="400">If a referenced category or ingredient does not exist, or an ingredient is specified more than once.</response>
     /// <response code="404">If the recipe does not exist.</response>
     /// <response code="403">If the supplier is not authorized to update the recipe.</response>
     [HttpPatch("{recipeId}")]
     [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateRecipe([FromRoute] int recipeId, [FromBody] RecipeUpdateDto recipe)
@@ -189,6 +117,10 @@ public class RecipeController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return Forbid(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 

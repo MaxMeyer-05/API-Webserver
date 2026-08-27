@@ -154,32 +154,6 @@ public class RecipeControllerTest : IDisposable
     #region Category Management Tests
 
     [Fact]
-    [Trait("Action", "Update")]
-    public async Task AddCategoryToRecipe_ShouldReturnNoContent_WhenSuccessful()
-    {
-        // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var recipe = RecipeTestData.CreateRecipe(supplierId: supplier.Id);
-        var category = new Category { Name = "Dessert", SupplierId = supplier.Id };
-
-        _context.Locations.Add(location);
-        _context.Suppliers.Add(supplier);
-        _context.Recipes.Add(recipe);
-        _context.Categories.Add(category);
-        await _context.SaveChangesAsync();
-
-        _currentUserMock.SetupGet(u => u.UserId).Returns(supplier.Id);
-
-        // Act
-        var result = await _controller.AddCategoryToRecipe(recipe.Id, category.Id);
-
-        // Assert
-        var noContentResult = Assert.IsType<NoContentResult>(result);
-        Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
-    }
-
-    [Fact]
     [Trait("Action", "Delete")]
     public async Task RemoveCategoryFromRecipe_ShouldReturnNoContent_WhenSuccessful()
     {

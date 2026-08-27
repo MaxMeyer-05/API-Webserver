@@ -90,7 +90,7 @@ public class RecipeMapperTest
         Assert.NotNull(dto.Ingredients);
         var ing = Assert.Single(dto.Ingredients);
         Assert.Equal(100m, ing.Amount);
-        Assert.Equal(supplier.CompanyName, ing.SupplierName);
+        Assert.Equal(supplier.CompanyName, ing.Ingredient.SupplierName);
         Assert.Equal("Haferflocken", ing.Ingredient.Name);
     }
 
@@ -128,7 +128,7 @@ public class RecipeMapperTest
             preparationTime: 15,
             instructions: "Backen",
             categoryIds: [1, 2],
-            ingredients: [new RecipeIngredientItemCreateDto(0, 5, 250m)]);
+            ingredients: [new RecipeIngredientItemCreateDto(5, 250m)]);
 
         // Act
         var entity = _mapper.ToRecipeEntity(createDto);
@@ -184,8 +184,8 @@ public class RecipeMapperTest
         // Assert
         Assert.NotNull(dto);
         Assert.Equal(50m, dto.Amount);
-        Assert.Equal(supplier.Id, dto.SupplierId);
-        Assert.Equal(supplier.CompanyName, dto.SupplierName);
+        Assert.Equal(supplier.Id, dto.Ingredient.SupplierId);
+        Assert.Equal(supplier.CompanyName, dto.Ingredient.SupplierName);
         Assert.Equal("Zucker", dto.Ingredient.Name);
     }
 
@@ -194,14 +194,13 @@ public class RecipeMapperTest
     public void ToRecipeIngredientEntity_ShouldMapFromItemCreateDto()
     {
         // Arrange
-        var itemCreateDto = new RecipeIngredientItemCreateDto(10, 20, 500m);
+        var itemCreateDto = new RecipeIngredientItemCreateDto(20, 500m);
 
         // Act
         var entity = _mapper.ToRecipeIngredientEntity(itemCreateDto);
 
         // Assert
         Assert.NotNull(entity);
-        Assert.Equal(10, entity.RecipeId);
         Assert.Equal(20, entity.IngredientId);
         Assert.Equal(500m, entity.Amount);
     }
@@ -212,7 +211,7 @@ public class RecipeMapperTest
 
     [Fact]
     [Trait("Action", "Mapping")]
-    public void UpdateRecipeEntity_ShouldUpdateAllFields_WhenProvidedInDto()
+    public void UpdateRecipeEntity_ShouldUpdateScalarFields_WhenProvidedInDto()
     {
         // Arrange
         var recipe = RecipeTestData.CreateRecipe(name: "Alt", prepTime: 10, instructions: "Alte Anleitung");
@@ -220,8 +219,8 @@ public class RecipeMapperTest
             Name: "Neu",
             Instructions: "Neue Anleitung",
             PreparationTime: 30,
-            CategoryIds: [5],
-            Ingredients: [new RecipeIngredientItemCreateDto(recipe.Id, 99, 10m)]);
+            CategoryIds: null,
+            Ingredients: null);
 
         // Act
         _mapper.UpdateRecipeEntity(recipe, updateDto);
@@ -230,11 +229,8 @@ public class RecipeMapperTest
         Assert.Equal("Neu", recipe.Name);
         Assert.Equal("Neue Anleitung", recipe.Instructions);
         Assert.Equal(30, recipe.PreparationTime);
-        var cat = Assert.Single(recipe.Categories);
-        Assert.Equal(5, cat.Id);
-        var ing = Assert.Single(recipe.RecipeIngredients);
-        Assert.Equal(99, ing.IngredientId);
-        Assert.Equal(10m, ing.Amount);
+        Assert.Empty(recipe.Categories);
+        Assert.Empty(recipe.RecipeIngredients);
     }
 
     [Fact]
