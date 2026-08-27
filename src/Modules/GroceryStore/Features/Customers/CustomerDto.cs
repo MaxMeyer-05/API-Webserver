@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace GroceryStore.Features.Customers;
 
 /// <summary>
@@ -65,6 +67,7 @@ public record CustomerRegistrationDto(
 /// <param name="ZipCode">The zip code of the customer's location.</param>
 /// <param name="Password">The password for the customer's account.</param>
 /// <param name="ConfirmPassword">The confirmation of the password for the customer's account.</param>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public record CustomerUpdateDto(
     string? FirstName, 
     string? LastName, 

@@ -1,5 +1,6 @@
 using Serilog;
 using System.Text;
+using System.Security.Claims;
 
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -217,6 +218,34 @@ public static class ServiceRegistration
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromMinutes(1)
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var userIdValue = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                    var role = context.Principal?.FindFirst(ClaimTypes.Role)?.Value
+                        ?? context.Principal?.FindFirst("role")?.Value;
+
+                    if (!Guid.TryParse(userIdValue, out var userId) || string.IsNullOrEmpty(role))
+                    {
+                        context.Fail("Token does not contain a valid user identity.");
+                        return;
+                    }
+
+                    var dbContext = context.HttpContext.RequestServices
+                        .GetRequiredService<GroceryStoreDbContext>();
+
+                    var accountIsActive = role == Roles.Supplier
+                        ? await dbContext.Suppliers.AsNoTracking()
+                            .AnyAsync(supplier => supplier.Id == userId && supplier.Role == role)
+                        : await dbContext.Customers.AsNoTracking()
+                            .AnyAsync(customer => customer.Id == userId && customer.Role == role);
+
+                    if (!accountIsActive)
+                        context.Fail("The account associated with this token is no longer active.");
+                }
             };
         });
 
