@@ -1,4 +1,28 @@
 <Solution>
   <Folder Name="/src/" />
-  <Folder Name="/src/Server/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/SharedKernel/SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/Server/Server.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/GroceryStore/GroceryStore.csproj" />
+    <Project Path="src/Modules/HealthDiagnostics/HealthDiagnostics.csproj" />
+    <Project Path="src/Modules/ModuleCatalog/ModuleCatalog.csproj" />
+    <Project Path="src/Modules/SystemSettings/SystemSettings.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/BuildingBlocks/">
+    <Project Path="tests/BuildingBlocks/SharedKernel.Tests/SharedKernel.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/GroceryStore.Tests/GroceryStore.Tests.csproj" />
+    <Project Path="tests/Modules/HealthDiagnostics.Tests/HealthDiagnostics.Tests.csproj" />
+    <Project Path="tests/Modules/ModuleCatalog.Tests/ModuleCatalog.Tests.csproj" />
+    <Project Path="tests/Modules/SystemSettings.Tests/SystemSettings.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Host/">
+    <Project Path="tests/Host/Server.Tests/Server.Tests.csproj" />
+  </Folder>
 </Solution>
