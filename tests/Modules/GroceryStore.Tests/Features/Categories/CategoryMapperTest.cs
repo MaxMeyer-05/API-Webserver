@@ -29,6 +29,7 @@ public class CategoryMapperTest
 
         // Assert
         Assert.NotNull(dto);
+        Assert.Equal(1, dto.CategoryId);
         Assert.Equal("Frühstück", dto.Name);
         Assert.Equal(supplier.Id, dto.SupplierId);
         Assert.NotNull(dto.Recipes);
@@ -132,6 +133,28 @@ public class CategoryMapperTest
         Assert.Equal("Frühstück", category.Name);
         Assert.Single(category.Recipes);
         Assert.Same(initialRecipe, category.Recipes.First());
+    }
+
+    [Fact]
+    [Trait("Action", "Mapping")]
+    public void UpdateCategoryEntity_ShouldClearRecipes_WhenEmptyListIsProvided()
+    {
+        // Arrange
+        var category = CategoryTestData.CreateCategory(
+            1,
+            "Frühstück",
+            recipes: [
+                GroceryStoreTestData.CreateRecipe(Guid.NewGuid(), "Müsli"),
+                GroceryStoreTestData.CreateRecipe(Guid.NewGuid(), "Porridge")
+            ]);
+        var updateDto = new CategoryUpdateDto(null, []);
+
+        // Act
+        _mapper.UpdateCategoryEntity(category, updateDto);
+
+        // Assert
+        Assert.Equal("Frühstück", category.Name);
+        Assert.Empty(category.Recipes);
     }
 
     #endregion

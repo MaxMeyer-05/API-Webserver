@@ -57,11 +57,9 @@ public class CategoryControllerTest : IDisposable
     public async Task GetAllCategories_ShouldReturnOkWithCategories()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Frühstück", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -79,6 +77,20 @@ public class CategoryControllerTest : IDisposable
         Assert.Single(returnedItems);
     }
 
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllCategories_ShouldReturnOkWithEmptyCollection_WhenNoCategoriesExist()
+    {
+        // Act
+        var result = await _controller.GetAllCategories();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var returnedItems = Assert.IsAssignableFrom<IEnumerable<CategoryDto>>(okResult.Value);
+        Assert.Empty(returnedItems);
+    }
+
     #endregion
 
     #region GetCategoryById Tests
@@ -88,11 +100,9 @@ public class CategoryControllerTest : IDisposable
     public async Task GetCategoryById_ShouldReturnOk_WhenCategoryExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Desserts", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -130,9 +140,7 @@ public class CategoryControllerTest : IDisposable
     public async Task CreateCategory_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -150,6 +158,7 @@ public class CategoryControllerTest : IDisposable
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
         Assert.Equal(nameof(CategoryController.GetCategoryById), createdAtResult.ActionName);
+        Assert.Equal(createdDto.CategoryId, createdAtResult.RouteValues!["categoryId"]);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
@@ -158,9 +167,7 @@ public class CategoryControllerTest : IDisposable
     public async Task CreateCategory_ShouldReturnBadRequest_WhenMappingFails()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        _context.Locations.Add(location);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         _context.Suppliers.Add(supplier);
         await _context.SaveChangesAsync();
 
@@ -187,11 +194,9 @@ public class CategoryControllerTest : IDisposable
     public async Task UpdateCategory_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Alt", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -207,6 +212,7 @@ public class CategoryControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("Neu", (await _context.Categories.FindAsync(category.Id))!.Name);
     }
 
     [Fact]
@@ -230,12 +236,10 @@ public class CategoryControllerTest : IDisposable
     public async Task UpdateCategory_ShouldReturnForbid_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var strangerId = Guid.NewGuid();
         var category = CategoryTestData.CreateCategory(0, "Frühstück", owner.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -249,6 +253,7 @@ public class CategoryControllerTest : IDisposable
         // Assert
         var forbidResult = Assert.IsType<ForbidResult>(result);
         Assert.NotNull(forbidResult);
+        Assert.Equal("Frühstück", (await _context.Categories.FindAsync(category.Id))!.Name);
     }
 
     #endregion
@@ -260,11 +265,9 @@ public class CategoryControllerTest : IDisposable
     public async Task DeleteCategory_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
         var category = CategoryTestData.CreateCategory(0, "Suppen", supplier.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -277,6 +280,7 @@ public class CategoryControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Null(await _context.Categories.FindAsync(category.Id));
     }
 
     [Fact]
@@ -299,12 +303,10 @@ public class CategoryControllerTest : IDisposable
     public async Task DeleteCategory_ShouldReturnForbid_WhenSupplierIsNotOwner()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var owner = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
+        var owner = GroceryStoreTestData.CreateSupplier();
         var strangerId = Guid.NewGuid();
         var category = CategoryTestData.CreateCategory(0, "Getränke", owner.Id);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(owner);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
@@ -317,6 +319,7 @@ public class CategoryControllerTest : IDisposable
         // Assert
         var forbidResult = Assert.IsType<ForbidResult>(result);
         Assert.NotNull(forbidResult);
+        Assert.NotNull(await _context.Categories.FindAsync(category.Id));
     }
 
     #endregion
