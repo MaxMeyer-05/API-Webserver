@@ -24,8 +24,13 @@ public class CustomerService : ICustomerService
     }
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="KeyNotFoundException"></exception>
     public async Task<CustomerDto> CreateCustomerAsync(CustomerRegistrationDto customer)
     {
+        if (customer.Password != customer.ConfirmPassword)
+            throw new InvalidOperationException("Passwords do not match.");
+        
         var customerEntity = _customerMapper.ToCustomerEntity(customer);
 
         if (await IsEmailInUseAsync(customerEntity.Email))
@@ -45,6 +50,8 @@ public class CustomerService : ICustomerService
     }
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="KeyNotFoundException"></exception>
     public async Task DeleteCustomerAsync(Guid customerId, string password)
     {
         var customer = await _dbContext.Customers
@@ -70,6 +77,7 @@ public class CustomerService : ICustomerService
     }
 
     /// <inheritdoc />
+    /// <exception cref="KeyNotFoundException"></exception>
     public async Task<CustomerDto?> GetCustomerByIdAsync(Guid customerId)
     {
         var customer = await _dbContext.Customers
@@ -96,6 +104,7 @@ public class CustomerService : ICustomerService
     }
 
     /// <inheritdoc />
+    /// <exception cref="UnauthorizedAccessException"></exception>
     public async Task<CustomerDto?> LoginCustomerAsync(CustomerLoginDto customer)
     {
         var customerEntity = await _dbContext.Customers
@@ -111,6 +120,8 @@ public class CustomerService : ICustomerService
     }
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="KeyNotFoundException"></exception>
     public async Task UpdateCustomerAsync(Guid customerId, CustomerUpdateDto customer)
     {
         var customerEntity = await _dbContext.Customers
@@ -128,12 +139,4 @@ public class CustomerService : ICustomerService
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Updated customer with Id {CustomerId}", customerId);
     }
-
-    /// <summary>
-    /// Hashes the provided password using BCrypt.
-    /// </summary>
-    /// <param name="password">The password to hash.</param>
-    /// <returns>The hashed password.</returns>
-    private static string HashPassword(string password)
-        => BCrypt.Net.BCrypt.HashPassword(password);
 }

@@ -68,7 +68,7 @@ public class AllergenController : ControllerBase
     /// <returns>The created allergen.</returns>
     /// <response code="201">Returns the created allergen.</response>
     /// <response code="400">If the allergen data is invalid.</response>
-    [HttpPost]
+    [HttpPost("create")]
     [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(typeof(AllergenDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

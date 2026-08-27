@@ -28,6 +28,9 @@ public class SupplierService : ISupplierService
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<SupplierDto> CreateSupplierAsync(SupplierRegistrationDto supplier)
     {
+        if (supplier.Password != supplier.ConfirmPassword)
+            throw new InvalidOperationException("Passwords do not match.");
+
         var supplierEntity = _supplierMapper.ToSupplierEntity(supplier);
 
         if (await IsEmailInUseAsync(supplierEntity.Email))

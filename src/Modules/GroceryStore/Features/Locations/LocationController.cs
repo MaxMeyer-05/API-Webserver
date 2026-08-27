@@ -114,7 +114,7 @@ public class LocationController : ControllerBase
     /// <returns>No content if the deletion is successful.</returns>
     /// <response code="204">If the deletion is successful.</response>
     /// <response code="404">If the location is not found.</response>
-    [HttpDelete("{zipCode}")]
+    [HttpDelete("{zipCode}/delete")]
     [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

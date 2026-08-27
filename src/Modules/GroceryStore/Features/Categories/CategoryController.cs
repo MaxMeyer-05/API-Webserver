@@ -68,7 +68,7 @@ public class CategoryController : ControllerBase
     /// <returns>The created category.</returns>
     /// <response code="201">Returns the created category.</response>
     /// <response code="400">If the category data is invalid.</response>
-    [HttpPost]
+    [HttpPost("create")]
     [Authorize(Roles = Roles.Supplier)]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
