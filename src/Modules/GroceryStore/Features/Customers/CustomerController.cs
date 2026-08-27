@@ -127,6 +127,7 @@ public class CustomerController : ControllerBase
     /// <response code="204">If the update is successful.</response>
     /// <response code="400">If the email or phone number is already in use.</response>
     /// <response code="404">If the customer is not found.</response>
+    [Authorize]
     [HttpPatch("me")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -155,6 +156,7 @@ public class CustomerController : ControllerBase
     /// <response code="204">If the deletion is successful.</response>
     /// <response code="400">If the password is invalid.</response>
     /// <response code="404">If the customer is not found.</response>
+    [Authorize]
     [HttpDelete("me")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

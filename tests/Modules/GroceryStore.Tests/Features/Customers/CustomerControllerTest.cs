@@ -152,7 +152,7 @@ public class CustomerControllerTest : IDisposable
         // Assert
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
-        Assert.Equal(nameof(CustomerController.CreateCustomer), createdAtResult.ActionName);
+        Assert.Equal(nameof(CustomerController.GetCurrentCustomer), createdAtResult.ActionName);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
