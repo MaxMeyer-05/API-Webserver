@@ -35,7 +35,7 @@ public class SupplierController : ControllerBase
     /// <returns>A list of SupplierDto objects.</returns>
     /// <response code="200">Returns the list of suppliers.</response>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(IEnumerable<SupplierDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SupplierDto>>> GetSuppliers()
     {
@@ -109,7 +109,7 @@ public class SupplierController : ControllerBase
                 loggedInSupplier.Email, 
                 loggedInSupplier.Role);
 
-            return Ok(new AuthResponseDto(
+            return Ok(new SupplierAuthResponseDto(
                 token,
                 loggedInSupplier.SupplierId,
                 loggedInSupplier.Role));

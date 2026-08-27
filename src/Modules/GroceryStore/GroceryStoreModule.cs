@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 using SharedKernel.Modules;
 
 using GroceryStore.Features.Allergens;
@@ -42,31 +44,34 @@ public sealed class GroceryStoreModule : IModule
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers()
-                .AddApplicationPart(typeof(AllergenController).Assembly)
-                .AddApplicationPart(typeof(CategoryController).Assembly)
-                .AddApplicationPart(typeof(IngredientController).Assembly)
-                .AddApplicationPart(typeof(LocationController).Assembly)
-                .AddApplicationPart(typeof(OrderController).Assembly)
-                .AddApplicationPart(typeof(RecipeController).Assembly)
-                .AddApplicationPart(typeof(SupplierController).Assembly)
-                .AddApplicationPart(typeof(CustomerController).Assembly);
+                .AddApplicationPart(typeof(GroceryStoreModule).Assembly);
 
-            services.AddSingleton<IAllergenMapper, AllergenMapper>();
-            services.AddSingleton<ICategoryMapper, CategoryMapper>();
-            services.AddSingleton<IIngredientMapper, IngredientMapper>();
-            services.AddSingleton<ILocationMapper, LocationMapper>();
-            services.AddSingleton<IOrderMapper, OrderMapper>();
-            services.AddSingleton<IRecipeMapper, RecipeMapper>();
-            services.AddSingleton<ISupplierMapper, SupplierMapper>();
-            services.AddSingleton<ICustomerMapper, CustomerMapper>();
+        // Mappers
+        services.AddSingleton<IAllergenMapper, AllergenMapper>();
+        services.AddSingleton<ICategoryMapper, CategoryMapper>();
+        services.AddSingleton<IIngredientMapper, IngredientMapper>();
+        services.AddSingleton<ILocationMapper, LocationMapper>();
+        services.AddSingleton<IOrderMapper, OrderMapper>();
+        services.AddSingleton<IRecipeMapper, RecipeMapper>();
+        services.AddSingleton<ISupplierMapper, SupplierMapper>();
+        services.AddSingleton<ICustomerMapper, CustomerMapper>();
 
-            services.AddScoped<IAllergenService, AllergenService>();
-            services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<IIngredientService, IngredientService>();
-            services.AddScoped<ILocationService, LocationService>();
-            services.AddScoped<IOrderService, OrderService>();
-            services.AddScoped<IRecipeService, RecipeService>();
-            services.AddScoped<ISupplierService, SupplierService>();
-            services.AddScoped<ICustomerService, CustomerService>();
+        // Services
+        services.AddScoped<IAllergenService, AllergenService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IIngredientService, IngredientService>();
+        services.AddScoped<ILocationService, LocationService>();
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IRecipeService, RecipeService>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<ICustomerService, CustomerService>();
+    }
+
+    public void RegisterHealthChecks(IHealthChecksBuilder healthChecksBuilder)
+    {
+        healthChecksBuilder.AddCheck(
+            "grocery-store-self",
+            () => HealthCheckResult.Healthy("Grocery Store module active."),
+            tags: ["system", $"module:{Slug}"]);
     }
 }

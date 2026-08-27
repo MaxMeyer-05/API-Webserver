@@ -35,7 +35,7 @@ public class CustomerController : ControllerBase
     /// <returns>A list of all customers.</returns>
     /// <response code="200">Returns the list of customers.</response>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(typeof(IEnumerable<CustomerDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
     {
@@ -80,7 +80,7 @@ public class CustomerController : ControllerBase
         try
         {
             var createdCustomer = await _customerService.CreateCustomerAsync(customer);
-            return CreatedAtAction(nameof(CreateCustomer), createdCustomer);
+            return CreatedAtAction(nameof(GetCurrentCustomer), createdCustomer);
         }
         catch (InvalidOperationException ex)
         {

@@ -231,7 +231,7 @@ public class SupplierControllerTest : IDisposable
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
 
-        var authResponse = Assert.IsType<AuthResponseDto>(okResult.Value);
+        var authResponse = Assert.IsType<SupplierAuthResponseDto>(okResult.Value);
         Assert.Equal("generated_jwt_token_xyz", authResponse.Token);
         Assert.Equal(supplier.Id, authResponse.SupplierId);
         Assert.Equal("supplier", authResponse.Role);

@@ -93,7 +93,7 @@ public record SupplierActionRequest(
 /// <param name="Token">The authentication token for the supplier.</param>
 /// <param name="SupplierId">The unique identifier of the supplier.</param>
 /// <param name="Role">The role of the supplier.</param>
-public record AuthResponseDto(
+public record SupplierAuthResponseDto(
     string Token,
     Guid SupplierId,
     string Role
