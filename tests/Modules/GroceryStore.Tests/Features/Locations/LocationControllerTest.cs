@@ -3,6 +3,7 @@ using Moq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using GroceryStore.Database.DbContexts;
@@ -54,11 +55,12 @@ public class LocationControllerTest : IDisposable
     public async Task GetAllLocations_ShouldReturnOkWithLocations()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation("10115", "Berlin");
+        await _context.Locations.ExecuteDeleteAsync();
+        var location = GroceryStoreTestData.CreateLocation("28195", "Bremen");
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
 
-        var expectedDto = LocationTestData.CreateLocationDto("10115", "Berlin");
+        var expectedDto = LocationTestData.CreateLocationDto("28195", "Bremen");
         _mapperMock.Setup(m => m.ToLocationDto(It.IsAny<Location>())).Returns(expectedDto);
 
         // Act
@@ -71,6 +73,23 @@ public class LocationControllerTest : IDisposable
         Assert.Single(returnedList);
     }
 
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllLocations_ShouldReturnOkWithEmptyCollection_WhenNoLocationsExist()
+    {
+        // Arrange
+        await _context.Locations.ExecuteDeleteAsync();
+
+        // Act
+        var result = await _controller.GetAllLocations();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        var locations = Assert.IsAssignableFrom<IEnumerable<LocationDto>>(okResult.Value);
+        Assert.Empty(locations);
+    }
+
     #endregion
 
     #region GetLocationByZipCode Tests
@@ -80,15 +99,15 @@ public class LocationControllerTest : IDisposable
     public async Task GetLocationByZipCode_ShouldReturnOk_WhenLocationExists()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation("20095", "Hamburg");
+        var location = GroceryStoreTestData.CreateLocation("01067", "Dresden");
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
 
-        var expectedDto = LocationTestData.CreateLocationDto("20095", "Hamburg");
-        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "20095"))).Returns(expectedDto);
+        var expectedDto = LocationTestData.CreateLocationDto("01067", "Dresden");
+        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "01067"))).Returns(expectedDto);
 
         // Act
-        var result = await _controller.GetLocationByZipCode("20095");
+        var result = await _controller.GetLocationByZipCode("01067");
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -117,12 +136,12 @@ public class LocationControllerTest : IDisposable
     public async Task CreateLocation_ShouldReturnCreatedAtAction_WhenValid()
     {
         // Arrange
-        var createDto = LocationTestData.CreateLocationCreateDto("80331", "München");
-        var entity = new Location { ZipCode = "80331", City = "München" };
-        var createdDto = LocationTestData.CreateLocationDto("80331", "München");
+        var createDto = LocationTestData.CreateLocationCreateDto("28195", "Bremen");
+        var entity = new Location { ZipCode = "28195", City = "Bremen" };
+        var createdDto = LocationTestData.CreateLocationDto("28195", "Bremen");
 
         _mapperMock.Setup(m => m.ToLocationEntity(createDto)).Returns(entity);
-        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "80331"))).Returns(createdDto);
+        _mapperMock.Setup(m => m.ToLocationDto(It.Is<Location>(l => l.ZipCode == "28195"))).Returns(createdDto);
 
         // Act
         var result = await _controller.CreateLocation(createDto);
@@ -131,6 +150,7 @@ public class LocationControllerTest : IDisposable
         var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(StatusCodes.Status201Created, createdAtResult.StatusCode);
         Assert.Equal(nameof(LocationController.GetLocationByZipCode), createdAtResult.ActionName);
+        Assert.Equal(createdDto.ZipCode, createdAtResult.RouteValues!["zipCode"]);
         Assert.Same(createdDto, createdAtResult.Value);
     }
 
@@ -139,7 +159,7 @@ public class LocationControllerTest : IDisposable
     public async Task CreateLocation_ShouldReturnBadRequest_WhenMappingFails()
     {
         // Arrange
-        var createDto = LocationTestData.CreateLocationCreateDto();
+        var createDto = LocationTestData.CreateLocationCreateDto("28195", "Bremen");
         var entity = new Location { ZipCode = createDto.ZipCode, City = createDto.City };
 
         _mapperMock.Setup(m => m.ToLocationEntity(createDto)).Returns(entity);
@@ -162,7 +182,7 @@ public class LocationControllerTest : IDisposable
     public async Task UpdateLocation_ShouldReturnNoContent_WhenSuccessful()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation("50667", "Köln");
+        var location = GroceryStoreTestData.CreateLocation("28195", "Bremen");
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
 
@@ -171,11 +191,12 @@ public class LocationControllerTest : IDisposable
             .Callback<Location, LocationUpdateDto>((entity, dto) => entity.City = dto.City!);
 
         // Act
-        var result = await _controller.UpdateLocation("50667", updateDto);
+        var result = await _controller.UpdateLocation("28195", updateDto);
 
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        Assert.Equal("Köln am Rhein", (await _context.Locations.FindAsync("28195"))!.City);
     }
 
     [Fact]
@@ -212,6 +233,8 @@ public class LocationControllerTest : IDisposable
         // Assert
         var noContentResult = Assert.IsType<NoContentResult>(result);
         Assert.Equal(StatusCodes.Status204NoContent, noContentResult.StatusCode);
+        _context.ChangeTracker.Clear();
+        Assert.Null(await _context.Locations.FindAsync("28195"));
     }
 
     [Fact]
