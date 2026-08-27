@@ -43,6 +43,7 @@ public class OrderService : IOrderService
             totalAmount += ingredient!.NetPrice * item.Quantity;
         }
 
+        orderEntity.TotalAmount = totalAmount;
         _dbContext.Orders.Add(orderEntity);
         await _dbContext.SaveChangesAsync();
 

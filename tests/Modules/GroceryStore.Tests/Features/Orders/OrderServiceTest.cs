@@ -55,12 +55,10 @@ public class OrderServiceTest : IDisposable
     public async Task CreateOrderAsync_ShouldCalculateTotalAmountAndSaveOrder()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var supplier = GroceryStoreTestData.CreateSupplier(zipCode: location.ZipCode);
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var supplier = GroceryStoreTestData.CreateSupplier();
+        var user = GroceryStoreTestData.CreateCustomer();
         var ingredientEntity = GroceryStoreTestData.CreateIngredient(supplier.Id, "Milch", 1.50m);
 
-        _context.Locations.Add(location);
         _context.Suppliers.Add(supplier);
         _context.Customers.Add(user);
         _context.Ingredients.Add(ingredientEntity);
@@ -103,7 +101,11 @@ public class OrderServiceTest : IDisposable
 
         var persistedOrder = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.CustomerId == user.Id);
         Assert.NotNull(persistedOrder);
+        Assert.Equal(3.00m, persistedOrder.TotalAmount);
         Assert.Single(persistedOrder.OrderItems);
+        _mapperMock.Verify(m => m.ToOrderEntity(createDto), Times.Once);
+        _ingredientServiceMock.Verify(s => s.GetIngredientByIdAsync(ingredientEntity.Id), Times.Once);
+        _mapperMock.Verify(m => m.ToOrderDto(It.IsAny<Order>()), Times.Once);
     }
 
     #endregion
@@ -115,14 +117,12 @@ public class OrderServiceTest : IDisposable
     public async Task GetAllOrdersAsync_ShouldReturnOrdersOnlyForSpecifiedUser()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user1 = GroceryStoreTestData.CreateCustomer(email: "user1@example.com", zipCode: location.ZipCode);
-        var user2 = GroceryStoreTestData.CreateCustomer(email: "user2@example.com", zipCode: location.ZipCode);
+        var user1 = GroceryStoreTestData.CreateCustomer(email: "user1@example.com");
+        var user2 = GroceryStoreTestData.CreateCustomer(email: "user2@example.com");
 
         var order1 = OrderTestData.CreateOrder(customerId: user1.Id);
         var order2 = OrderTestData.CreateOrder(customerId: user2.Id);
 
-        _context.Locations.Add(location);
         _context.Customers.AddRange(user1, user2);
         _context.Orders.AddRange(order1, order2);
         await _context.SaveChangesAsync();
@@ -138,6 +138,19 @@ public class OrderServiceTest : IDisposable
         var list = result.ToList();
         var singleOrder = Assert.Single(list);
         Assert.Equal(user1.Id, singleOrder.CustomerId);
+        _mapperMock.Verify(m => m.ToOrderDto(It.Is<Order>(order => order.Id == order1.Id)), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Action", "Get")]
+    public async Task GetAllOrdersAsync_ShouldReturnEmptyCollection_WhenCustomerHasNoOrders()
+    {
+        // Act
+        var result = await _service.GetAllOrdersAsync(Guid.NewGuid());
+
+        // Assert
+        Assert.Empty(result);
+        _mapperMock.Verify(m => m.ToOrderDto(It.IsAny<Order>()), Times.Never);
     }
 
     [Fact]
@@ -145,11 +158,9 @@ public class OrderServiceTest : IDisposable
     public async Task GetOrderByIdAsync_ShouldReturnMappedDto_WhenOrderBelongsToUser()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -163,6 +174,7 @@ public class OrderServiceTest : IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal(user.Id, result.CustomerId);
+        _mapperMock.Verify(m => m.ToOrderDto(It.IsAny<Order>()), Times.Once);
     }
 
     [Fact]
@@ -170,12 +182,10 @@ public class OrderServiceTest : IDisposable
     public async Task GetOrderByIdAsync_ShouldThrowKeyNotFoundException_WhenOrderDoesNotExistOrBelongsToAnotherUser()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user1 = GroceryStoreTestData.CreateCustomer(email: "u1@test.com", zipCode: location.ZipCode);
-        var user2 = GroceryStoreTestData.CreateCustomer(email: "u2@test.com", zipCode: location.ZipCode);
+        var user1 = GroceryStoreTestData.CreateCustomer(email: "u1@test.com");
+        var user2 = GroceryStoreTestData.CreateCustomer(email: "u2@test.com");
         var order = OrderTestData.CreateOrder(customerId: user1.Id);
 
-        _context.Locations.Add(location);
         _context.Customers.AddRange(user1, user2);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -194,11 +204,9 @@ public class OrderServiceTest : IDisposable
     public async Task UpdateOrderAsync_ShouldApplyUpdates_WhenOrderIsOpenAndBelongsToUser()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: false, isCompleted: false);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -222,11 +230,9 @@ public class OrderServiceTest : IDisposable
     public async Task UpdateOrderAsync_ShouldThrowInvalidOperationException_WhenOrderIsAlreadyCanceled()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id, isCanceled: true);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -237,6 +243,7 @@ public class OrderServiceTest : IDisposable
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.UpdateOrderAsync(order.Id, user.Id, updateDto));
         Assert.Contains("already canceled", ex.Message);
+        _mapperMock.Verify(m => m.UpdateOrderEntity(It.IsAny<Order>(), It.IsAny<OrderUpdateDto>()), Times.Never);
     }
 
     [Fact]
@@ -244,11 +251,9 @@ public class OrderServiceTest : IDisposable
     public async Task UpdateOrderAsync_ShouldThrowInvalidOperationException_WhenOrderIsAlreadyCompleted()
     {
         // Arrange
-        var location = GroceryStoreTestData.CreateLocation();
-        var user = GroceryStoreTestData.CreateCustomer(zipCode: location.ZipCode);
+        var user = GroceryStoreTestData.CreateCustomer();
         var order = OrderTestData.CreateOrder(customerId: user.Id, isCompleted: true);
 
-        _context.Locations.Add(location);
         _context.Customers.Add(user);
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
@@ -259,6 +264,7 @@ public class OrderServiceTest : IDisposable
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.UpdateOrderAsync(order.Id, user.Id, updateDto));
         Assert.Contains("already completed", ex.Message);
+        _mapperMock.Verify(m => m.UpdateOrderEntity(It.IsAny<Order>(), It.IsAny<OrderUpdateDto>()), Times.Never);
     }
 
     [Fact]

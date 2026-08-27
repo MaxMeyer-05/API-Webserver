@@ -73,6 +73,7 @@ public class OrderMapperTest
         var itemDto = dto.Items.First();
         Assert.Equal(3, itemDto.Quantity);
         Assert.Equal("Milch", itemDto.Ingredient.Name);
+        _ingredientMapperMock.Verify(m => m.ToIngredientDto(ingredient), Times.Once);
     }
 
     [Fact]
@@ -224,6 +225,22 @@ public class OrderMapperTest
         // Assert
         Assert.False(order.IsCanceled);
         Assert.True(order.IsCompleted);
+    }
+
+    [Fact]
+    [Trait("Action", "Mapping")]
+    public void UpdateOrderEntity_ShouldApplyFalseFlags_WhenProvided()
+    {
+        // Arrange
+        var order = OrderTestData.CreateOrder(isCanceled: true, isCompleted: true);
+        var updateDto = new OrderUpdateDto(IsCanceled: false, IsCompleted: false);
+
+        // Act
+        _mapper.UpdateOrderEntity(order, updateDto);
+
+        // Assert
+        Assert.False(order.IsCanceled);
+        Assert.False(order.IsCompleted);
     }
 
     #endregion
