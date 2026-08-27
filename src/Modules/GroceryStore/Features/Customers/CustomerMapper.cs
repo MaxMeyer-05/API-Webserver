@@ -11,7 +11,6 @@ public class CustomerMapper : ICustomerMapper
     /// <inheritdoc/>
     public void AnonymizeCustomerEntity(Customer customerEntity)
     {
-        customerEntity.Id = Guid.NewGuid();
         customerEntity.Role = "anonymized_customer";
         customerEntity.LastName = "null";
         customerEntity.FirstName = "null";
