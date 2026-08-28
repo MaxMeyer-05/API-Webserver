@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using SharedKernel.Modules;
@@ -26,6 +27,8 @@ using GroceryStore.Features.Suppliers.Interfaces;
 using GroceryStore.Features.Customers;
 using GroceryStore.Features.Customers.Interfaces;
 
+using GroceryStore.Database.DbContexts;
+
 namespace GroceryStore;
 
 /// <summary>
@@ -40,9 +43,24 @@ public sealed class GroceryStoreModule : IModule
     public ModuleKind Kind => ModuleKind.Standard;
     public string StaticFileUrlPrefix => "modules/grocery-store";
 
+    public IReadOnlyList<DatabaseInfo> Databases =>
+    [
+        new DatabaseInfo(
+            Name: "GroceryStoreDb",
+            Provider: "SQLite",
+            ConnectionStringKey: "ConnectionStrings:GroceryStore")
+    ];
+
     /// <inheritdoc />
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddDbContext<GroceryStoreDbContext>(options =>
+        {
+            var connectionString = configuration.GetConnectionString("GroceryStore")
+                ?? throw new InvalidOperationException("GroceryStore connection string is missing.");
+            options.UseSqlite(connectionString);
+        });
+
         services.AddControllers()
                 .AddApplicationPart(typeof(GroceryStoreModule).Assembly);
 
@@ -73,5 +91,10 @@ public sealed class GroceryStoreModule : IModule
             "grocery-store-self",
             () => HealthCheckResult.Healthy("Grocery Store module active."),
             tags: ["system", $"module:{Slug}"]);
+
+        healthChecksBuilder.AddDbContextCheck<GroceryStoreDbContext>(
+            name: "grocerystore-db",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["db", "ready", $"module:{Slug}"]);
     }
 }
