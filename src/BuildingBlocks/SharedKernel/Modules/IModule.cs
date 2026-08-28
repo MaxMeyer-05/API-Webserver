@@ -38,6 +38,11 @@ public interface IModule
     string StaticFileUrlPrefix { get; }
 
     /// <summary>
+    /// Defines the list of databases that the module interacts with.
+    /// </summary>
+    IReadOnlyList<DatabaseInfo> Databases => [];
+
+    /// <summary>
     /// Configures the services required by the module.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>

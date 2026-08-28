@@ -88,11 +88,6 @@ public static class ServiceRegistration
     {
         var healthChecks = services.AddHealthChecks();
 
-        healthChecks.AddDbContextCheck<GroceryStoreDbContext>(
-            name: "grocerystore-db",
-            failureStatus: HealthStatus.Unhealthy,
-            tags: ["db", "ready"]);
-
         healthChecks.AddDbContextCheck<ServerDbContext>(
             name: "server-db",
             failureStatus: HealthStatus.Unhealthy,
@@ -168,13 +163,6 @@ public static class ServiceRegistration
     /// <param name="configuration">The configuration used to retrieve connection strings.</param>
     private static void RegisterDatabases(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<GroceryStoreDbContext>(options =>
-        {
-            var connectionString = configuration.GetConnectionString("GroceryStore")
-                ?? throw new InvalidOperationException("The GroceryStore connection string is not configured.");
-            options.UseSqlite(connectionString);
-        });
-
         services.AddDbContext<ServerDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("Server")
